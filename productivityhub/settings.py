@@ -151,6 +151,11 @@ MEDIA_ROOT = BASE_DIR / 'media'
 # Django Allauth Configuration
 SOCIALACCOUNT_PROVIDERS = {
     'google': {
+        'APP': {
+            'client_id': os.getenv('GOOGLE_CLIENT_ID', 'placeholder-client-id'),
+            'secret': os.getenv('GOOGLE_CLIENT_SECRET', 'placeholder-client-secret'),
+            'key': ''
+        },
         'SCOPE': [
             'profile',
             'email',
