@@ -264,7 +264,6 @@ body {
 
 .btn {
     background: var(--accent-color);
-    color: #white;
     border: none;
     border-radius: 12px;
     padding: 8px 16px;
@@ -272,6 +271,7 @@ body {
     font-weight: 500;
     color: #ffffff;
     cursor: pointer;
+    text-decoration: none;
     transition: background 0.2s, transform 0.1s;
     outline: none;
 }
