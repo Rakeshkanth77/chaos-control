@@ -1,7 +1,9 @@
 from django.test import TestCase
 from django.utils import timezone
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession
+from django.contrib.auth.models import User
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile
 from .services import parse_brain_dump, generate_ai_reflection
+
 
 class DashboardServicesTestCase(TestCase):
     def test_local_parse_brain_dump(self):
@@ -62,3 +64,59 @@ class DashboardModelsTestCase(TestCase):
             suggestions="No suggestions"
         )
         self.assertEqual(reflection.notes, "Today was okay")
+
+class UserProfileSignalTestCase(TestCase):
+    def test_user_profile_creation_signal(self):
+        user = User.objects.create_user(username='testoperator', password='testpassword')
+        # Check that profile is automatically created
+        profile = UserProfile.objects.filter(user=user).first()
+        self.assertIsNotNone(profile)
+        self.assertEqual(profile.plan, 'free')
+
+class AuthenticationAndAccessTestCase(TestCase):
+    def setUp(self):
+        self.operator = User.objects.create_user(username='operator', password='password123', email='op@chaoscontrol.com')
+        self.staff_user = User.objects.create_user(username='officer', password='password123', email='staff@chaoscontrol.com', is_staff=True)
+
+    def test_anonymous_redirected_to_landing_on_index(self):
+        # When logged out, index view renders landing
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'dashboard/landing.html')
+
+    def test_authenticated_shows_dashboard(self):
+        self.client.login(username='operator', password='password123')
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'dashboard/index.html')
+
+    def test_profile_requires_login(self):
+        response = self.client.get('/profile/')
+        self.assertEqual(response.status_code, 302) # Redirects to login
+
+    def test_profile_accessible_logged_in(self):
+        self.client.login(username='operator', password='password123')
+        response = self.client.get('/profile/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'dashboard/profile.html')
+
+    def test_ops_dashboard_restricted_to_staff(self):
+        # Anonymous redirect
+        response = self.client.get('/ops/dashboard/')
+        self.assertEqual(response.status_code, 302)
+
+        # Operator redirect (not staff)
+        self.client.login(username='operator', password='password123')
+        response = self.client.get('/ops/dashboard/')
+        self.assertEqual(response.status_code, 302)
+
+        # Staff access allowed
+        self.client.login(username='officer', password='password123')
+        response = self.client.get('/ops/dashboard/')
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, 'dashboard/ops_dashboard.html')
+
+    def test_api_requires_login_json(self):
+        response = self.client.post('/api/todo/add/', content_type='application/json')
+        self.assertEqual(response.status_code, 401)
+

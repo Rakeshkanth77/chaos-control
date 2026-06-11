@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}Productivity Dashboard{% endblock %}</title>
+    <title>{% block title %}chaos-control | Command Center{% block subtitle %}{% endblock %}{% endblock %}</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;800&display=swap" rel="stylesheet">
     
     <!-- Chart.js for Analytics -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
@@ -15,6 +15,50 @@
     <!-- Custom CSS -->
     {% load static %}
     <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    <style>
+        /* Add some specific header styles for user profile avatar */
+        .user-profile-badge {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 4px 12px;
+            background: rgba(255, 255, 255, 0.2);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-primary);
+            text-decoration: none;
+            transition: background 0.2s;
+        }
+        .user-profile-badge:hover {
+            background: rgba(255, 255, 255, 0.35);
+        }
+        .avatar-img {
+            width: 26px;
+            height: 26px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            background: var(--accent-color);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #fff;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+        .header-logo h1 {
+            font-family: 'Outfit', sans-serif;
+            font-weight: 800;
+            letter-spacing: -1px;
+            text-transform: lowercase;
+            color: var(--text-primary);
+        }
+        .header-logo h1 span {
+            color: var(--accent-color);
+        }
+    </style>
     {% block extra_css %}{% endblock %}
 </head>
 <body>
@@ -25,23 +69,46 @@
         <!-- Minimal Header -->
         <header class="app-header">
             <div class="header-logo">
-                <h1>Productivity Hub</h1>
+                <a href="/" style="text-decoration: none; color: inherit;">
+                    <h1>chaos<span>-</span>control</h1>
+                </a>
             </div>
             
-            <!-- Date Navigator -->
-            <div class="date-navigator">
-                <a href="?date={{ previous_date }}" class="nav-btn" id="prev-date-btn">←</a>
-                <span class="current-date-display" id="date-display">{{ selected_date_formatted }}</span>
-                <a href="?date={{ next_date }}" class="nav-btn" id="next-date-btn">→</a>
-                {% if not is_today %}
-                    <a href="?" class="today-badge">Go to Today</a>
-                {% endif %}
-            </div>
+            {% if request.user.is_authenticated %}
+                <!-- Date Navigator -->
+                <div class="date-navigator">
+                    {% if selected_date_formatted %}
+                        <a href="?date={{ previous_date }}" class="nav-btn" id="prev-date-btn">←</a>
+                        <span class="current-date-display" id="date-display">{{ selected_date_formatted }}</span>
+                        <a href="?date={{ next_date }}" class="nav-btn" id="next-date-btn">→</a>
+                        {% if not is_today %}
+                            <a href="?" class="today-badge">Go to Today</a>
+                        {% endif %}
+                    {% endif %}
+                </div>
 
-            <nav class="app-nav">
-                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
-                <a href="/analytics/" class="nav-link {% if '/analytics/' in request.path %}active{% endif %}">Analytics</a>
-            </nav>
+                <nav class="app-nav" style="display: flex; align-items: center; gap: 12px;">
+                    <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
+                    <a href="/analytics/" class="nav-link {% if '/analytics/' in request.path %}active{% endif %}">Analytics</a>
+                    {% if request.user.is_staff %}
+                        <a href="/ops/dashboard/" class="nav-link {% if '/ops/dashboard/' in request.path %}active{% endif %}">Ops Panel</a>
+                    {% endif %}
+                    
+                    <a href="/profile/" class="user-profile-badge">
+                        {% if request.user.profile.avatar or request.user.profile.avatar_url %}
+                            <img src="{{ request.user.profile.get_avatar_url }}" alt="Avatar" class="avatar-img">
+                        {% else %}
+                            <div class="avatar-img">{{ request.user.email|slice:":1"|upper }}</div>
+                        {% endif %}
+                        <span>Profile</span>
+                    </a>
+                    <a href="/accounts/logout/" class="nav-link btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;">Logout</a>
+                </nav>
+            {% else %}
+                <nav class="app-nav">
+                    <a href="/accounts/login/" class="nav-link active">Sign In</a>
+                </nav>
+            {% endif %}
         </header>
 
         <!-- Main Content -->
@@ -53,7 +120,9 @@
     <!-- CSRF Token helper for JS -->
     <script>
         window.CSRF_TOKEN = "{{ csrf_token }}";
-        window.SELECTED_DATE = "{{ selected_date_formatted }}";
+        {% if selected_date_formatted %}
+            window.SELECTED_DATE = "{{ selected_date_formatted }}";
+        {% endif %}
     </script>
     
     {% block extra_js %}{% endblock %}

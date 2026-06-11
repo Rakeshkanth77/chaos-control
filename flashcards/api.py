@@ -1,16 +1,26 @@
 import json
+from functools import wraps
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST, require_GET
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from .models import FlashCard
 
+def api_login_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.user.is_authenticated:
+            return JsonResponse({'status': 'error', 'message': 'Authentication required'}, status=401)
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
 @require_GET
+@api_login_required
 def get_next_card(request):
     try:
         now = timezone.now()
         # Find due cards (next_review in the past)
-        due_cards = FlashCard.objects.filter(user=None, next_review__lte=now)
+        due_cards = FlashCard.objects.filter(user=request.user, next_review__lte=now)
         
         is_due = True
         card = due_cards.order_by('difficulty', 'created_at').first()
@@ -18,7 +28,7 @@ def get_next_card(request):
         # If no cards are due, look for ANY card that hasn't been reviewed much or just a random one
         if not card:
             is_due = False
-            card = FlashCard.objects.filter(user=None).order_by('?').first()
+            card = FlashCard.objects.filter(user=request.user).order_by('?').first()
 
         if not card:
             return JsonResponse({'status': 'empty', 'message': 'No flashcards found. Create some!'})
@@ -40,18 +50,19 @@ def get_next_card(request):
 
 @csrf_exempt
 @require_POST
+@api_login_required
 def submit_answer(request):
     try:
         data = json.loads(request.body)
         card_id = data.get('id')
         was_correct = data.get('was_correct', False)
 
-        card = FlashCard.objects.get(id=card_id, user=None)
+        card = FlashCard.objects.get(id=card_id, user=request.user)
         card.review(was_correct)
 
         # Get count of remaining due cards
         now = timezone.now()
-        due_count = FlashCard.objects.filter(user=None, next_review__lte=now).count()
+        due_count = FlashCard.objects.filter(user=request.user, next_review__lte=now).count()
 
         return JsonResponse({
             'status': 'success',
@@ -65,6 +76,7 @@ def submit_answer(request):
 
 @csrf_exempt
 @require_POST
+@api_login_required
 def create_card(request):
     try:
         data = json.loads(request.body)
@@ -77,7 +89,7 @@ def create_card(request):
             return JsonResponse({'status': 'error', 'message': 'Word and Definition are required'}, status=400)
 
         card = FlashCard.objects.create(
-            user=None,
+            user=request.user,
             word=word,
             definition=definition,
             example=example if example else None,

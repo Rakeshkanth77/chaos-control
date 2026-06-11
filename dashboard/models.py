@@ -58,3 +58,55 @@ class PomodoroSession(models.Model):
     def __str__(self):
         status = "Completed" if self.completed else "Incomplete"
         return f"Pomodoro at {self.started_at} - {status}"
+
+class UserProfile(models.Model):
+    PLAN_CHOICES = [
+        ('free', 'Free'),
+        ('pro', 'Pro'),
+        ('ultimate', 'Ultimate'),
+    ]
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
+    avatar_url = models.URLField(max_length=1024, null=True, blank=True)
+    plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.user.username} - {self.get_plan_display()} Plan"
+
+    @property
+    def get_avatar_url(self):
+        if self.avatar:
+            return self.avatar.url
+        return self.avatar_url or '/static/images/default-avatar.png'
+
+
+# Signals to automatically create UserProfile on signup and load Google avatar URL
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+@receiver(post_save, sender=User)
+def create_user_profile(sender, instance, created, **kwargs):
+    if created:
+        profile = UserProfile.objects.create(user=instance)
+        # Try fetching social account picture
+        try:
+            from allauth.socialaccount.models import SocialAccount
+            social_account = SocialAccount.objects.filter(user=instance, provider='google').first()
+            if social_account:
+                picture_url = social_account.extra_data.get('picture')
+                if picture_url:
+                    profile.avatar_url = picture_url
+                    profile.save()
+        except Exception:
+            pass
+
+@receiver(post_save, sender=User)
+def save_user_profile(sender, instance, **kwargs):
+    try:
+        instance.profile.save()
+    except UserProfile.DoesNotExist:
+        # Fallback if profile doesn't exist for some reason
+        UserProfile.objects.create(user=instance)
+

@@ -1,10 +1,17 @@
-from django.shortcuts import render
+from django.shortcuts import render, redirect
 from django.utils import timezone
-from datetime import datetime, date
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession
+from django.contrib.auth.decorators import login_required, user_passes_test
+from django.contrib.auth.models import User
+from datetime import datetime
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile
 from flashcards.models import FlashCard
+from analytics.api import calculate_streak
 
 def index(request):
+    # 1. Unauthenticated users get the SaaS landing page
+    if not request.user.is_authenticated:
+        return render(request, 'dashboard/landing.html')
+
     # Support custom date viewing (e.g. ?date=2026-06-11)
     date_str = request.GET.get('date')
     selected_date = timezone.localdate()
@@ -14,12 +21,14 @@ def index(request):
         except ValueError:
             pass
 
-    # Get or create brain dump for selected date
-    # (Since there is no auth yet, user is None. Future authentication can easily filter by user)
-    braindump = BrainDump.objects.filter(date=selected_date, user=None).first()
+    # Ensure profile exists (fallback signal backup)
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    # Get or create brain dump for selected date owned by request.user
+    braindump = BrainDump.objects.filter(date=selected_date, user=request.user).first()
     
-    # Get todos for selected date
-    todos = Todo.objects.filter(date=selected_date, user=None)
+    # Get todos for selected date owned by request.user
+    todos = Todo.objects.filter(date=selected_date, user=request.user)
     
     # Group todos by priority
     todos_by_priority = {
@@ -30,21 +39,21 @@ def index(request):
         'neither': todos.filter(priority='neither'),
     }
 
-    # Get reflection
-    reflection = DailyReflection.objects.filter(date=selected_date, user=None).first()
+    # Get reflection owned by request.user
+    reflection = DailyReflection.objects.filter(date=selected_date, user=request.user).first()
 
-    # Get pomodoro session info for selected date
+    # Get pomodoro session info for selected date owned by request.user
     pomodoros_completed = PomodoroSession.objects.filter(
         date=selected_date, 
         completed=True,
-        user=None
+        user=request.user
     ).count()
 
-    # Get flashcard review stats
+    # Get flashcard review stats owned by request.user
     now = timezone.now()
-    total_flashcards = FlashCard.objects.filter(user=None).count()
+    total_flashcards = FlashCard.objects.filter(user=request.user).count()
     due_flashcards = FlashCard.objects.filter(
-        user=None,
+        user=request.user,
         next_review__lte=now
     ).count()
 
@@ -64,6 +73,61 @@ def index(request):
         'pomodoros_completed': pomodoros_completed,
         'total_flashcards': total_flashcards,
         'due_flashcards': due_flashcards,
+        'profile': profile,
     }
     
     return render(request, 'dashboard/index.html', context)
+
+
+@login_required
+def profile_view(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    
+    # Personal metrics
+    streak = calculate_streak(request.user)
+    total_todos = Todo.objects.filter(user=request.user, is_completed=True).count()
+    total_pomodoros = PomodoroSession.objects.filter(user=request.user, completed=True).count()
+    
+    context = {
+        'profile': profile,
+        'streak': streak,
+        'total_todos': total_todos,
+        'total_pomodoros': total_pomodoros,
+        'plans': UserProfile.PLAN_CHOICES,
+    }
+    return render(request, 'dashboard/profile.html', context)
+
+
+@user_passes_test(lambda u: u.is_staff, login_url='/')
+def ops_dashboard(request):
+    # Retrieve system stats for SaaS corporate metrics
+    total_users = User.objects.count()
+    total_todos = Todo.objects.count()
+    completed_todos = Todo.objects.filter(is_completed=True).count()
+    completed_pomodoros = PomodoroSession.objects.filter(completed=True).count()
+    
+    # Calculate plan breakdown
+    free_plans = UserProfile.objects.filter(plan='free').count()
+    pro_plans = UserProfile.objects.filter(plan='pro').count()
+    ultimate_plans = UserProfile.objects.filter(plan='ultimate').count()
+    
+    # Simple user search and list
+    search_query = request.GET.get('q', '')
+    if search_query:
+        users_list = User.objects.filter(username__icontains=search_query) | User.objects.filter(email__icontains=search_query)
+    else:
+        users_list = User.objects.all().order_by('-date_joined')[:50]
+        
+    context = {
+        'total_users': total_users,
+        'total_todos': total_todos,
+        'completed_todos': completed_todos,
+        'completed_pomodoros': completed_pomodoros,
+        'free_plans': free_plans,
+        'pro_plans': pro_plans,
+        'ultimate_plans': ultimate_plans,
+        'users_list': users_list,
+        'search_query': search_query,
+    }
+    return render(request, 'dashboard/ops_dashboard.html', context)
+

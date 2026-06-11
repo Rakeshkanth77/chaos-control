@@ -1,5 +1,11 @@
 from django.contrib import admin
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile
+
+@admin.register(UserProfile)
+class UserProfileAdmin(admin.ModelAdmin):
+    list_display = ('user', 'plan', 'created_at')
+    list_filter = ('plan', 'created_at')
+    search_fields = ('user__username', 'user__email')
 
 @admin.register(BrainDump)
 class BrainDumpAdmin(admin.ModelAdmin):

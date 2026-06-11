@@ -5,28 +5,33 @@ from datetime import timedelta, datetime
 from dashboard.models import Todo, PomodoroSession, DailyReflection
 from flashcards.models import FlashCard
 
-def calculate_streak():
+from django.contrib.auth.decorators import login_required
+
+def calculate_streak(user):
     """
     Calculates the current streak of active days (activity = completed todo, pomodoro, or reflection).
     """
+    if not user or not user.is_authenticated:
+        return 0
+
     today = timezone.localdate()
     streak = 0
     current_date = today
 
     # Check if there is any activity today or yesterday to continue/start the streak calculation
     activity_today = (
-        Todo.objects.filter(date=today, is_completed=True, user=None).exists() or
-        PomodoroSession.objects.filter(date=today, completed=True, user=None).exists() or
-        DailyReflection.objects.filter(date=today, user=None).exclude(notes='').exists()
+        Todo.objects.filter(date=today, is_completed=True, user=user).exists() or
+        PomodoroSession.objects.filter(date=today, completed=True, user=user).exists() or
+        DailyReflection.objects.filter(date=today, user=user).exclude(notes='').exists()
     )
     
     if not activity_today:
         # Check if they had activity yesterday, if so start counting from yesterday
         yesterday = today - timedelta(days=1)
         activity_yesterday = (
-            Todo.objects.filter(date=yesterday, is_completed=True, user=None).exists() or
-            PomodoroSession.objects.filter(date=yesterday, completed=True, user=None).exists() or
-            DailyReflection.objects.filter(date=yesterday, user=None).exclude(notes='').exists()
+            Todo.objects.filter(date=yesterday, is_completed=True, user=user).exists() or
+            PomodoroSession.objects.filter(date=yesterday, completed=True, user=user).exists() or
+            DailyReflection.objects.filter(date=yesterday, user=user).exclude(notes='').exists()
         )
         if activity_yesterday:
             current_date = yesterday
@@ -35,9 +40,9 @@ def calculate_streak():
 
     while True:
         has_activity = (
-            Todo.objects.filter(date=current_date, is_completed=True, user=None).exists() or
-            PomodoroSession.objects.filter(date=current_date, completed=True, user=None).exists() or
-            DailyReflection.objects.filter(date=current_date, user=None).exclude(notes='').exists()
+            Todo.objects.filter(date=current_date, is_completed=True, user=user).exists() or
+            PomodoroSession.objects.filter(date=current_date, completed=True, user=user).exists() or
+            DailyReflection.objects.filter(date=current_date, user=user).exclude(notes='').exists()
         )
         
         if has_activity:
@@ -48,6 +53,7 @@ def calculate_streak():
 
     return streak
 
+@login_required
 def get_summary_stats(request):
     try:
         today = timezone.localdate()
@@ -58,16 +64,16 @@ def get_summary_stats(request):
         date_labels = [d.strftime('%a (%m/%d)') for d in date_list]
 
         # Fetch activities grouped by date
-        todo_data = Todo.objects.filter(date__gte=start_date, date__lte=today, user=None).values('date').annotate(
+        todo_data = Todo.objects.filter(date__gte=start_date, date__lte=today, user=request.user).values('date').annotate(
             total=Count('id'),
             completed=Count('id', filter=Q(is_completed=True))
         )
         
-        pomodoro_data = PomodoroSession.objects.filter(date__gte=start_date, date__lte=today, completed=True, user=None).values('date').annotate(
+        pomodoro_data = PomodoroSession.objects.filter(date__gte=start_date, date__lte=today, completed=True, user=request.user).values('date').annotate(
             count=Count('id')
         )
 
-        flashcard_data = FlashCard.objects.filter(last_reviewed__date__gte=start_date, last_reviewed__date__lte=today, user=None).values('last_reviewed__date').annotate(
+        flashcard_data = FlashCard.objects.filter(last_reviewed__date__gte=start_date, last_reviewed__date__lte=today, user=request.user).values('last_reviewed__date').annotate(
             count=Count('id')
         )
 
@@ -98,7 +104,7 @@ def get_summary_stats(request):
             flashcards_reviewed.append(flashcard_dict.get(d, 0))
 
         # Eisenhower distribution (all-time or active todos)
-        eisenhower_distribution = Todo.objects.filter(is_completed=False, user=None).values('priority').annotate(count=Count('id'))
+        eisenhower_distribution = Todo.objects.filter(is_completed=False, user=request.user).values('priority').annotate(count=Count('id'))
         dist_dict = {item['priority']: item['count'] for item in eisenhower_distribution}
         
         priority_mapping = {
@@ -114,11 +120,11 @@ def get_summary_stats(request):
         }
 
         # Calculate user activity streak
-        streak = calculate_streak()
+        streak = calculate_streak(request.user)
 
         # Overall counts
-        total_todos_completed = Todo.objects.filter(is_completed=True, user=None).count()
-        total_pomodoros = PomodoroSession.objects.filter(completed=True, user=None).count()
+        total_todos_completed = Todo.objects.filter(is_completed=True, user=request.user).count()
+        total_pomodoros = PomodoroSession.objects.filter(completed=True, user=request.user).count()
 
         return JsonResponse({
             'status': 'success',

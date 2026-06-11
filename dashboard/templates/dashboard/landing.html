@@ -1,0 +1,439 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}chaos-control | Regain Absolute Power{% endblock %}
+
+{% block extra_css %}
+<style>
+    .landing-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 80px;
+        padding: 40px 20px 100px;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+    }
+
+    /* Hero Section */
+    .hero-section {
+        text-align: center;
+        max-width: 800px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 24px;
+        margin-top: 40px;
+    }
+
+    .hero-badge {
+        background: rgba(99, 91, 143, 0.15);
+        border: 1px solid rgba(99, 91, 143, 0.3);
+        padding: 6px 16px;
+        border-radius: 30px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        color: var(--accent-color);
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    .hero-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 3.5rem;
+        font-weight: 800;
+        line-height: 1.1;
+        letter-spacing: -2px;
+        color: var(--text-primary);
+    }
+
+    .hero-title span {
+        background: linear-gradient(135deg, var(--accent-color) 0%, #a78bfa 100%);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+    }
+
+    .hero-tagline {
+        font-size: 1.25rem;
+        color: var(--text-secondary);
+        line-height: 1.6;
+        max-width: 600px;
+    }
+
+    .hero-cta-group {
+        display: flex;
+        gap: 16px;
+        margin-top: 12px;
+    }
+
+    .btn-hero {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 600;
+        padding: 16px 36px;
+        border-radius: 16px;
+        box-shadow: 0 10px 25px rgba(99, 91, 143, 0.25);
+    }
+
+    .btn-hero:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 12px 30px rgba(99, 91, 143, 0.35);
+    }
+
+    /* Product Preview Mockup */
+    .product-preview {
+        width: 100%;
+        max-width: 1000px;
+        border-radius: 24px;
+        background: rgba(255, 255, 255, 0.25);
+        border: var(--card-border);
+        box-shadow: 0 30px 60px rgba(0,0,0,0.08);
+        padding: 12px;
+        backdrop-filter: var(--backdrop-blur);
+        position: relative;
+        overflow: hidden;
+    }
+
+    .product-preview-inner {
+        width: 100%;
+        height: auto;
+        border-radius: 16px;
+        background: rgba(255, 255, 255, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        padding: 24px;
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .preview-card {
+        background: rgba(255, 255, 255, 0.5);
+        border-radius: 14px;
+        padding: 16px;
+        border: 1px solid rgba(255,255,255,0.7);
+    }
+
+    /* Feature Highlights */
+    .features-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+        width: 100%;
+    }
+
+    .section-header {
+        text-align: center;
+    }
+
+    .section-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 700;
+        letter-spacing: -1px;
+    }
+
+    .features-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        width: 100%;
+    }
+
+    .feature-card {
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+        border-radius: 20px;
+    }
+
+    .feature-icon-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--accent-color);
+        letter-spacing: 1.5px;
+    }
+
+    .feature-name {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.25rem;
+        font-weight: 600;
+    }
+
+    .feature-desc {
+        font-size: 0.92rem;
+        color: var(--text-secondary);
+        line-height: 1.5;
+    }
+
+    /* Pricing Section */
+    .pricing-section {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 40px;
+        width: 100%;
+    }
+
+    .pricing-grid {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 24px;
+        width: 100%;
+        align-items: stretch;
+    }
+
+    .pricing-card {
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+        padding: 36px 28px;
+        border-radius: 24px;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .pricing-card.premium {
+        background: rgba(255, 255, 255, 0.65);
+        border: 2px solid var(--accent-color);
+        box-shadow: 0 15px 35px rgba(99, 91, 143, 0.12);
+        transform: scale(1.03);
+    }
+
+    .badge-popular {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        background: var(--accent-color);
+        color: #fff;
+        font-size: 0.75rem;
+        font-weight: 600;
+        padding: 4px 10px;
+        border-radius: 20px;
+        text-transform: uppercase;
+    }
+
+    .plan-header {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .plan-name {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.4rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+
+    .plan-price {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        display: flex;
+        align-items: baseline;
+    }
+
+    .plan-price span {
+        font-size: 1rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+    }
+
+    .plan-desc {
+        font-size: 0.9rem;
+        color: var(--text-secondary);
+        line-height: 1.4;
+    }
+
+    .plan-divider {
+        height: 1px;
+        background: rgba(0,0,0,0.06);
+        margin: 20px 0;
+    }
+
+    .plan-features {
+        list-style: none;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+
+    .plan-features li {
+        font-size: 0.88rem;
+        color: var(--text-primary);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .plan-features li::before {
+        content: "✓";
+        color: var(--accent-color);
+        font-weight: bold;
+    }
+
+    .btn-plan {
+        width: 100%;
+        text-align: center;
+        padding: 12px;
+        border-radius: 12px;
+        font-size: 0.95rem;
+        font-weight: 600;
+    }
+
+    /* Footer Section */
+    .landing-footer {
+        text-align: center;
+        color: var(--text-secondary);
+        font-size: 0.85rem;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="landing-container">
+
+    <!-- Hero Section -->
+    <section class="hero-section">
+        <div class="hero-badge">Military-grade protocols</div>
+        <h2 class="hero-title">Your Brain in Chaos.<br>Turn it into <span>Structured Power.</span></h2>
+        <p class="hero-tagline">
+            chaos-control is the Eisenhower + Pomodoro tactical engine designed to command your clutter, optimize focus cycles, and generate clean daily operations layouts.
+        </p>
+        <div class="hero-cta-group">
+            <a href="/accounts/google/login/" class="btn btn-hero">Activate Google Protocol</a>
+            <a href="/accounts/login/" class="btn btn-secondary btn-hero">Traditional Login</a>
+        </div>
+    </section>
+
+    <!-- Product Showcase Preview -->
+    <div class="product-preview">
+        <div class="product-preview-inner">
+            <div class="preview-card">
+                <div style="font-weight: bold; margin-bottom: 8px; color: var(--accent-color);">[01] BRAIN DUMP INTERCEPTOR</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+                    "Write anything on your mind. Our AI parser extracts key priorities instantly and builds your action queue automatically."
+                </div>
+                <div style="margin-top: 14px; background: rgba(0,0,0,0.03); border-radius: 8px; padding: 10px; font-family: monospace; font-size: 0.75rem;">
+                    > Parsing mental clutter... <br>
+                    > Found: Review slide deck by 5pm <br>
+                    > Found: Buy milk <br>
+                    > Done. Queue updated.
+                </div>
+            </div>
+            <div class="preview-card">
+                <div style="font-weight: bold; margin-bottom: 8px; color: var(--urgent-important-text);">[02] EISENHOWER COMBAT RADAR</div>
+                <div style="font-size: 0.85rem; color: var(--text-secondary); line-height: 1.4;">
+                    "Drag tasks into Quadrants of Power. Execute urgent-important first. Delegate the noise. Starve the trivial."
+                </div>
+                <div style="margin-top: 14px; display: flex; flex-direction: column; gap: 4px;">
+                    <div style="background: var(--urgent-important-bg); border: 1px solid var(--urgent-important-border); border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; color: var(--urgent-important-text);">🔴 Urgent & Important [3]</div>
+                    <div style="background: var(--important-not-urgent-bg); border: 1px solid var(--important-not-urgent-border); border-radius: 6px; padding: 4px 8px; font-size: 0.75rem; color: var(--important-not-urgent-text);">🟠 Important & Not Urgent [5]</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Feature Highlights -->
+    <section class="features-section">
+        <div class="section-header">
+            <h3 class="section-title">Operational Core Modules</h3>
+        </div>
+        <div class="features-grid">
+            <div class="glass-panel feature-card">
+                <span class="feature-icon-label">MODULE_01</span>
+                <h4 class="feature-name">Eisenhower Matrices</h4>
+                <p class="feature-desc">Meticulously organize task assets by urgent/important quadrants. Minimize lag between strategy and execution.</p>
+            </div>
+            <div class="glass-panel feature-card">
+                <span class="feature-icon-label">MODULE_02</span>
+                <h4 class="feature-name">Focus Calibration (Pomodoro)</h4>
+                <p class="feature-desc">Calibrate cognitive energy into 25-minute sprints. Trace metrics over time to establish your peak flow threshold.</p>
+            </div>
+            <div class="glass-panel feature-card">
+                <span class="feature-icon-label">MODULE_03</span>
+                <h4 class="feature-name">AI Reflection Diagnostics</h4>
+                <p class="feature-desc">Unload daily reviews. AI parses details to extract key behavioral mistakes and output actionable tomorrow-rules.</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Pricing Grid -->
+    <section class="pricing-section">
+        <div class="section-header">
+            <h3 class="section-title">Protocol Tier Clearance</h3>
+        </div>
+        <div class="pricing-grid">
+            <!-- Free Plan -->
+            <div class="glass-panel pricing-card">
+                <div class="plan-header">
+                    <span class="plan-name">Free Protocol</span>
+                    <div class="plan-price">$0<span>/lifetime</span></div>
+                    <p class="plan-desc">Basic cognitive organization for recruits. Stabilize initial chaos.</p>
+                </div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                    <li>Basic Task Organization</li>
+                    <li>Manual Eisenhower sorting</li>
+                    <li>Standard 25m Pomodoro cycles</li>
+                    <li>Local daily reflection records</li>
+                </ul>
+                <a href="/accounts/google/login/" class="btn btn-secondary btn-plan">Deploy Recruit</a>
+            </div>
+
+            <!-- Pro Plan -->
+            <div class="glass-panel pricing-card premium">
+                <span class="badge-popular">Elite</span>
+                <div class="plan-header">
+                    <span class="plan-name">Pro Protocol</span>
+                    <div class="plan-price">$9<span>/month</span></div>
+                    <p class="plan-desc">Advanced auto-extraction engines for professional operators.</p>
+                </div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                    <li>Everything in Free</li>
+                    <li><strong>AI Brain Dump extraction</strong></li>
+                    <li><strong>AI Daily Reflection suggestions</strong></li>
+                    <li>Interactive productivity metrics</li>
+                    <li>Streak tracking indicators</li>
+                </ul>
+                <a href="/accounts/google/login/" class="btn btn-plan">Deploy Operator</a>
+            </div>
+
+            <!-- Ultimate Plan -->
+            <div class="glass-panel pricing-card">
+                <div class="plan-header">
+                    <span class="plan-name">Ultimate Protocol</span>
+                    <div class="plan-price">$19<span>/month</span></div>
+                    <p class="plan-desc">Maximum intelligence and operations capacity. Zero limitations.</p>
+                </div>
+                <div class="plan-divider"></div>
+                <ul class="plan-features">
+                    <li>Everything in Pro</li>
+                    <li><strong>Spaced Repetition trainer</strong></li>
+                    <li>Unlimited vocabulary review cards</li>
+                    <li>Custom client operations analytics</li>
+                    <li>High-status custom dashboard metrics</li>
+                </ul>
+                <a href="/accounts/google/login/" class="btn btn-secondary btn-plan">Deploy Commander</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="landing-footer">
+        <div>chaos-control © 2026. All rights reserved. Built for absolute productivity control.</div>
+        <div style="font-size: 0.75rem; opacity: 0.7;">Secure Google OAuth authentication. We do not store passwords.</div>
+    </footer>
+
+</div>
+{% endblock %}
