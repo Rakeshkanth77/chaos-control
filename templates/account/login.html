@@ -1,0 +1,76 @@
+{% extends "base.html" %}
+{% load i18n %}
+{% load account socialaccount %}
+
+{% block title %}Sign In | chaos-control{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 20px;">
+    <div class="glass-panel" style="width: 100%; max-width: 450px; padding: 40px; display: flex; flex-direction: column; gap: 24px;">
+        <div style="text-align: center;">
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -1px; text-transform: uppercase; margin-bottom: 6px;">Authenticate</h2>
+            <p style="font-size: 0.88rem; color: var(--text-secondary);">Access the chaos-control matrix</p>
+        </div>
+
+        <!-- Google OAuth option -->
+        <div>
+            <a href="{% provider_login_url 'google' %}" class="btn" style="display: flex; align-items: center; justify-content: center; gap: 10px; width: 100%; padding: 14px; font-weight: 600; text-decoration: none; border-radius: 12px; background: var(--accent-color); color: #fff; box-shadow: 0 4px 12px rgba(99,91,143,0.2); transition: all 0.2s;">
+                Sign In with Google
+            </a>
+        </div>
+
+        <div style="display: flex; align-items: center; text-align: center; color: var(--text-secondary); font-size: 0.8rem; margin: 10px 0;">
+            <div style="flex: 1; height: 1px; background: rgba(0,0,0,0.08);"></div>
+            <span style="padding: 0 10px; font-family: 'JetBrains Mono', monospace; font-weight: bold; letter-spacing: 0.5px;">OR TRADITIONAL</span>
+            <div style="flex: 1; height: 1px; background: rgba(0,0,0,0.08);"></div>
+        </div>
+
+        <!-- Traditional login form -->
+        <form class="login" method="POST" action="{% url 'account_login' %}" style="display: flex; flex-direction: column; gap: 16px;">
+            {% csrf_token %}
+            
+            {% if form.non_field_errors %}
+                <div style="background: var(--urgent-important-bg); border: 1px solid var(--urgent-important-border); border-radius: 10px; padding: 10px 14px; color: var(--urgent-important-text); font-size: 0.82rem;">
+                    {% for error in form.non_field_errors %}
+                        {{ error }}
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <label for="id_login" style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Email Address</label>
+                <input type="email" name="login" placeholder="email@example.com" id="id_login" required class="inline-input" style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);" value="{{ form.login.value|default_if_none:'' }}">
+                {% if form.login.errors %}
+                    <span style="color: var(--urgent-important-text); font-size: 0.75rem; margin-top: 4px;">{{ form.login.errors.as_text }}</span>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 6px;">
+                <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <label for="id_password" style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Password</label>
+                    <a href="{% url 'account_reset_password' %}" style="font-size: 0.78rem; color: var(--accent-color); text-decoration: none;">Forgot?</a>
+                </div>
+                <input type="password" name="password" placeholder="••••••••" id="id_password" required class="inline-input" style="width: 100%; padding: 12px; border-radius: 10px; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4);">
+                {% if form.password.errors %}
+                    <span style="color: var(--urgent-important-text); font-size: 0.75rem; margin-top: 4px;">{{ form.password.errors.as_text }}</span>
+                {% endif %}
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; font-size: 0.85rem; color: var(--text-secondary);">
+                <input type="checkbox" name="remember" id="id_remember" class="todo-checkbox">
+                <label for="id_remember">Keep me logged in</label>
+            </div>
+
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+
+            <button class="btn btn-hero" type="submit" style="width: 100%; padding: 14px; margin-top: 10px; font-size: 1rem; cursor: pointer;">Authenticate</button>
+        </form>
+
+        <div style="text-align: center; font-size: 0.85rem; color: var(--text-secondary); margin-top: 10px;">
+            New recruit? <a href="{% url 'account_signup' %}" style="color: var(--accent-color); font-weight: 600; text-decoration: none;">Register account</a>
+        </div>
+    </div>
+</div>
+{% endblock %}
