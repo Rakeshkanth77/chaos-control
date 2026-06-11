@@ -209,12 +209,12 @@
             <span class="metric-sub">Registered command accounts</span>
         </div>
         <div class="glass-panel metric-box">
-            <span class="metric-label">TOTAL_TASKS</span>
+            <span class="metric-label">TOTAL_TARGETS</span>
             <span class="metric-number">{{ total_todos }}</span>
-            <span class="metric-sub">Tasks parsed in operations</span>
+            <span class="metric-sub">Objectives parsed in operations</span>
         </div>
         <div class="glass-panel metric-box">
-            <span class="metric-label">COMPLETED_TASKS</span>
+            <span class="metric-label">SECURED_TARGETS</span>
             <span class="metric-number">{{ completed_todos }}</span>
             <span class="metric-sub">Structured goals achieved</span>
         </div>
@@ -347,7 +347,7 @@
     new Chart(ctxActivity, {
         type: 'bar',
         data: {
-            labels: ['Tasks Intercepted', 'Goals Achieved', 'Focus Sprints'],
+            labels: ['Targets Intercepted', 'Objectives Secured', 'Focus Sprints'],
             datasets: [{
                 label: 'System Achievements',
                 data: [{{ total_todos }}, {{ completed_todos }}, {{ completed_pomodoros }}],

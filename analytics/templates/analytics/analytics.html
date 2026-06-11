@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Analytics | Productivity Hub{% endblock %}
+{% block title %}Analytics | chaos-control{% endblock %}
 
 {% block content %}
 <div class="analytics-section">
@@ -20,7 +20,7 @@
         <div class="glass-panel totals-card">
             <div class="total-stat-item">
                 <span class="total-stat-value" id="total-todos-completed">--</span>
-                <span class="total-stat-label">Total Todos Completed</span>
+                <span class="total-stat-label">Total Targets Secured</span>
             </div>
             <div class="total-stat-item" style="border-top: 1px solid rgba(0,0,0,0.04); padding-top: 10px; margin-top: 10px;">
                 <span class="total-stat-value" id="total-pomodoros">--</span>
@@ -45,7 +45,7 @@
     <div class="analytics-grid">
         <!-- Chart 1: Todo Trends (Created vs Completed) -->
         <div class="glass-panel analytics-chart-panel">
-            <h3 class="panel-title">Todo Completion Rate (Last 7 Days)</h3>
+            <h3 class="panel-title">Operational Achievement Rate (Last 7 Days)</h3>
             <div class="chart-wrapper">
                 <canvas id="todo-chart"></canvas>
             </div>
@@ -80,7 +80,7 @@
         <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; height: 250px;">
             <h3 class="panel-title" style="margin-bottom: 8px;">Productivity Tip</h3>
             <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); max-width: 280px; margin: 0 auto;" id="random-tip">
-                "The secret of getting ahead is getting started. The secret of getting started is breaking your complex overwhelming tasks into small manageable tasks, and starting on the first one."
+                "The secret of getting ahead is getting started. The secret of getting started is breaking your complex overwhelming objectives into small manageable targets, and starting on the first one."
             </p>
         </div>
     </div>

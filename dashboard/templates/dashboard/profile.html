@@ -287,7 +287,7 @@
                 <span class="stat-value" id="user-streak-val">{{ streak }} days</span>
             </div>
             <div class="stat-row">
-                <span>Completed Tasks</span>
+                <span>Targets Secured</span>
                 <span class="stat-value">{{ total_todos }}</span>
             </div>
             <div class="stat-row">
@@ -304,7 +304,7 @@
     <!-- Right Settings / Pricing Panel -->
     <div class="glass-panel settings-panel">
         <div>
-            <h3 class="settings-section-title">Subscription Level Protocols</h3>
+            <h3 class="settings-section-title">Operational clearance protocols</h3>
             <div class="plans-flex">
                 <!-- Free Plan -->
                 <div class="plan-select-card {% if profile.plan == 'free' %}active{% endif %}" data-plan="free">
@@ -315,7 +315,7 @@
                             <span class="plan-features-desc">Basic cognitive organization, manual Eisenhower quadrants, 25m Pomodoros.</span>
                         </div>
                     </div>
-                    <div class="plan-price-right">$0</div>
+                    <div class="plan-price-right">Active</div>
                 </div>
 
                 <!-- Pro Plan -->
@@ -324,10 +324,10 @@
                         <div class="plan-radio-circle"></div>
                         <div class="plan-details">
                             <span class="plan-title-text">Pro Protocol</span>
-                            <span class="plan-features-desc">AI Brain Dump extraction, daily reflection diagnostics, streak analytics.</span>
+                            <span class="plan-features-desc">AI Brain Dump extraction, daily reflection diagnostics, streak analytics. (Free for active cohort)</span>
                         </div>
                     </div>
-                    <div class="plan-price-right">$9/mo</div>
+                    <div class="plan-price-right">Free (Beta)</div>
                 </div>
 
                 <!-- Ultimate Plan -->
@@ -336,10 +336,10 @@
                         <div class="plan-radio-circle"></div>
                         <div class="plan-details">
                             <span class="plan-title-text">Ultimate Protocol</span>
-                            <span class="plan-features-desc">Spaced repetition vocabulary engine, infinite card decks, custom Operations metrics.</span>
+                            <span class="plan-features-desc">Spaced repetition vocabulary engine, infinite card decks, custom Operations metrics. (Free for active cohort)</span>
                         </div>
                     </div>
-                    <div class="plan-price-right">$19/mo</div>
+                    <div class="plan-price-right">Free (Beta)</div>
                 </div>
             </div>
         </div>

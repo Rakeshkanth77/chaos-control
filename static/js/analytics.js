@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         labels: res.labels,
                         datasets: [
                             {
-                                label: 'Tasks Created',
+                                label: 'Targets Created',
                                 data: res.todos_created,
                                 borderColor: 'rgba(99, 91, 143, 0.5)',
                                 backgroundColor: 'rgba(99, 91, 143, 0.05)',
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 borderWidth: 2
                             },
                             {
-                                label: 'Tasks Completed',
+                                label: 'Targets Secured',
                                 data: res.todos_completed,
                                 borderColor: 'rgba(16, 185, 129, 0.6)',
                                 backgroundColor: 'rgba(16, 185, 129, 0.05)',
@@ -189,12 +189,12 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Set up a random quote/tip generator
     const tips = [
-        "The secret of getting ahead is getting started. Break down complex tasks and tackle the first one.",
-        "Focus on your Urgent & Important tasks first. Then spend time on Important, Not Urgent to prevent future stress.",
-        "A Pomodoro session is 25 minutes of pure focus. No phone, no email, just one single task.",
+        "The secret of getting ahead is getting started. Break down complex objectives and tackle the first one.",
+        "Focus on your Urgent & Important objectives first. Then spend time on Important, Not Urgent to prevent future stress.",
+        "A Pomodoro session is 25 minutes of pure focus. No phone, no email, just one single objective.",
         "Spaced repetition is the most effective way to lock words into long-term memory. Review your due cards daily.",
         "Reviewing your mistakes is the best way to grow. Let today's reflections form tomorrow's strategy.",
-        "Keep your brain dump clean. Write everything down first, then select what actually matters to schedule."
+        "Keep your brain dump clean. Write everything down first, then select what actually matters to execute."
     ];
     const tipContainer = document.getElementById('random-tip');
     if (tipContainer) {

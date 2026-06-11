@@ -1,7 +1,7 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Dashboard | Productivity Hub{% endblock %}
+{% block title %}Dashboard | chaos-control{% endblock %}
 
 {% block content %}
 <div class="dashboard-grid">
@@ -17,20 +17,20 @@
             <textarea 
                 id="braindump-input" 
                 class="braindump-textarea" 
-                placeholder="Unload everything on your mind... tasks, ideas, raw thoughts. We'll extract actionable todos below."
+                placeholder="Unload everything on your mind... targets, ideas, raw thoughts. We'll extract actionable objectives below."
             >{% if braindump %}{{ braindump.content }}{% endif %}</textarea>
             <div class="card-footer">
-                <button id="generate-todos-btn" class="btn">Generate Todos</button>
+                <button id="generate-todos-btn" class="btn">Extract Targets</button>
             </div>
         </div>
 
         <!-- Auto-Generated Todos Section -->
         <div class="glass-panel autotodos-card">
-            <h2 class="panel-title">Actionable Todos</h2>
+            <h2 class="panel-title">Operational Targets</h2>
             
             <!-- Mini Quick Add Form -->
             <form id="quick-add-todo" class="add-todo-inline">
-                <input type="text" id="new-todo-title" class="inline-input" placeholder="Quick add task..." required>
+                <input type="text" id="new-todo-title" class="inline-input" placeholder="Deploy target..." required>
                 <button type="submit" class="btn">+</button>
             </form>
 
@@ -50,7 +50,7 @@
                         </div>
                     {% empty %}
                         <div class="empty-state-message" style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 12px 0;">
-                            No unassigned todos. Write a brain dump and extract, or drag items here to unassign them.
+                            No unassigned targets. Write a brain dump and extract, or drag objectives here.
                         </div>
                     {% endfor %}
                 </div>
