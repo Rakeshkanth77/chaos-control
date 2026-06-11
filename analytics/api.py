@@ -1,0 +1,138 @@
+from django.http import JsonResponse
+from django.utils import timezone
+from django.db.models import Count, Q
+from datetime import timedelta, datetime
+from dashboard.models import Todo, PomodoroSession, DailyReflection
+from flashcards.models import FlashCard
+
+def calculate_streak():
+    """
+    Calculates the current streak of active days (activity = completed todo, pomodoro, or reflection).
+    """
+    today = timezone.localdate()
+    streak = 0
+    current_date = today
+
+    # Check if there is any activity today or yesterday to continue/start the streak calculation
+    activity_today = (
+        Todo.objects.filter(date=today, is_completed=True, user=None).exists() or
+        PomodoroSession.objects.filter(date=today, completed=True, user=None).exists() or
+        DailyReflection.objects.filter(date=today, user=None).exclude(notes='').exists()
+    )
+    
+    if not activity_today:
+        # Check if they had activity yesterday, if so start counting from yesterday
+        yesterday = today - timedelta(days=1)
+        activity_yesterday = (
+            Todo.objects.filter(date=yesterday, is_completed=True, user=None).exists() or
+            PomodoroSession.objects.filter(date=yesterday, completed=True, user=None).exists() or
+            DailyReflection.objects.filter(date=yesterday, user=None).exclude(notes='').exists()
+        )
+        if activity_yesterday:
+            current_date = yesterday
+        else:
+            return 0
+
+    while True:
+        has_activity = (
+            Todo.objects.filter(date=current_date, is_completed=True, user=None).exists() or
+            PomodoroSession.objects.filter(date=current_date, completed=True, user=None).exists() or
+            DailyReflection.objects.filter(date=current_date, user=None).exclude(notes='').exists()
+        )
+        
+        if has_activity:
+            streak += 1
+            current_date -= timedelta(days=1)
+        else:
+            break
+
+    return streak
+
+def get_summary_stats(request):
+    try:
+        today = timezone.localdate()
+        start_date = today - timedelta(days=6) # 7 days including today
+
+        # Generate list of last 7 days for reference
+        date_list = [start_date + timedelta(days=i) for i in range(7)]
+        date_labels = [d.strftime('%a (%m/%d)') for d in date_list]
+
+        # Fetch activities grouped by date
+        todo_data = Todo.objects.filter(date__gte=start_date, date__lte=today, user=None).values('date').annotate(
+            total=Count('id'),
+            completed=Count('id', filter=Q(is_completed=True))
+        )
+        
+        pomodoro_data = PomodoroSession.objects.filter(date__gte=start_date, date__lte=today, completed=True, user=None).values('date').annotate(
+            count=Count('id')
+        )
+
+        flashcard_data = FlashCard.objects.filter(last_reviewed__date__gte=start_date, last_reviewed__date__lte=today, user=None).values('last_reviewed__date').annotate(
+            count=Count('id')
+        )
+
+        # Map datasets into dictionary by date
+        todo_dict = {item['date']: item for item in todo_data}
+        pomodoro_dict = {item['date']: item['count'] for item in pomodoro_data}
+        
+        # Convert date to date object if it's datetime
+        flashcard_dict = {}
+        for item in flashcard_data:
+            d = item['last_reviewed__date']
+            if isinstance(d, datetime):
+                d = d.date()
+            flashcard_dict[d] = item['count']
+
+        # Construct daily trend arrays
+        todos_created = []
+        todos_completed = []
+        pomodoros_done = []
+        flashcards_reviewed = []
+
+        for d in date_list:
+            t_info = todo_dict.get(d, {'total': 0, 'completed': 0})
+            todos_created.append(t_info['total'])
+            todos_completed.append(t_info['completed'])
+            
+            pomodoros_done.append(pomodoro_dict.get(d, 0))
+            flashcards_reviewed.append(flashcard_dict.get(d, 0))
+
+        # Eisenhower distribution (all-time or active todos)
+        eisenhower_distribution = Todo.objects.filter(is_completed=False, user=None).values('priority').annotate(count=Count('id'))
+        dist_dict = {item['priority']: item['count'] for item in eisenhower_distribution}
+        
+        priority_mapping = {
+            'urgent_important': 'Urgent & Important',
+            'important_not_urgent': 'Important & Not Urgent',
+            'urgent_not_important': 'Urgent & Not Important',
+            'neither': 'Neither'
+        }
+        
+        dist_data = {
+            'labels': [priority_mapping[k] for k in priority_mapping.keys()],
+            'values': [dist_dict.get(k, 0) for k in priority_mapping.keys()]
+        }
+
+        # Calculate user activity streak
+        streak = calculate_streak()
+
+        # Overall counts
+        total_todos_completed = Todo.objects.filter(is_completed=True, user=None).count()
+        total_pomodoros = PomodoroSession.objects.filter(completed=True, user=None).count()
+
+        return JsonResponse({
+            'status': 'success',
+            'labels': date_labels,
+            'todos_created': todos_created,
+            'todos_completed': todos_completed,
+            'pomodoros': pomodoros_done,
+            'flashcards_reviewed': flashcards_reviewed,
+            'eisenhower_distribution': dist_data,
+            'streak': streak,
+            'totals': {
+                'todos_completed': total_todos_completed,
+                'pomodoros_completed': total_pomodoros,
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

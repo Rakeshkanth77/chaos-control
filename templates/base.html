@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Productivity Dashboard{% endblock %}</title>
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <!-- Chart.js for Analytics -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- Custom CSS -->
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+    {% block extra_css %}{% endblock %}
+</head>
+<body>
+    <!-- Ambient Gradient Background -->
+    <div class="ambient-bg"></div>
+
+    <div class="app-container">
+        <!-- Minimal Header -->
+        <header class="app-header">
+            <div class="header-logo">
+                <h1>Productivity Hub</h1>
+            </div>
+            
+            <!-- Date Navigator -->
+            <div class="date-navigator">
+                <a href="?date={{ previous_date }}" class="nav-btn" id="prev-date-btn">←</a>
+                <span class="current-date-display" id="date-display">{{ selected_date_formatted }}</span>
+                <a href="?date={{ next_date }}" class="nav-btn" id="next-date-btn">→</a>
+                {% if not is_today %}
+                    <a href="?" class="today-badge">Go to Today</a>
+                {% endif %}
+            </div>
+
+            <nav class="app-nav">
+                <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
+                <a href="/analytics/" class="nav-link {% if '/analytics/' in request.path %}active{% endif %}">Analytics</a>
+            </nav>
+        </header>
+
+        <!-- Main Content -->
+        <main class="main-content">
+            {% block content %}{% endblock %}
+        </main>
+    </div>
+
+    <!-- CSRF Token helper for JS -->
+    <script>
+        window.CSRF_TOKEN = "{{ csrf_token }}";
+        window.SELECTED_DATE = "{{ selected_date_formatted }}";
+    </script>
+    
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

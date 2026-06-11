@@ -1,0 +1,289 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Dashboard | Productivity Hub{% endblock %}
+
+{% block content %}
+<div class="dashboard-grid">
+    
+    <!-- COLUMN 1: Brain Dump & Auto-Generated Todos -->
+    <div class="grid-column">
+        <!-- Brain Dump Section -->
+        <div class="glass-panel braindump-card">
+            <h2 class="panel-title">
+                Brain Dump
+                <span class="panel-subtitle" id="dump-save-status">All changes saved</span>
+            </h2>
+            <textarea 
+                id="braindump-input" 
+                class="braindump-textarea" 
+                placeholder="Unload everything on your mind... tasks, ideas, raw thoughts. We'll extract actionable todos below."
+            >{% if braindump %}{{ braindump.content }}{% endif %}</textarea>
+            <div class="card-footer">
+                <button id="generate-todos-btn" class="btn">Generate Todos</button>
+            </div>
+        </div>
+
+        <!-- Auto-Generated Todos Section -->
+        <div class="glass-panel autotodos-card">
+            <h2 class="panel-title">Actionable Todos</h2>
+            
+            <!-- Mini Quick Add Form -->
+            <form id="quick-add-todo" class="add-todo-inline">
+                <input type="text" id="new-todo-title" class="inline-input" placeholder="Quick add task..." required>
+                <button type="submit" class="btn">+</button>
+            </form>
+
+            <div class="todo-list-container">
+                <div id="unassigned-todo-list" class="priority-list" data-priority="unassigned">
+                    {% for todo in todos_by_priority.unassigned %}
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" 
+                             draggable="true" 
+                             data-id="{{ todo.id }}">
+                            <div class="todo-content-wrapper">
+                                <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
+                                <span class="todo-text">{{ todo.title }}</span>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="action-btn delete">delete</button>
+                            </div>
+                        </div>
+                    {% empty %}
+                        <div class="empty-state-message" style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 12px 0;">
+                            No unassigned todos. Write a brain dump and extract, or drag items here to unassign them.
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMN 2: Eisenhower Matrix (Scrollable 1x4 Priority Stack) -->
+    <div class="grid-column">
+        <div class="glass-panel eisenhower-column">
+            <h2 class="panel-title">Eisenhower Priorities</h2>
+            
+            <!-- Red: Urgent & Important -->
+            <div class="priority-block urgent_important">
+                <div class="priority-header">
+                    <span>🔴 Urgent & Important</span>
+                    <span class="priority-count" id="count-urgent_important">0</span>
+                </div>
+                <div id="list-urgent_important" class="priority-list" data-priority="urgent_important">
+                    {% for todo in todos_by_priority.urgent_important %}
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" draggable="true" data-id="{{ todo.id }}">
+                            <div class="todo-content-wrapper">
+                                <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
+                                <span class="todo-text">{{ todo.title }}</span>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="action-btn delete">delete</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Orange: Important & Not Urgent -->
+            <div class="priority-block important_not_urgent">
+                <div class="priority-header">
+                    <span>🟠 Important & Not Urgent</span>
+                    <span class="priority-count" id="count-important_not_urgent">0</span>
+                </div>
+                <div id="list-important_not_urgent" class="priority-list" data-priority="important_not_urgent">
+                    {% for todo in todos_by_priority.important_not_urgent %}
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" draggable="true" data-id="{{ todo.id }}">
+                            <div class="todo-content-wrapper">
+                                <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
+                                <span class="todo-text">{{ todo.title }}</span>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="action-btn delete">delete</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Yellow: Urgent & Not Important -->
+            <div class="priority-block urgent_not_important">
+                <div class="priority-header">
+                    <span>🟡 Urgent & Not Important</span>
+                    <span class="priority-count" id="count-urgent_not_important">0</span>
+                </div>
+                <div id="list-urgent_not_important" class="priority-list" data-priority="urgent_not_important">
+                    {% for todo in todos_by_priority.urgent_not_important %}
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" draggable="true" data-id="{{ todo.id }}">
+                            <div class="todo-content-wrapper">
+                                <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
+                                <span class="todo-text">{{ todo.title }}</span>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="action-btn delete">delete</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Green: Neither -->
+            <div class="priority-block neither">
+                <div class="priority-header">
+                    <span>🟢 Neither</span>
+                    <span class="priority-count" id="count-neither">0</span>
+                </div>
+                <div id="list-neither" class="priority-list" data-priority="neither">
+                    {% for todo in todos_by_priority.neither %}
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" draggable="true" data-id="{{ todo.id }}">
+                            <div class="todo-content-wrapper">
+                                <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
+                                <span class="todo-text">{{ todo.title }}</span>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="action-btn delete">delete</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            
+        </div>
+    </div>
+
+    <!-- COLUMN 3: Daily Reflection Notes & AI Suggestions -->
+    <div class="grid-column">
+        <div class="glass-panel reflection-card">
+            <h2 class="panel-title">
+                Day Notes & Reflection
+                <span class="panel-subtitle" id="reflection-save-status">Saved</span>
+            </h2>
+            <textarea 
+                id="reflection-input" 
+                class="reflection-textarea" 
+                placeholder="How was your day? Write down your activities, feelings, successes, or details on mistakes you made..."
+            >{% if reflection %}{{ reflection.notes }}{% endif %}</textarea>
+            <div class="card-footer">
+                <button id="analyze-reflection-btn" class="btn">Reflect & Analyze</button>
+            </div>
+
+            <div class="reflection-results-stack">
+                <!-- Mistakes Output Box -->
+                <div class="reflection-result-box" id="mistakes-box">
+                    <div class="result-box-title">Mistakes to not repeat tomorrow</div>
+                    <div class="reflection-result-content" id="mistakes-content">
+                        {% if reflection and reflection.mistakes %}
+                            {{ reflection.mistakes|linebreaksbr }}
+                        {% else %}
+                            <span class="empty-text">Write reflection notes above and click "Reflect" to analyze.</span>
+                        {% endif %}
+                    </div>
+                </div>
+
+                <!-- Suggestions Output Box -->
+                <div class="reflection-result-box" id="suggestions-box">
+                    <div class="result-box-title">Suggestions for tomorrow</div>
+                    <div class="reflection-result-content" id="suggestions-content">
+                        {% if reflection and reflection.suggestions %}
+                            {{ reflection.suggestions|linebreaksbr }}
+                        {% else %}
+                            <span class="empty-text">Write reflection notes above and click "Reflect" to analyze.</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- COLUMN 4: Flashcards & Pomodoro Timer -->
+    <div class="grid-column">
+        <!-- Flashcard Vocabulary Practice -->
+        <div class="glass-panel flashcards-card" id="flashcard-section">
+            <h2 class="panel-title">
+                Vocabulary Review
+                <button id="toggle-creator-btn" class="action-btn">+ Add Card</button>
+            </h2>
+
+            <!-- Create Card Form (Collapsible) -->
+            <div class="flashcard-creator" id="flashcard-creator">
+                <div class="form-group">
+                    <label>Word</label>
+                    <input type="text" id="fc-word" class="form-control" placeholder="E.g., Ephemeral">
+                </div>
+                <div class="form-group">
+                    <label>Definition</label>
+                    <textarea id="fc-definition" class="form-control" rows="2" placeholder="Meaning of the word..."></textarea>
+                </div>
+                <div class="form-group">
+                    <label>Example Sentence (Optional)</label>
+                    <input type="text" id="fc-example" class="form-control" placeholder="The sunset was beautiful but ephemeral.">
+                </div>
+                <div class="creator-actions">
+                    <button id="cancel-creator-btn" class="btn btn-secondary">Cancel</button>
+                    <button id="save-card-btn" class="btn">Save</button>
+                </div>
+            </div>
+
+            <!-- Card Flip Container -->
+            <div class="flashcard-wrapper" id="flashcard-wrapper">
+                <!-- Front Side -->
+                <div class="flashcard-face flashcard-front">
+                    <div class="word-display" id="card-word">Loading next card...</div>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 20px;">Click to reveal definition</span>
+                </div>
+                <!-- Back Side -->
+                <div class="flashcard-face flashcard-back">
+                    <div class="word-definition" id="card-definition">Meaning goes here.</div>
+                    <div class="word-example" id="card-example">Example sentence.</div>
+                </div>
+            </div>
+
+            <!-- Control Actions (Hidden/Visible state depending on view/flip status) -->
+            <div class="flashcard-actions" id="fc-controls" style="display: none;">
+                <div class="flashcard-action-bar-back" id="fc-rating-buttons" style="display: none;">
+                    <button class="btn btn-secondary" id="answer-wrong-btn">Didn't know</button>
+                    <button class="btn" id="answer-correct-btn">Got it</button>
+                </div>
+                <button class="btn" id="flip-btn">Reveal</button>
+            </div>
+            
+            <div class="card-footer" style="margin-top: 10px; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
+                <span>Scheduled today: <strong id="due-count">{{ due_flashcards }}</strong></span>
+                <span>Total: <strong id="total-count">{{ total_flashcards }}</strong></span>
+            </div>
+        </div>
+
+        <!-- Pomodoro Timer -->
+        <div class="glass-panel pomodoro-card">
+            <h2 class="panel-title">Pomodoro Timer</h2>
+            
+            <div class="timer-visual">
+                <!-- SVG Ring -->
+                <svg class="timer-ring" width="130" height="130">
+                    <circle class="timer-ring-bg" cx="65" cy="65" r="60"></circle>
+                    <circle class="timer-ring-progress" id="timer-progress-ring" cx="65" cy="65" r="60"></circle>
+                </svg>
+                <div class="timer-digits" id="timer-time">25:00</div>
+            </div>
+
+            <div class="timer-controls">
+                <button class="btn btn-secondary" id="timer-reset">Reset</button>
+                <button class="btn" id="timer-start">Start</button>
+            </div>
+
+            <div class="pomodoro-stats">
+                Sessions completed today: <strong id="pomodoro-today-count">{{ pomodoros_completed }}</strong>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Import script logic for each part of the app -->
+<script src="{% static 'js/braindump.js' %}"></script>
+<script src="{% static 'js/eisenhower.js' %}"></script>
+<script src="{% static 'js/reflection.js' %}"></script>
+<script src="{% static 'js/pomodoro.js' %}"></script>
+<script src="{% static 'js/flashcards.js' %}"></script>
+{% endblock %}

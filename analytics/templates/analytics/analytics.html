@@ -1,0 +1,93 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Analytics | Productivity Hub{% endblock %}
+
+{% block content %}
+<div class="analytics-section">
+    <h2 class="panel-title">Productivity Insights & Metrics</h2>
+    
+    <!-- Streak and Metrics Summary Bar -->
+    <div class="analytics-grid" style="grid-template-columns: 1fr 1fr 1fr; margin-bottom: 20px; margin-top: 0;">
+        <!-- Streak Card -->
+        <div class="glass-panel streak-card">
+            <div class="streak-label">Current Streak</div>
+            <div class="streak-number" id="streak-value">--</div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary);">Consecutive days of action</div>
+        </div>
+
+        <!-- Completed Totals Card -->
+        <div class="glass-panel totals-card">
+            <div class="total-stat-item">
+                <span class="total-stat-value" id="total-todos-completed">--</span>
+                <span class="total-stat-label">Total Todos Completed</span>
+            </div>
+            <div class="total-stat-item" style="border-top: 1px solid rgba(0,0,0,0.04); padding-top: 10px; margin-top: 10px;">
+                <span class="total-stat-value" id="total-pomodoros">--</span>
+                <span class="total-stat-label">Total Pomodoro Sessions</span>
+            </div>
+        </div>
+
+        <!-- Spaced Repetition Info Card -->
+        <div class="glass-panel totals-card">
+            <div class="total-stat-item">
+                <span class="total-stat-value" id="fc-total">--</span>
+                <span class="total-stat-label">Total Flashcards Created</span>
+            </div>
+            <div class="total-stat-item" style="border-top: 1px solid rgba(0,0,0,0.04); padding-top: 10px; margin-top: 10px;">
+                <span class="total-stat-value" id="fc-reviewed-today">--</span>
+                <span class="total-stat-label">Reviewed Today</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Charts Grid -->
+    <div class="analytics-grid">
+        <!-- Chart 1: Todo Trends (Created vs Completed) -->
+        <div class="glass-panel analytics-chart-panel">
+            <h3 class="panel-title">Todo Completion Rate (Last 7 Days)</h3>
+            <div class="chart-wrapper">
+                <canvas id="todo-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 2: Pomodoros Completed -->
+        <div class="glass-panel analytics-chart-panel">
+            <h3 class="panel-title">Pomodoro Sessions</h3>
+            <div class="chart-wrapper">
+                <canvas id="pomodoro-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Chart 3: Eisenhower Priority Matrix Distribution -->
+        <div class="glass-panel analytics-chart-panel">
+            <h3 class="panel-title">Active Priorities</h3>
+            <div class="chart-wrapper">
+                <canvas id="eisenhower-chart"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- Row for Flashcards -->
+    <div class="analytics-grid" style="grid-template-columns: 2fr 1fr; margin-top: 20px;">
+        <div class="glass-panel analytics-chart-panel" style="height: 250px;">
+            <h3 class="panel-title">Vocabulary Practice Progress</h3>
+            <div class="chart-wrapper">
+                <canvas id="vocabulary-chart"></canvas>
+            </div>
+        </div>
+        
+        <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; height: 250px;">
+            <h3 class="panel-title" style="margin-bottom: 8px;">Productivity Tip</h3>
+            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); max-width: 280px; margin: 0 auto;" id="random-tip">
+                "The secret of getting ahead is getting started. The secret of getting started is breaking your complex overwhelming tasks into small manageable tasks, and starting on the first one."
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<!-- Import analytics charts logic -->
+<script src="{% static 'js/analytics.js' %}"></script>
+{% endblock %}
