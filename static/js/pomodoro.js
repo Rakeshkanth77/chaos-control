@@ -11,6 +11,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let secondsRemaining = TOTAL_SECONDS;
     let timerInterval = null;
     let currentSessionId = null;
+    let endTime = null;
 
     // Reset progress ring
     progressRing.style.strokeDashoffset = RING_CIRCUMFERENCE;
@@ -27,7 +28,7 @@ document.addEventListener('DOMContentLoaded', () => {
         progressRing.style.strokeDashoffset = offset;
     }
 
-    // Play a gentle notification sound using Web Audio API (no external file needed!)
+    // Play a gentle notification sound using Web Audio API
     function playAlertSound() {
         try {
             const context = new (window.AudioContext || window.webkitAudioContext)();
@@ -67,6 +68,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Helper to clear localStorage keys
+    function clearStorage() {
+        localStorage.removeItem('pomodoro_end_time');
+        localStorage.removeItem('pomodoro_state');
+        localStorage.removeItem('pomodoro_seconds_remaining');
+        localStorage.removeItem('pomodoro_session_id');
+    }
+
     async function handleTimerComplete() {
         clearInterval(timerInterval);
         timerInterval = null;
@@ -77,10 +86,14 @@ document.addEventListener('DOMContentLoaded', () => {
         
         playAlertSound();
 
+        const completedSessionId = currentSessionId || localStorage.getItem('pomodoro_session_id');
+        clearStorage();
+        currentSessionId = null;
+
         // Log complete to server
-        if (currentSessionId) {
+        if (completedSessionId) {
             try {
-                const res = await window.apiPost('/api/pomodoro/complete/', { session_id: currentSessionId });
+                const res = await window.apiPost('/api/pomodoro/complete/', { session_id: completedSessionId });
                 if (res.status === 'success') {
                     sessionCountDisplay.textContent = res.count;
                 }
@@ -88,7 +101,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 console.error('Failed to log completion:', err);
             }
         }
-        currentSessionId = null;
     }
 
     async function startTimer() {
@@ -100,27 +112,60 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await window.apiPost('/api/pomodoro/start/', { duration_minutes: 25 });
                 if (res.status === 'success') {
                     currentSessionId = res.session_id;
+                    localStorage.setItem('pomodoro_session_id', currentSessionId);
                 }
             } catch (err) {
                 console.error(err);
             }
         }
 
-        timerInterval = setInterval(() => {
-            secondsRemaining--;
-            timerDigits.textContent = formatTime(secondsRemaining);
-            updateProgressRing();
+        // Set state to running
+        localStorage.setItem('pomodoro_state', 'running');
+        endTime = Date.now() + (secondsRemaining * 1000);
+        localStorage.setItem('pomodoro_end_time', endTime);
 
-            if (secondsRemaining <= 0) {
-                handleTimerComplete();
-            }
-        }, 1000);
+        // Run tick logic immediately to avoid 1-second visual delay
+        tick();
+
+        timerInterval = setInterval(tick, 1000);
+    }
+
+    function tick() {
+        const storedEndTime = localStorage.getItem('pomodoro_end_time');
+        if (storedEndTime) {
+            endTime = parseInt(storedEndTime, 10);
+            secondsRemaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+        } else {
+            secondsRemaining--;
+        }
+
+        timerDigits.textContent = formatTime(secondsRemaining);
+        updateProgressRing();
+
+        if (secondsRemaining <= 0) {
+            handleTimerComplete();
+        }
     }
 
     function pauseTimer() {
         startBtn.textContent = 'Start';
         clearInterval(timerInterval);
         timerInterval = null;
+
+        localStorage.setItem('pomodoro_state', 'paused');
+        localStorage.setItem('pomodoro_seconds_remaining', secondsRemaining);
+    }
+
+    function resetTimer() {
+        startBtn.textContent = 'Start';
+        clearInterval(timerInterval);
+        timerInterval = null;
+        
+        secondsRemaining = TOTAL_SECONDS;
+        timerDigits.textContent = formatTime(secondsRemaining);
+        updateProgressRing();
+        currentSessionId = null;
+        clearStorage();
     }
 
     startBtn.addEventListener('click', () => {
@@ -132,10 +177,71 @@ document.addEventListener('DOMContentLoaded', () => {
     });
 
     resetBtn.addEventListener('click', () => {
-        pauseTimer();
-        secondsRemaining = TOTAL_SECONDS;
-        timerDigits.textContent = formatTime(secondsRemaining);
-        updateProgressRing();
-        currentSessionId = null;
+        resetTimer();
+    });
+
+    // Restore state from LocalStorage on page load/wake
+    function restoreState() {
+        const state = localStorage.getItem('pomodoro_state');
+        const storedEndTime = localStorage.getItem('pomodoro_end_time');
+        const storedSeconds = localStorage.getItem('pomodoro_seconds_remaining');
+        const storedSessionId = localStorage.getItem('pomodoro_session_id');
+
+        if (storedSessionId) {
+            currentSessionId = parseInt(storedSessionId, 10);
+        }
+
+        if (state === 'running' && storedEndTime) {
+            endTime = parseInt(storedEndTime, 10);
+            const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+            
+            if (remaining > 0) {
+                secondsRemaining = remaining;
+                timerDigits.textContent = formatTime(secondsRemaining);
+                updateProgressRing();
+                // Resume countdown interval
+                startBtn.textContent = 'Pause';
+                timerInterval = setInterval(tick, 1000);
+            } else {
+                // Finished while user was away!
+                handleTimerComplete();
+            }
+        } else if (state === 'paused' && storedSeconds) {
+            secondsRemaining = parseInt(storedSeconds, 10);
+            timerDigits.textContent = formatTime(secondsRemaining);
+            updateProgressRing();
+            startBtn.textContent = 'Start';
+        } else {
+            // Idle state
+            secondsRemaining = TOTAL_SECONDS;
+            timerDigits.textContent = formatTime(secondsRemaining);
+            updateProgressRing();
+            startBtn.textContent = 'Start';
+        }
+    }
+
+    // Call restoreState initially
+    restoreState();
+
+    // Listen to tab focus/visibility events to immediately resync and avoid lag
+    document.addEventListener('visibilitychange', () => {
+        if (document.visibilityState === 'visible') {
+            // Re-sync progress and digits instantly
+            const state = localStorage.getItem('pomodoro_state');
+            if (state === 'running') {
+                const storedEndTime = localStorage.getItem('pomodoro_end_time');
+                if (storedEndTime) {
+                    endTime = parseInt(storedEndTime, 10);
+                    const remaining = Math.max(0, Math.ceil((endTime - Date.now()) / 1000));
+                    secondsRemaining = remaining;
+                    timerDigits.textContent = formatTime(secondsRemaining);
+                    updateProgressRing();
+                    
+                    if (remaining <= 0) {
+                        handleTimerComplete();
+                    }
+                }
+            }
+        }
     });
 });

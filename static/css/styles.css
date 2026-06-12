@@ -930,11 +930,32 @@ body {
     }
     .priority-block {
         min-height: 100px;
+    }
+    .app-nav {
+        justify-content: center;
+        flex-wrap: wrap;
+        gap: 8px !important;
+    }
+    .nav-link {
+        padding: 6px 12px;
+        font-size: 0.85rem;
+    }
+    .user-profile-badge {
+        padding: 4px 10px !important;
+        font-size: 0.8rem !important;
+        gap: 6px !important;
+    }
+    .avatar-img {
+        width: 22px !important;
+        height: 22px !important;
+        font-size: 0.7rem !important;
+    }
 }
+
 
 /* LOCK HEIGHTS & ENABLE SCROLLING ON DESKTOP */
 @media (min-width: 1025px) {
-    body {
+    html, body {
         height: 100vh;
         overflow: hidden;
     }
@@ -943,6 +964,8 @@ body {
         height: 100vh;
         overflow: hidden;
         padding: 20px 24px;
+        display: flex;
+        flex-direction: column;
     }
     
     .main-content {
@@ -973,12 +996,11 @@ body {
         min-height: 0;
         display: flex;
         flex-direction: column;
-        height: auto; /* override static height */
     }
     
     .todo-list-container {
         flex: 1;
-        max-height: 280px;
+        max-height: none;
         overflow-y: auto;
         min-height: 0;
     }
@@ -1001,7 +1023,7 @@ body {
     
     .priority-list {
         flex: 1;
-        max-height: 120px;
+        max-height: none;
         overflow-y: auto;
         min-height: 0;
     }
@@ -1038,7 +1060,7 @@ body {
         display: flex;
         flex-direction: column;
         justify-content: center;
-        height: auto;
+        overflow-y: auto;
     }
 }
 

@@ -45,6 +45,7 @@
                                 <span class="todo-text">{{ todo.title }}</span>
                             </div>
                             <div class="todo-actions">
+                                <button class="action-btn edit">edit</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -77,6 +78,7 @@
                                 <span class="todo-text">{{ todo.title }}</span>
                             </div>
                             <div class="todo-actions">
+                                <button class="action-btn edit">edit</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -98,6 +100,7 @@
                                 <span class="todo-text">{{ todo.title }}</span>
                             </div>
                             <div class="todo-actions">
+                                <button class="action-btn edit">edit</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -119,6 +122,7 @@
                                 <span class="todo-text">{{ todo.title }}</span>
                             </div>
                             <div class="todo-actions">
+                                <button class="action-btn edit">edit</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -140,6 +144,7 @@
                                 <span class="todo-text">{{ todo.title }}</span>
                             </div>
                             <div class="todo-actions">
+                                <button class="action-btn edit">edit</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -200,7 +205,10 @@
         <div class="glass-panel flashcards-card" id="flashcard-section">
             <h2 class="panel-title">
                 Vocabulary Review
-                <button id="toggle-creator-btn" class="action-btn">+ Add Card</button>
+                <div style="display: flex; gap: 8px;">
+                    <button id="edit-card-btn" class="action-btn" style="display: none; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; padding: 2px 8px;">Edit Card</button>
+                    <button id="toggle-creator-btn" class="action-btn">+ Add Card</button>
+                </div>
             </h2>
 
             <!-- Create Card Form (Collapsible) -->

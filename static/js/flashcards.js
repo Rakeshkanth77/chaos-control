@@ -13,6 +13,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     const dueCountDisplay = document.getElementById('due-count');
     const totalCountDisplay = document.getElementById('total-count');
+    const editCardBtn = document.getElementById('edit-card-btn');
     
     // Creator Toggle
     const toggleCreatorBtn = document.getElementById('toggle-creator-btn');
@@ -115,12 +116,18 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (!currentCard.is_due) {
                     cardWord.innerHTML = `${currentCard.word} <span style="font-size:0.7rem; color:var(--text-secondary); display:block; font-weight:normal;">(Practice Mode)</span>`;
                 }
+                if (editCardBtn) {
+                    editCardBtn.style.display = 'inline-block';
+                }
             } else if (data.status === 'empty') {
                 currentCard = null;
                 cardWord.textContent = 'No cards available. Create one!';
                 cardDefinition.textContent = '';
                 cardExample.textContent = '';
                 fcControls.style.display = 'none';
+                if (editCardBtn) {
+                    editCardBtn.style.display = 'none';
+                }
             }
         } catch (err) {
             console.error('Failed to load card:', err);
@@ -188,6 +195,43 @@ document.addEventListener('DOMContentLoaded', () => {
         answerWrongBtn.addEventListener('click', (e) => {
             e.stopPropagation();
             submitRating(false);
+        });
+    }
+
+    if (editCardBtn) {
+        editCardBtn.addEventListener('click', async (e) => {
+            e.stopPropagation();
+            if (!currentCard) return;
+
+            const newWord = prompt('Edit Word:', currentCard.word);
+            if (newWord === null || newWord.trim() === '') return;
+
+            const newDefinition = prompt('Edit Definition:', currentCard.definition);
+            if (newDefinition === null || newDefinition.trim() === '') return;
+
+            const newExample = prompt('Edit Example Sentence (Optional):', currentCard.example || '');
+            if (newExample === null) return;
+
+            try {
+                const res = await window.apiPost('/flashcards/api/update/', {
+                    id: currentCard.id,
+                    word: newWord.trim(),
+                    definition: newDefinition.trim(),
+                    example: newExample.trim()
+                });
+                if (res.status === 'success') {
+                    currentCard = res.card;
+                    cardWord.textContent = currentCard.word;
+                    cardDefinition.textContent = currentCard.definition;
+                    cardExample.textContent = currentCard.example ? `"${currentCard.example}"` : '';
+                    if (!currentCard.is_due) {
+                        cardWord.innerHTML = `${currentCard.word} <span style="font-size:0.7rem; color:var(--text-secondary); display:block; font-weight:normal;">(Practice Mode)</span>`;
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Failed to edit card.');
+            }
         });
     }
 

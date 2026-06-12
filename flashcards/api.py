@@ -103,3 +103,38 @@ def create_card(request):
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def update_card(request):
+    try:
+        data = json.loads(request.body)
+        card_id = data.get('id')
+        word = data.get('word', '').strip()
+        definition = data.get('definition', '').strip()
+        example = data.get('example', '').strip()
+
+        if not word or not definition:
+            return JsonResponse({'status': 'error', 'message': 'Word and Definition are required'}, status=400)
+
+        card = FlashCard.objects.get(id=card_id, user=request.user)
+        card.word = word
+        card.definition = definition
+        card.example = example if example else None
+        card.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'card': {
+                'id': card.id,
+                'word': card.word,
+                'definition': card.definition,
+                'example': card.example or ''
+            }
+        })
+    except FlashCard.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Card not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+

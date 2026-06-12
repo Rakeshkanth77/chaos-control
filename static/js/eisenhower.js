@@ -134,6 +134,7 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', async (e) => {
         if (e.target.classList.contains('delete') || e.target.closest('.delete')) {
             const todoItem = e.target.closest('.todo-item');
+            if (!todoItem) return;
             const id = todoItem.dataset.id;
             
             if (confirm('Delete this task?')) {
@@ -146,6 +147,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     }, 300);
                 } catch (err) {
                     console.error(err);
+                }
+            }
+        }
+    });
+
+    // Edit todo handler (using delegation)
+    document.addEventListener('click', async (e) => {
+        if (e.target.classList.contains('edit') || e.target.closest('.edit')) {
+            const todoItem = e.target.closest('.todo-item');
+            if (!todoItem) return;
+            
+            const id = todoItem.dataset.id;
+            const textSpan = todoItem.querySelector('.todo-text');
+            const oldTitle = textSpan.textContent;
+            
+            const newTitle = prompt('Edit Target Title:', oldTitle);
+            if (newTitle !== null && newTitle.trim() !== '' && newTitle.trim() !== oldTitle) {
+                try {
+                    const response = await window.apiPost('/api/todo/update-title/', {
+                        id: id,
+                        title: newTitle.trim()
+                    });
+                    if (response.status === 'success') {
+                        textSpan.textContent = response.title;
+                    }
+                } catch (err) {
+                    console.error(err);
+                    alert('Failed to update target title.');
                 }
             }
         }
@@ -171,6 +200,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">${todo.title}</span>
                             </div>
                             <div class="todo-actions">
+                                <button class="action-btn edit">edit</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>

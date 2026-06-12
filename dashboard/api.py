@@ -326,3 +326,24 @@ def update_avatar(request):
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def update_todo_title(request):
+    try:
+        data = json.loads(request.body)
+        todo_id = data.get('id')
+        new_title = data.get('title', '').strip()
+        if not new_title:
+            return JsonResponse({'status': 'error', 'message': 'Title cannot be empty'}, status=400)
+
+        todo = Todo.objects.get(id=todo_id, user=request.user)
+        todo.title = new_title
+        todo.save()
+        return JsonResponse({'status': 'success', 'title': todo.title})
+    except Todo.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Target not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+

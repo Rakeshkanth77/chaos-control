@@ -6,11 +6,10 @@
 {% block extra_css %}
 <style>
     .profile-grid {
-        display: grid;
-        grid-template-columns: 350px 1fr;
-        gap: 24px;
+        display: flex;
+        justify-content: center;
         width: 100%;
-        max-width: 1200px;
+        max-width: 500px;
         margin: 0 auto;
         padding-bottom: 60px;
     }
@@ -24,6 +23,7 @@
         padding: 40px 24px;
         gap: 20px;
         height: fit-content;
+        width: 100%;
     }
 
     .avatar-wrapper {
@@ -276,9 +276,6 @@
         <div class="user-info-text">
             <h3 class="user-name">{% firstof request.user.first_name request.user.username %}</h3>
             <span class="user-email">{{ request.user.email }}</span>
-            <div>
-                <span class="user-plan-badge" id="current-plan-badge">{{ profile.get_plan_display }} Plan</span>
-            </div>
         </div>
 
         <div class="user-stats-list">
@@ -301,49 +298,7 @@
         </div>
     </div>
 
-    <!-- Right Settings / Pricing Panel -->
-    <div class="glass-panel settings-panel">
-        <div>
-            <h3 class="settings-section-title">Operational clearance protocols</h3>
-            <div class="plans-flex">
-                <!-- Free Plan -->
-                <div class="plan-select-card {% if profile.plan == 'free' %}active{% endif %}" data-plan="free">
-                    <div class="plan-info-left">
-                        <div class="plan-radio-circle"></div>
-                        <div class="plan-details">
-                            <span class="plan-title-text">Free Protocol</span>
-                            <span class="plan-features-desc">Basic cognitive organization, manual Eisenhower quadrants, 25m Pomodoros.</span>
-                        </div>
-                    </div>
-                    <div class="plan-price-right">Active</div>
-                </div>
 
-                <!-- Pro Plan -->
-                <div class="plan-select-card {% if profile.plan == 'pro' %}active{% endif %}" data-plan="pro">
-                    <div class="plan-info-left">
-                        <div class="plan-radio-circle"></div>
-                        <div class="plan-details">
-                            <span class="plan-title-text">Pro Protocol</span>
-                            <span class="plan-features-desc">AI Brain Dump extraction, daily reflection diagnostics, streak analytics. (Free for active cohort)</span>
-                        </div>
-                    </div>
-                    <div class="plan-price-right">Free (Beta)</div>
-                </div>
-
-                <!-- Ultimate Plan -->
-                <div class="plan-select-card {% if profile.plan == 'ultimate' %}active{% endif %}" data-plan="ultimate">
-                    <div class="plan-info-left">
-                        <div class="plan-radio-circle"></div>
-                        <div class="plan-details">
-                            <span class="plan-title-text">Ultimate Protocol</span>
-                            <span class="plan-features-desc">Spaced repetition vocabulary engine, infinite card decks, custom Operations metrics. (Free for active cohort)</span>
-                        </div>
-                    </div>
-                    <div class="plan-price-right">Free (Beta)</div>
-                </div>
-            </div>
-        </div>
-    </div>
 
 </div>
 
@@ -364,41 +319,7 @@
         }, 3000);
     }
 
-    // 1. Plan updates
-    document.querySelectorAll('.plan-select-card').forEach(card => {
-        card.addEventListener('click', function() {
-            const plan = this.getAttribute('data-plan');
-            
-            fetch('/api/profile/update-plan/', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                    'X-CSRFToken': window.CSRF_TOKEN
-                },
-                body: JSON.stringify({ plan: plan })
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.status === 'success') {
-                    // Update active classes
-                    document.querySelectorAll('.plan-select-card').forEach(c => c.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // Update current badges & displays
-                    const planNames = { 'free': 'Free', 'pro': 'Pro', 'ultimate': 'Ultimate' };
-                    document.getElementById('current-plan-badge').textContent = `${planNames[plan]} Plan`;
-                    
-                    showToast(`Cleared for ${planNames[plan]} level access.`);
-                } else {
-                    showToast(`Error updating clearance: ${data.message}`);
-                }
-            })
-            .catch(err => {
-                console.error(err);
-                showToast('Failed to update plan status.');
-            });
-        });
-    });
+
 
     // 2. Avatar Image Uploads
     document.getElementById('avatar-input').addEventListener('change', function() {

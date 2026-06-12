@@ -169,123 +169,7 @@
         line-height: 1.5;
     }
 
-    /* Pricing Section */
-    .pricing-section {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        gap: 40px;
-        width: 100%;
-    }
 
-    .pricing-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 24px;
-        width: 100%;
-        align-items: stretch;
-    }
-
-    .pricing-card {
-        display: flex;
-        flex-direction: column;
-        justify-content: space-between;
-        padding: 36px 28px;
-        border-radius: 24px;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .pricing-card.premium {
-        background: rgba(255, 255, 255, 0.65);
-        border: 2px solid var(--accent-color);
-        box-shadow: 0 15px 35px rgba(99, 91, 143, 0.12);
-        transform: scale(1.03);
-    }
-
-    .badge-popular {
-        position: absolute;
-        top: 14px;
-        right: 14px;
-        background: var(--accent-color);
-        color: #fff;
-        font-size: 0.75rem;
-        font-weight: 600;
-        padding: 4px 10px;
-        border-radius: 20px;
-        text-transform: uppercase;
-    }
-
-    .plan-header {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .plan-name {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: var(--text-primary);
-    }
-
-    .plan-price {
-        font-family: 'Outfit', sans-serif;
-        font-size: 2.5rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        display: flex;
-        align-items: baseline;
-    }
-
-    .plan-price span {
-        font-size: 1rem;
-        font-weight: 500;
-        color: var(--text-secondary);
-    }
-
-    .plan-desc {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        line-height: 1.4;
-    }
-
-    .plan-divider {
-        height: 1px;
-        background: rgba(0,0,0,0.06);
-        margin: 20px 0;
-    }
-
-    .plan-features {
-        list-style: none;
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        margin-bottom: 30px;
-    }
-
-    .plan-features li {
-        font-size: 0.88rem;
-        color: var(--text-primary);
-        display: flex;
-        align-items: center;
-        gap: 8px;
-    }
-
-    .plan-features li::before {
-        content: "✓";
-        color: var(--accent-color);
-        font-weight: bold;
-    }
-
-    .btn-plan {
-        width: 100%;
-        text-align: center;
-        padding: 12px;
-        border-radius: 12px;
-        font-size: 0.95rem;
-        font-weight: 600;
-    }
 
     /* Footer Section */
     .landing-footer {
@@ -295,6 +179,56 @@
         display: flex;
         flex-direction: column;
         gap: 12px;
+    }
+
+    /* RESPONSIVE LANDING PAGE STYLES */
+    @media (max-width: 768px) {
+        .landing-container {
+            gap: 40px;
+            padding: 24px 16px 60px;
+        }
+        .hero-section {
+            margin-top: 20px;
+            gap: 16px;
+        }
+        .hero-title {
+            font-size: 2.2rem;
+            letter-spacing: -1px;
+            line-height: 1.2;
+        }
+        .hero-tagline {
+            font-size: 1rem;
+        }
+        .hero-cta-group {
+            flex-direction: column;
+            width: 100%;
+            gap: 12px;
+            align-items: center;
+        }
+        .btn-hero {
+            width: 100%;
+            max-width: 320px;
+            padding: 14px 24px;
+            font-size: 1rem;
+            text-align: center;
+        }
+        .product-preview {
+            border-radius: 16px;
+            padding: 8px;
+        }
+        .product-preview-inner {
+            grid-template-columns: 1fr;
+            gap: 16px;
+            padding: 16px;
+        }
+        .features-grid {
+            grid-template-columns: 1fr;
+            gap: 16px;
+        }
+
+        .section-title {
+            font-size: 1.8rem;
+        }
     }
 </style>
 {% endblock %}
@@ -307,7 +241,7 @@
         <div class="hero-badge">Military-grade protocols</div>
         <h2 class="hero-title">Your Brain in Chaos.<br>Turn it into <span>Structured Power.</span></h2>
         <p class="hero-tagline">
-            chaos-control is the Eisenhower + Pomodoro tactical engine designed to command your clutter, optimize focus cycles, and generate clean daily operations layouts.
+            A to-do list engineered around how top researchers structure deep work. chaos-control combines Eisenhower priority matrices and Pomodoro focus blocks to translate clutter into pure structured power.
         </p>
         <div class="hero-cta-group">
             <a href="/accounts/google/login/" class="btn btn-hero">Activate Google Protocol</a>
@@ -367,70 +301,7 @@
         </div>
     </section>
 
-    <!-- Pricing Grid -->
-    <section class="pricing-section">
-        <div class="section-header" style="max-width: 600px; text-align: center; display: flex; flex-direction: column; gap: 12px; align-items: center;">
-            <h3 class="section-title">Protocol Tier Clearance</h3>
-            <div style="background: rgba(245, 158, 11, 0.08); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 12px; padding: 12px 18px; color: #b45309; font-size: 0.85rem; line-height: 1.4; font-weight: 500;">
-                ⚡ <strong>Early Adopter Clearance:</strong> All premium protocols are 100% free for the current launch cohort. Slots are limited to build operational stability. Secure your clearance level before the next phase.
-            </div>
-        </div>
-        <div class="pricing-grid">
-            <!-- Free Plan -->
-            <div class="glass-panel pricing-card">
-                <div class="plan-header">
-                    <span class="plan-name">Free Protocol</span>
-                    <div class="plan-price">FREE<span>/now</span></div>
-                    <p class="plan-desc">Basic cognitive organization for recruits. Stabilize initial chaos.</p>
-                </div>
-                <div class="plan-divider"></div>
-                <ul class="plan-features">
-                    <li>Basic Objective Organization</li>
-                    <li>Manual Eisenhower sorting</li>
-                    <li>Standard 25m Pomodoro cycles</li>
-                    <li>Local daily reflection records</li>
-                </ul>
-                <a href="/accounts/google/login/" class="btn btn-secondary btn-plan">Deploy Recruit</a>
-            </div>
 
-            <!-- Pro Plan -->
-            <div class="glass-panel pricing-card premium">
-                <span class="badge-popular">Elite</span>
-                <div class="plan-header">
-                    <span class="plan-name">Pro Protocol</span>
-                    <div class="plan-price">FREE<span>/now</span></div>
-                    <p class="plan-desc">Advanced auto-extraction engines. Free during initial deployment phase.</p>
-                </div>
-                <div class="plan-divider"></div>
-                <ul class="plan-features">
-                    <li>Everything in Free</li>
-                    <li><strong>AI Brain Dump extraction</strong></li>
-                    <li><strong>AI Daily Reflection suggestions</strong></li>
-                    <li>Interactive operations metrics</li>
-                    <li>Streak tracking indicators</li>
-                </ul>
-                <a href="/accounts/google/login/" class="btn btn-plan">Deploy Operator</a>
-            </div>
-
-            <!-- Ultimate Plan -->
-            <div class="glass-panel pricing-card">
-                <div class="plan-header">
-                    <span class="plan-name">Ultimate Protocol</span>
-                    <div class="plan-price">FREE<span>/now</span></div>
-                    <p class="plan-desc">Maximum intelligence and operations capacity. Free during initial deployment phase.</p>
-                </div>
-                <div class="plan-divider"></div>
-                <ul class="plan-features">
-                    <li>Everything in Pro</li>
-                    <li><strong>Spaced Repetition trainer</strong></li>
-                    <li>Unlimited vocabulary review cards</li>
-                    <li>Custom client operations analytics</li>
-                    <li>High-status custom dashboard metrics</li>
-                </ul>
-                <a href="/accounts/google/login/" class="btn btn-secondary btn-plan">Deploy Commander</a>
-            </div>
-        </div>
-    </section>
 
     <!-- Footer -->
     <footer class="landing-footer">

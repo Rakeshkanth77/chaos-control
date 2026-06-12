@@ -87,7 +87,7 @@
                     {% endif %}
                 </div>
 
-                <nav class="app-nav" style="display: flex; align-items: center; gap: 12px;">
+                <nav class="app-nav" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;">
                     <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
                     <a href="/analytics/" class="nav-link {% if '/analytics/' in request.path %}active{% endif %}">Analytics</a>
                     {% if request.user.is_staff %}

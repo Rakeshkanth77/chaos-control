@@ -22,4 +22,5 @@ urlpatterns = [
     path('api/pomodoro/complete/', api.complete_pomodoro, name='api_complete_pomodoro'),
     path('api/profile/update-plan/', api.update_plan, name='api_update_plan'),
     path('api/profile/update-avatar/', api.update_avatar, name='api_update_avatar'),
+    path('api/todo/update-title/', api.update_todo_title, name='api_update_todo_title'),
 ]
