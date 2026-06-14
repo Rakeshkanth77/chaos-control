@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Projects | chaos-control{% endblock %}
+
+{% block content %}
+<div class="projects-container">
+
+    <!-- Header -->
+    <div class="projects-header">
+        <h2>Project <span>Hub</span></h2>
+        <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary);">
+            {{ projects.count }} project{{ projects.count|pluralize }} tracked
+        </div>
+    </div>
+
+    <!-- Add Project Form -->
+    <form id="add-project-form" class="glass-panel project-add-form">
+        <input type="text" id="project-name" class="form-control" placeholder="Project name" required>
+        <input type="url" id="project-url" class="form-control" placeholder="https://docs.google.com/..." required>
+        <input type="text" id="project-description" class="form-control" placeholder="Brief description (optional)">
+        <button type="submit" class="btn" id="add-project-btn">+ Add Project</button>
+    </form>
+
+    <!-- Project List -->
+    <div class="project-list" id="project-list">
+        {% for project in projects %}
+            <div class="glass-panel project-card" data-id="{{ project.id }}">
+                <div class="project-info">
+                    <div class="project-name">
+                        <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">{{ project.name }} ↗</a>
+                    </div>
+                    {% if project.description %}
+                        <div class="project-description">{{ project.description }}</div>
+                    {% endif %}
+                    <div class="project-url-display">{{ project.url|truncatechars:60 }}</div>
+                </div>
+                <div class="project-actions">
+                    <button class="btn btn-secondary project-edit-btn" style="padding: 4px 12px; font-size: 0.8rem;">Edit</button>
+                    <button class="btn btn-secondary project-delete-btn" style="padding: 4px 12px; font-size: 0.8rem; color: #ef4444;">Delete</button>
+                </div>
+            </div>
+        {% empty %}
+            <div class="glass-panel project-empty" id="project-empty-state">
+                <div style="font-size: 2rem; margin-bottom: 12px;">📁</div>
+                <div>No projects yet. Add your first project above to start tracking your work.</div>
+            </div>
+        {% endfor %}
+    </div>
+
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script src="{% static 'js/projects.js' %}"></script>
+{% endblock %}

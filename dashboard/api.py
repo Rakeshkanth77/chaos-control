@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import datetime
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project
 from .services import parse_brain_dump, generate_ai_reflection
 
 def get_date_from_request(data):
@@ -347,3 +347,91 @@ def update_todo_title(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
+
+# ========== PROJECT CRUD API ==========
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def add_project(request):
+    try:
+        data = json.loads(request.body)
+        name = data.get('name', '').strip()
+        url = data.get('url', '').strip()
+        description = data.get('description', '').strip()
+
+        if not name or not url:
+            return JsonResponse({'status': 'error', 'message': 'Name and URL are required'}, status=400)
+
+        max_order = Project.objects.filter(user=request.user).count()
+
+        project = Project.objects.create(
+            user=request.user,
+            name=name,
+            url=url,
+            description=description,
+            order=max_order
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'project': {
+                'id': project.id,
+                'name': project.name,
+                'url': project.url,
+                'description': project.description,
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def update_project(request):
+    try:
+        data = json.loads(request.body)
+        project_id = data.get('id')
+        name = data.get('name', '').strip()
+        url = data.get('url', '').strip()
+        description = data.get('description', '').strip()
+
+        if not name or not url:
+            return JsonResponse({'status': 'error', 'message': 'Name and URL are required'}, status=400)
+
+        project = Project.objects.get(id=project_id, user=request.user)
+        project.name = name
+        project.url = url
+        project.description = description
+        project.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'project': {
+                'id': project.id,
+                'name': project.name,
+                'url': project.url,
+                'description': project.description,
+            }
+        })
+    except Project.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Project not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def delete_project(request):
+    try:
+        data = json.loads(request.body)
+        project_id = data.get('id')
+
+        project = Project.objects.get(id=project_id, user=request.user)
+        project.delete()
+
+        return JsonResponse({'status': 'success'})
+    except Project.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Project not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

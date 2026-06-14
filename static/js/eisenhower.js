@@ -217,6 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Initialize drag events on new element
                     const newEl = listContainer.lastElementChild;
                     initDragEvents(newEl);
+                    initTouchDrag(newEl);
                     
                     // Clear input
                     newTodoInput.value = '';
@@ -227,4 +228,154 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // ========== MOBILE TOUCH DRAG-AND-DROP ==========
+    let touchDragItem = null;
+    let touchClone = null;
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchCurrentList = null;
+
+    function initTouchDrag(todoItem) {
+        todoItem.addEventListener('touchstart', handleTouchStart, { passive: false });
+        todoItem.addEventListener('touchmove', handleTouchMove, { passive: false });
+        todoItem.addEventListener('touchend', handleTouchEnd, { passive: false });
+    }
+
+    function handleTouchStart(e) {
+        // Only handle single-finger touches
+        if (e.touches.length !== 1) return;
+        
+        // Ignore if touching checkbox or action buttons
+        const target = e.target;
+        if (target.classList.contains('todo-checkbox') || 
+            target.classList.contains('action-btn') ||
+            target.closest('.todo-actions')) return;
+        
+        const touch = e.touches[0];
+        touchDragItem = e.currentTarget;
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+
+        // Delay to differentiate scroll from drag
+        touchDragItem._touchTimeout = setTimeout(() => {
+            touchDragItem.classList.add('dragging');
+            
+            // Create a visual clone for dragging feedback
+            touchClone = touchDragItem.cloneNode(true);
+            touchClone.classList.add('touch-drag-clone');
+            touchClone.style.position = 'fixed';
+            touchClone.style.width = touchDragItem.offsetWidth + 'px';
+            touchClone.style.left = touch.clientX - touchDragItem.offsetWidth / 2 + 'px';
+            touchClone.style.top = touch.clientY - 20 + 'px';
+            touchClone.style.zIndex = '9999';
+            touchClone.style.opacity = '0.85';
+            touchClone.style.pointerEvents = 'none';
+            touchClone.style.transform = 'scale(1.03)';
+            touchClone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
+            document.body.appendChild(touchClone);
+            
+            touchDragItem.style.opacity = '0.3';
+        }, 200);
+    }
+
+    function handleTouchMove(e) {
+        if (!touchDragItem) return;
+        
+        const touch = e.touches[0];
+        const dx = Math.abs(touch.clientX - touchStartX);
+        const dy = Math.abs(touch.clientY - touchStartY);
+        
+        // If dragging hasn't been initiated yet and movement is mostly horizontal or significant
+        if (!touchDragItem.classList.contains('dragging')) {
+            if (dy > 10 && dx < 10) {
+                // User is scrolling vertically, cancel drag
+                clearTimeout(touchDragItem._touchTimeout);
+                touchDragItem = null;
+                return;
+            }
+            if (dx < 5 && dy < 5) return; // Not enough movement yet
+        }
+        
+        e.preventDefault(); // Prevent scroll while dragging
+        
+        if (!touchClone) return;
+        
+        // Move clone with finger
+        touchClone.style.left = touch.clientX - touchClone.offsetWidth / 2 + 'px';
+        touchClone.style.top = touch.clientY - 20 + 'px';
+        
+        // Find which priority list is under the finger
+        // Temporarily hide clone to find element underneath
+        touchClone.style.display = 'none';
+        const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
+        touchClone.style.display = '';
+        
+        // Clear all drag-over highlights
+        todoLists.forEach(list => list.classList.remove('drag-over'));
+        touchCurrentList = null;
+        
+        if (elementBelow) {
+            const targetList = elementBelow.closest('.priority-list');
+            if (targetList) {
+                targetList.classList.add('drag-over');
+                touchCurrentList = targetList;
+                
+                // Reorder: find insertion position
+                const afterElement = getDragAfterElement(targetList, touch.clientY);
+                if (afterElement == null) {
+                    targetList.appendChild(touchDragItem);
+                } else {
+                    targetList.insertBefore(touchDragItem, afterElement);
+                }
+            }
+        }
+    }
+
+    async function handleTouchEnd(e) {
+        clearTimeout(touchDragItem?._touchTimeout);
+        
+        if (!touchDragItem) return;
+        
+        const wasDragging = touchDragItem.classList.contains('dragging');
+        touchDragItem.classList.remove('dragging');
+        touchDragItem.style.opacity = '';
+        
+        if (touchClone) {
+            touchClone.remove();
+            touchClone = null;
+        }
+        
+        // Clear all drag-over highlights
+        todoLists.forEach(list => list.classList.remove('drag-over'));
+        
+        if (wasDragging && touchCurrentList) {
+            const todoId = touchDragItem.dataset.id;
+            const priority = touchCurrentList.dataset.priority;
+            const orderedIds = Array.from(touchCurrentList.querySelectorAll('.todo-item')).map(item => item.dataset.id);
+            
+            try {
+                await window.apiPost('/api/todo/update-priority/', {
+                    id: todoId,
+                    priority: priority,
+                    ordered_ids: orderedIds
+                });
+                
+                // Remove empty state message if present
+                const emptyMsg = touchCurrentList.querySelector('.empty-state-message');
+                if (emptyMsg) emptyMsg.remove();
+                
+                updatePriorityCounts();
+            } catch (err) {
+                window.location.reload();
+            }
+        }
+        
+        touchDragItem = null;
+        touchCurrentList = null;
+    }
+
+    // Apply touch drag to all existing todo items
+    document.querySelectorAll('.todo-item').forEach(initTouchDrag);
 });
+

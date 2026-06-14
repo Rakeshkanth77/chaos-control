@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="{% block body_class %}{% endblock %}">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -90,6 +90,7 @@
                 <nav class="app-nav" style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap; justify-content: center;">
                     <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
                     <a href="/analytics/" class="nav-link {% if '/analytics/' in request.path %}active{% endif %}">Analytics</a>
+                    <a href="/projects/" class="nav-link {% if '/projects/' in request.path %}active{% endif %}">Projects</a>
                     {% if request.user.is_staff %}
                         <a href="/ops/dashboard/" class="nav-link {% if '/ops/dashboard/' in request.path %}active{% endif %}">Ops Panel</a>
                     {% endif %}

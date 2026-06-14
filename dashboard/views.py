@@ -3,7 +3,7 @@ from django.utils import timezone
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from datetime import datetime
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project
 from flashcards.models import FlashCard
 from analytics.api import calculate_streak
 
@@ -98,6 +98,15 @@ def profile_view(request):
     return render(request, 'dashboard/profile.html', context)
 
 
+@login_required
+def projects_view(request):
+    projects = Project.objects.filter(user=request.user)
+    context = {
+        'projects': projects,
+    }
+    return render(request, 'dashboard/projects.html', context)
+
+
 @user_passes_test(lambda u: u.is_staff, login_url='/')
 def ops_dashboard(request):
     # Retrieve system stats for SaaS corporate metrics
@@ -130,4 +139,5 @@ def ops_dashboard(request):
         'search_query': search_query,
     }
     return render(request, 'dashboard/ops_dashboard.html', context)
+
 

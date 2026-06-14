@@ -3,6 +3,8 @@
 
 {% block title %}Dashboard | chaos-control{% endblock %}
 
+{% block body_class %}dashboard-page{% endblock %}
+
 {% block content %}
 <div class="dashboard-grid">
     
@@ -19,7 +21,8 @@
                 class="braindump-textarea" 
                 placeholder="Unload everything on your mind... targets, ideas, raw thoughts. We'll extract actionable objectives below."
             >{% if braindump %}{{ braindump.content }}{% endif %}</textarea>
-            <div class="card-footer">
+            <div class="card-footer" style="gap: 8px;">
+                <button id="clear-braindump-btn" class="btn btn-secondary">Clear</button>
                 <button id="generate-todos-btn" class="btn">Extract Targets</button>
             </div>
         </div>
@@ -201,62 +204,15 @@
 
     <!-- COLUMN 4: Flashcards & Pomodoro Timer -->
     <div class="grid-column">
-        <!-- Flashcard Vocabulary Practice -->
-        <div class="glass-panel flashcards-card" id="flashcard-section">
-            <h2 class="panel-title">
-                Vocabulary Review
-                <div style="display: flex; gap: 8px;">
-                    <button id="edit-card-btn" class="action-btn" style="display: none; background: rgba(255,255,255,0.25); border: 1px solid rgba(255,255,255,0.4); border-radius: 6px; padding: 2px 8px;">Edit Card</button>
-                    <button id="toggle-creator-btn" class="action-btn">+ Add Card</button>
-                </div>
-            </h2>
-
-            <!-- Create Card Form (Collapsible) -->
-            <div class="flashcard-creator" id="flashcard-creator">
-                <div class="form-group">
-                    <label>Word</label>
-                    <input type="text" id="fc-word" class="form-control" placeholder="E.g., Ephemeral">
-                </div>
-                <div class="form-group">
-                    <label>Definition</label>
-                    <textarea id="fc-definition" class="form-control" rows="2" placeholder="Meaning of the word..."></textarea>
-                </div>
-                <div class="form-group">
-                    <label>Example Sentence (Optional)</label>
-                    <input type="text" id="fc-example" class="form-control" placeholder="The sunset was beautiful but ephemeral.">
-                </div>
-                <div class="creator-actions">
-                    <button id="cancel-creator-btn" class="btn btn-secondary">Cancel</button>
-                    <button id="save-card-btn" class="btn">Save</button>
-                </div>
-            </div>
-
-            <!-- Card Flip Container -->
-            <div class="flashcard-wrapper" id="flashcard-wrapper">
-                <!-- Front Side -->
-                <div class="flashcard-face flashcard-front">
-                    <div class="word-display" id="card-word">Loading next card...</div>
-                    <span style="font-size: 0.75rem; color: var(--text-secondary); margin-top: 20px;">Click to reveal definition</span>
-                </div>
-                <!-- Back Side -->
-                <div class="flashcard-face flashcard-back">
-                    <div class="word-definition" id="card-definition">Meaning goes here.</div>
-                    <div class="word-example" id="card-example">Example sentence.</div>
-                </div>
-            </div>
-
-            <!-- Control Actions (Hidden/Visible state depending on view/flip status) -->
-            <div class="flashcard-actions" id="fc-controls" style="display: none;">
-                <div class="flashcard-action-bar-back" id="fc-rating-buttons" style="display: none;">
-                    <button class="btn btn-secondary" id="answer-wrong-btn">Didn't know</button>
-                    <button class="btn" id="answer-correct-btn">Got it</button>
-                </div>
-                <button class="btn" id="flip-btn">Reveal</button>
-            </div>
-            
-            <div class="card-footer" style="margin-top: 10px; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary);">
-                <span>Scheduled today: <strong id="due-count">{{ due_flashcards }}</strong></span>
-                <span>Total: <strong id="total-count">{{ total_flashcards }}</strong></span>
+        <!-- Anki Flashcards Link -->
+        <div class="glass-panel anki-link-card">
+            <h2 class="panel-title">Anki Flashcards</h2>
+            <div class="anki-link-content">
+                <div class="anki-icon">📚</div>
+                <p class="anki-description">Review your flashcards using Anki's spaced repetition system for maximum retention.</p>
+                <a href="https://ankiweb.net/" target="_blank" rel="noopener noreferrer" class="btn anki-btn" id="open-anki-btn">
+                    Open AnkiWeb ↗
+                </a>
             </div>
         </div>
 
@@ -293,5 +249,5 @@
 <script src="{% static 'js/eisenhower.js' %}"></script>
 <script src="{% static 'js/reflection.js' %}"></script>
 <script src="{% static 'js/pomodoro.js' %}"></script>
-<script src="{% static 'js/flashcards.js' %}"></script>
+
 {% endblock %}

@@ -187,6 +187,44 @@
         background: rgba(245, 158, 11, 0.15);
         color: #b45309;
     }
+
+    /* Fix #5: Responsive ops dashboard for mobile */
+    @media (max-width: 640px) {
+        .metrics-row {
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+        .charts-grid {
+            grid-template-columns: 1fr;
+        }
+        .ops-title-bar {
+            flex-direction: column;
+            gap: 8px;
+            text-align: center;
+        }
+        .ops-title-bar h2 {
+            font-size: 1.3rem;
+        }
+        .chart-panel {
+            height: 280px;
+        }
+        .metric-box {
+            padding: 16px;
+        }
+        .metric-number {
+            font-size: 1.6rem;
+        }
+        .table-header-row {
+            flex-direction: column;
+            gap: 10px;
+        }
+        .search-form {
+            width: 100%;
+        }
+        .search-input {
+            width: 100% !important;
+        }
+    }
 </style>
 {% endblock %}
 

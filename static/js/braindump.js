@@ -72,4 +72,27 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    // Clear Brain Dump button handler
+    const clearBtn = document.getElementById('clear-braindump-btn');
+    if (clearBtn && dumpInput) {
+        clearBtn.addEventListener('click', async () => {
+            if (!dumpInput.value.trim()) return; // Already empty
+
+            if (confirm('Clear all brain dump text? This cannot be undone.')) {
+                dumpInput.value = '';
+                saveStatus.textContent = 'Saving...';
+                saveStatus.style.opacity = '0.7';
+
+                try {
+                    await apiPost('/api/braindump/save/', { content: '' });
+                    saveStatus.textContent = 'Cleared & saved';
+                    saveStatus.style.opacity = '0.5';
+                } catch (e) {
+                    saveStatus.textContent = 'Error saving';
+                    saveStatus.style.opacity = '1';
+                }
+            }
+        });
+    }
 });

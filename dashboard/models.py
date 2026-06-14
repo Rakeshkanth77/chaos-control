@@ -82,6 +82,21 @@ class UserProfile(models.Model):
         return self.avatar_url or '/static/images/default-avatar.png'
 
 
+class Project(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='projects')
+    name = models.CharField(max_length=200)
+    url = models.URLField(max_length=1024)
+    description = models.TextField(blank=True, default='')
+    order = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['order', '-created_at']
+
+    def __str__(self):
+        return f"{self.name} ({self.user.username})"
+
+
 # Signals to automatically create UserProfile on signup and load Google avatar URL
 from django.db.models.signals import post_save
 from django.dispatch import receiver

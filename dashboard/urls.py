@@ -7,6 +7,7 @@ app_name = 'dashboard'
 urlpatterns = [
     path('', views.index, name='index'),
     path('profile/', views.profile_view, name='profile'),
+    path('projects/', views.projects_view, name='projects'),
     path('ops/dashboard/', views.ops_dashboard, name='ops_dashboard'),
     
     # API endpoints
@@ -23,4 +24,9 @@ urlpatterns = [
     path('api/profile/update-plan/', api.update_plan, name='api_update_plan'),
     path('api/profile/update-avatar/', api.update_avatar, name='api_update_avatar'),
     path('api/todo/update-title/', api.update_todo_title, name='api_update_todo_title'),
+    
+    # Project API endpoints
+    path('api/project/add/', api.add_project, name='api_add_project'),
+    path('api/project/update/', api.update_project, name='api_update_project'),
+    path('api/project/delete/', api.delete_project, name='api_delete_project'),
 ]
