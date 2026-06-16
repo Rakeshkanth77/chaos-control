@@ -1,14 +1,14 @@
 {% extends "base.html" %}
 {% load i18n %}
 
-{% block title %}Sign Out | chaos-control{% endblock %}
+{% block title %}Sign Out | to-do made by researcher{% endblock %}
 
 {% block content %}
 <div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 20px;">
     <div class="glass-panel" style="width: 100%; max-width: 450px; padding: 40px; display: flex; flex-direction: column; gap: 24px; text-align: center;">
         <div>
             <h2 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -1px; text-transform: uppercase; margin-bottom: 6px;">Sign Out</h2>
-            <p style="font-size: 0.88rem; color: var(--text-secondary);">Are you sure you want to sign out of chaos-control?</p>
+            <p style="font-size: 0.88rem; color: var(--text-secondary);">Are you sure you want to sign out of to-do made by researcher?</p>
         </div>
 
         <form method="POST" action="{% url 'account_logout' %}" style="display: flex; flex-direction: column; gap: 12px;">

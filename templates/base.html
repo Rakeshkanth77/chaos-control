@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% block title %}chaos-control | Command Center{% block subtitle %}{% endblock %}{% endblock %}</title>
+    <title>{% block title %}to-do made by researcher | Command Center{% block subtitle %}{% endblock %}{% endblock %}</title>
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -48,15 +48,33 @@
             font-size: 0.75rem;
             font-weight: bold;
         }
-        .header-logo h1 {
+        .header-logo-container {
+            display: flex;
+            flex-direction: column;
+            line-height: 1.1;
+        }
+        .header-logo-container h1 {
             font-family: 'Outfit', sans-serif;
             font-weight: 800;
-            letter-spacing: -1px;
+            font-size: 1.4rem;
+            letter-spacing: -0.5px;
+            margin: 0;
             text-transform: lowercase;
-            color: var(--text-primary);
+            color: var(--text-secondary);
         }
-        .header-logo h1 span {
+        .header-logo-container h1 span {
             color: var(--accent-color);
+            font-weight: 900;
+        }
+        .header-logo-sub {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            opacity: 0.8;
+            margin-top: -1px;
         }
     </style>
     {% block extra_css %}{% endblock %}
@@ -69,8 +87,9 @@
         <!-- Minimal Header -->
         <header class="app-header">
             <div class="header-logo">
-                <a href="/" style="text-decoration: none; color: inherit;">
-                    <h1>chaos<span>-</span>control</h1>
+                <a href="/" class="header-logo-container" style="text-decoration: none;">
+                    <h1><span>to-do</span></h1>
+                    <span class="header-logo-sub">made by researcher</span>
                 </a>
             </div>
             
