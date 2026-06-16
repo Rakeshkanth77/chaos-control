@@ -1,0 +1,29 @@
+{% extends "base.html" %}
+{% load i18n %}
+
+{% block title %}Sign Out | chaos-control{% endblock %}
+
+{% block content %}
+<div style="display: flex; justify-content: center; align-items: center; min-height: 70vh; padding: 20px;">
+    <div class="glass-panel" style="width: 100%; max-width: 450px; padding: 40px; display: flex; flex-direction: column; gap: 24px; text-align: center;">
+        <div>
+            <h2 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; letter-spacing: -1px; text-transform: uppercase; margin-bottom: 6px;">Sign Out</h2>
+            <p style="font-size: 0.88rem; color: var(--text-secondary);">Are you sure you want to sign out of chaos-control?</p>
+        </div>
+
+        <form method="POST" action="{% url 'account_logout' %}" style="display: flex; flex-direction: column; gap: 12px;">
+            {% csrf_token %}
+            {% if redirect_field_value %}
+                <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+            {% endif %}
+            
+            <button class="btn" type="submit" style="width: 100%; padding: 14px; font-size: 1rem; cursor: pointer; font-weight: 600; border-radius: 12px; background: var(--accent-color); color: #fff; box-shadow: 0 4px 12px rgba(99,91,143,0.2); transition: all 0.2s; border: none;">
+                Sign Out
+            </button>
+            <a href="/" class="btn btn-secondary" style="display: flex; align-items: center; justify-content: center; width: 100%; padding: 14px; font-size: 0.95rem; font-weight: 600; text-decoration: none; border-radius: 12px; transition: all 0.2s;">
+                Cancel
+            </a>
+        </form>
+    </div>
+</div>
+{% endblock %}

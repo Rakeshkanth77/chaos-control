@@ -174,35 +174,10 @@
                 <button id="analyze-reflection-btn" class="btn">Reflect & Analyze</button>
             </div>
 
-            <div class="reflection-results-stack">
-                <!-- Mistakes Output Box -->
-                <div class="reflection-result-box" id="mistakes-box">
-                    <div class="result-box-title">Mistakes to not repeat tomorrow</div>
-                    <div class="reflection-result-content" id="mistakes-content">
-                        {% if reflection and reflection.mistakes %}
-                            {{ reflection.mistakes|linebreaksbr }}
-                        {% else %}
-                            <span class="empty-text">Write reflection notes above and click "Reflect" to analyze.</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Suggestions Output Box -->
-                <div class="reflection-result-box" id="suggestions-box">
-                    <div class="result-box-title">Suggestions for tomorrow</div>
-                    <div class="reflection-result-content" id="suggestions-content">
-                        {% if reflection and reflection.suggestions %}
-                            {{ reflection.suggestions|linebreaksbr }}
-                        {% else %}
-                            <span class="empty-text">Write reflection notes above and click "Reflect" to analyze.</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
         </div>
     </div>
 
-    <!-- COLUMN 4: Flashcards & Pomodoro Timer -->
+    <!-- COLUMN 4: Flashcards & Reflection Insights -->
     <div class="grid-column">
         <!-- Anki Flashcards Link -->
         <div class="glass-panel anki-link-card">
@@ -216,26 +191,33 @@
             </div>
         </div>
 
-        <!-- Pomodoro Timer -->
-        <div class="glass-panel pomodoro-card">
-            <h2 class="panel-title">Pomodoro Timer</h2>
-            
-            <div class="timer-visual">
-                <!-- SVG Ring -->
-                <svg class="timer-ring" width="130" height="130">
-                    <circle class="timer-ring-bg" cx="65" cy="65" r="60"></circle>
-                    <circle class="timer-ring-progress" id="timer-progress-ring" cx="65" cy="65" r="60"></circle>
-                </svg>
-                <div class="timer-digits" id="timer-time">25:00</div>
-            </div>
+        <!-- Reflection Insights -->
+        <div class="glass-panel reflection-insights-card">
+            <h2 class="panel-title">Reflection Insights</h2>
+            <div class="reflection-results-stack" style="margin-top: 0; max-height: none;">
+                <!-- Mistakes Output Box -->
+                <div class="reflection-result-box" id="mistakes-box">
+                    <div class="result-box-title">Mistakes to not repeat tomorrow</div>
+                    <div class="reflection-result-content" id="mistakes-content">
+                        {% if reflection and reflection.mistakes %}
+                            {{ reflection.mistakes|linebreaksbr }}
+                        {% else %}
+                            <span class="empty-text">Write reflection notes in Column 3 and click "Reflect" to analyze.</span>
+                        {% endif %}
+                    </div>
+                </div>
 
-            <div class="timer-controls">
-                <button class="btn btn-secondary" id="timer-reset">Reset</button>
-                <button class="btn" id="timer-start">Start</button>
-            </div>
-
-            <div class="pomodoro-stats">
-                Sessions completed today: <strong id="pomodoro-today-count">{{ pomodoros_completed }}</strong>
+                <!-- Suggestions Output Box -->
+                <div class="reflection-result-box" id="suggestions-box">
+                    <div class="result-box-title">Suggestions for tomorrow</div>
+                    <div class="reflection-result-content" id="suggestions-content">
+                        {% if reflection and reflection.suggestions %}
+                            {{ reflection.suggestions|linebreaksbr }}
+                        {% else %}
+                            <span class="empty-text">Write reflection notes in Column 3 and click "Reflect" to analyze.</span>
+                        {% endif %}
+                    </div>
+                </div>
             </div>
         </div>
     </div>
@@ -248,6 +230,5 @@
 <script src="{% static 'js/braindump.js' %}"></script>
 <script src="{% static 'js/eisenhower.js' %}"></script>
 <script src="{% static 'js/reflection.js' %}"></script>
-<script src="{% static 'js/pomodoro.js' %}"></script>
 
 {% endblock %}

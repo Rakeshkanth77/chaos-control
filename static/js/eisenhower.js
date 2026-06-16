@@ -377,5 +377,69 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Apply touch drag to all existing todo items
     document.querySelectorAll('.todo-item').forEach(initTouchDrag);
+
+    // ========== EISENHOWER ACCORDION COLLAPSE/EXPAND MODE ==========
+    const priorityBlocks = document.querySelectorAll('.priority-block');
+    const eisenhowerColumn = document.querySelector('.eisenhower-column');
+
+    priorityBlocks.forEach(block => {
+        block.addEventListener('click', (e) => {
+            // Check if user clicked on interactive todo action buttons/checkboxes/inputs/forms
+            const isTodoAction = e.target.closest('.todo-item') || 
+                                 e.target.closest('button') || 
+                                 e.target.closest('input') || 
+                                 e.target.closest('form');
+
+            // If it is a todo list interaction and block is not collapsed, let it propagate normally
+            if (isTodoAction && !block.classList.contains('collapsed')) {
+                return;
+            }
+
+            // Clicked a collapsed capsule block anywhere -> Expand it
+            if (block.classList.contains('collapsed')) {
+                expandBlock(block);
+                e.stopPropagation();
+                return;
+            }
+
+            // Clicked the header of an already expanded block or a default block
+            const clickedHeader = e.target.closest('.priority-header');
+            const hasExpanded = eisenhowerColumn.classList.contains('has-expanded');
+
+            if (clickedHeader) {
+                if (block.classList.contains('expanded')) {
+                    collapseAll();
+                } else {
+                    expandBlock(block);
+                }
+                e.stopPropagation();
+            } else if (!hasExpanded) {
+                // If in default 4-split layout, clicking non-interactive parts also expands it
+                expandBlock(block);
+                e.stopPropagation();
+            }
+        });
+    });
+
+    function expandBlock(targetBlock) {
+        priorityBlocks.forEach(block => {
+            if (block === targetBlock) {
+                block.classList.remove('collapsed');
+                block.classList.add('expanded');
+            } else {
+                block.classList.remove('expanded');
+                block.classList.add('collapsed');
+            }
+        });
+        eisenhowerColumn.classList.add('has-expanded');
+    }
+
+    function collapseAll() {
+        priorityBlocks.forEach(block => {
+            block.classList.remove('expanded');
+            block.classList.remove('collapsed');
+        });
+        eisenhowerColumn.classList.remove('has-expanded');
+    }
 });
 
