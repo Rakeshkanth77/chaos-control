@@ -1,34 +1,34 @@
 /* Design Tokens & CSS Variables */
 :root {
-    --bg-gradient: linear-gradient(135deg, #e8e0f0 0%, #f5e6e0 50%, #dde8f0 100%);
-    --card-bg: rgba(255, 255, 255, 0.45);
-    --card-border: 1px solid rgba(255, 255, 255, 0.6);
+    --bg-gradient: linear-gradient(135deg, #021110 0%, #062624 50%, #031413 100%);
+    --card-bg: rgba(6, 29, 28, 0.55);
+    --card-border: 1px solid rgba(20, 184, 166, 0.15);
     --card-radius: 20px;
-    --card-shadow: 0 8px 32px rgba(31, 38, 135, 0.05);
+    --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
     --backdrop-blur: blur(20px) saturate(180%);
     
     /* Elegant Color Palette */
-    --text-primary: #1e1e2f;
-    --text-secondary: #5a5a75;
-    --accent-color: #635b8f;
-    --accent-hover: #4e4675;
+    --text-primary: #ffffff;
+    --text-secondary: #8dafae;
+    --accent-color: #14b8a6;
+    --accent-hover: #0d9488;
     
     /* Priority Colors (Muted, Elegant) */
-    --urgent-important-bg: rgba(239, 68, 68, 0.06);
+    --urgent-important-bg: rgba(239, 68, 68, 0.08);
     --urgent-important-border: rgba(239, 68, 68, 0.3);
-    --urgent-important-text: #b91c1c;
+    --urgent-important-text: #fca5a5;
 
-    --important-not-urgent-bg: rgba(245, 158, 11, 0.06);
+    --important-not-urgent-bg: rgba(245, 158, 11, 0.08);
     --important-not-urgent-border: rgba(245, 158, 11, 0.3);
-    --important-not-urgent-text: #b45309;
+    --important-not-urgent-text: #fde047;
 
-    --urgent-not-important-bg: rgba(59, 130, 246, 0.06);
+    --urgent-not-important-bg: rgba(59, 130, 246, 0.08);
     --urgent-not-important-border: rgba(59, 130, 246, 0.3);
-    --urgent-not-important-text: #1d4ed8;
+    --urgent-not-important-text: #93c5fd;
 
-    --neither-bg: rgba(16, 185, 129, 0.06);
+    --neither-bg: rgba(16, 185, 129, 0.08);
     --neither-border: rgba(16, 185, 129, 0.3);
-    --neither-text: #047857;
+    --neither-text: #86efac;
 }
 
 /* Reset and Base Styles */
@@ -45,7 +45,7 @@ body {
     min-height: 100vh;
     overflow-x: hidden;
     position: relative;
-    background: #e8e0f0;
+    background: #021110;
 }
 
 /* Ambient Animating Background */
@@ -102,7 +102,7 @@ body {
     padding: 16px 24px;
     margin-bottom: 24px;
     border-radius: var(--card-radius);
-    background: rgba(255, 255, 255, 0.3);
+    background: rgba(6, 29, 28, 0.45);
     backdrop-filter: var(--backdrop-blur);
     border: var(--card-border);
 }
@@ -122,8 +122,8 @@ body {
 }
 
 .nav-btn {
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(20, 184, 166, 0.1);
+    border: 1px solid rgba(20, 184, 166, 0.25);
     border-radius: 50%;
     width: 32px;
     height: 32px;
@@ -138,7 +138,7 @@ body {
 }
 
 .nav-btn:hover {
-    background: rgba(255, 255, 255, 0.7);
+    background: rgba(20, 184, 166, 0.25);
     transform: scale(1.05);
 }
 
@@ -186,7 +186,7 @@ body {
 
 .nav-link:hover {
     color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(20, 184, 166, 0.15);
 }
 
 .nav-link.active {
@@ -239,8 +239,8 @@ body {
 .braindump-textarea {
     width: 100%;
     flex-grow: 1;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(20, 184, 166, 0.15);
     border-radius: 12px;
     padding: 12px;
     font-family: inherit;
@@ -252,8 +252,8 @@ body {
 }
 
 .braindump-textarea:focus {
-    border-color: rgba(99, 91, 143, 0.5);
-    background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(20, 184, 166, 0.5);
+    background: rgba(0, 0, 0, 0.35);
 }
 
 .card-footer {
@@ -286,13 +286,13 @@ body {
 }
 
 .btn-secondary {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(20, 184, 166, 0.1);
     color: var(--text-primary);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(20, 184, 166, 0.25);
 }
 
 .btn-secondary:hover {
-    background: rgba(255, 255, 255, 0.55);
+    background: rgba(20, 184, 166, 0.2);
 }
 
 .autotodos-card {
@@ -315,17 +315,17 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-    background: rgba(0, 0, 0, 0.02);
+    background: rgba(255, 255, 255, 0.02);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb {
-    background: rgba(0, 0, 0, 0.08);
+    background: rgba(255, 255, 255, 0.15);
     border-radius: 10px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-    background: rgba(0, 0, 0, 0.15);
+    background: rgba(255, 255, 255, 0.3);
 }
 
 /* Todo Items */
@@ -334,8 +334,8 @@ body {
     align-items: center;
     justify-content: space-between;
     padding: 10px 12px;
-    background: rgba(255, 255, 255, 0.35);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(20, 184, 166, 0.08);
+    border: 1px solid rgba(20, 184, 166, 0.15);
     border-radius: 10px;
     margin-bottom: 8px;
     cursor: grab;
@@ -349,7 +349,7 @@ body {
 }
 
 .todo-item:hover {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(20, 184, 166, 0.16);
 }
 
 .todo-content-wrapper {
@@ -365,7 +365,7 @@ body {
     -webkit-appearance: none;
     width: 18px;
     height: 18px;
-    border: 1.5px solid rgba(0, 0, 0, 0.15);
+    border: 1.5px solid rgba(255, 255, 255, 0.3);
     border-radius: 50%;
     outline: none;
     cursor: pointer;
@@ -441,17 +441,18 @@ body {
 
 .inline-input {
     flex-grow: 1;
-    background: rgba(255, 255, 255, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(20, 184, 166, 0.15);
     border-radius: 10px;
     padding: 6px 12px;
     font-size: 0.85rem;
+    color: var(--text-primary);
     outline: none;
 }
 
 .inline-input:focus {
-    border-color: rgba(99, 91, 143, 0.4);
-    background: rgba(255, 255, 255, 0.4);
+    border-color: rgba(20, 184, 166, 0.5);
+    background: rgba(0, 0, 0, 0.35);
 }
 
 
@@ -535,7 +536,7 @@ body {
     font-weight: 600;
     margin-bottom: 10px;
     padding-bottom: 6px;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.03);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
     display: flex;
     justify-content: space-between;
     cursor: pointer;
@@ -543,7 +544,7 @@ body {
 }
 
 .priority-count {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.08);
     padding: 2px 6px;
     border-radius: 8px;
     font-size: 0.75rem;
@@ -591,9 +592,9 @@ body {
 }
 
 .priority-list.drag-over {
-    border: 2px dashed rgba(99, 91, 143, 0.3);
+    border: 2px dashed rgba(20, 184, 166, 0.4);
     border-radius: 10px;
-    background: rgba(255, 255, 255, 0.2);
+    background: rgba(20, 184, 166, 0.1);
 }
 
 
@@ -609,8 +610,8 @@ body {
     width: 100%;
     flex-grow: 1;
     min-height: 120px;
-    background: rgba(255, 255, 255, 0.2);
-    border: 1px solid rgba(255, 255, 255, 0.3);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(20, 184, 166, 0.15);
     border-radius: 12px;
     padding: 12px;
     font-family: inherit;
@@ -622,8 +623,8 @@ body {
 }
 
 .reflection-textarea:focus {
-    border-color: rgba(99, 91, 143, 0.5);
-    background: rgba(255, 255, 255, 0.35);
+    border-color: rgba(20, 184, 166, 0.5);
+    background: rgba(0, 0, 0, 0.35);
 }
 
 /* AI suggestions panels */
@@ -640,8 +641,8 @@ body {
 .reflection-result-box {
     padding: 14px;
     border-radius: 14px;
-    background: rgba(255, 255, 255, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    background: rgba(20, 184, 166, 0.05);
+    border: 1px solid rgba(20, 184, 166, 0.15);
     opacity: 1;
     transition: opacity 0.5s ease;
 }
@@ -723,15 +724,15 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
-    border: 1px solid rgba(255, 255, 255, 0.4);
+    border: 1px solid rgba(20, 184, 166, 0.15);
 }
 
 .flashcard-front {
-    background: rgba(255, 255, 255, 0.35);
+    background: rgba(20, 184, 166, 0.08);
 }
 
 .flashcard-back {
-    background: rgba(255, 255, 255, 0.5);
+    background: rgba(20, 184, 166, 0.15);
     transform: rotateY(180deg);
 }
 
@@ -800,16 +801,17 @@ body {
 
 .form-control {
     width: 100%;
-    background: rgba(255, 255, 255, 0.4);
-    border: 1px solid rgba(255, 255, 255, 0.5);
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(20, 184, 166, 0.15);
     border-radius: 8px;
     padding: 6px 10px;
     font-size: 0.82rem;
+    color: var(--text-primary);
     outline: none;
 }
 
 .form-control:focus {
-    border-color: rgba(99, 91, 143, 0.4);
+    border-color: rgba(20, 184, 166, 0.5);
 }
 
 .creator-actions {
@@ -845,7 +847,7 @@ body {
 
 .timer-ring-bg {
     fill: none;
-    stroke: rgba(0, 0, 0, 0.04);
+    stroke: rgba(255, 255, 255, 0.06);
     stroke-width: 6;
 }
 
