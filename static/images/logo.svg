@@ -1,14 +1,14 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="100%" height="100%">
     <!-- Checklist Circular Checkmark -->
-    <circle cx="28" cy="28" r="16" fill="none" stroke="#14b8a6" stroke-width="4.5" />
-    <path d="M21 28 L26 33 L35 20" fill="none" stroke="#ffffff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
+    <circle cx="28" cy="28" r="16" fill="none" stroke="#0c5855" stroke-width="4.5" />
+    <path d="M21 28 L26 33 L35 20" fill="none" stroke="#0c5855" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round" />
     
     <!-- Short Lines adjacent to Circle -->
-    <line x1="54" y1="20" x2="88" y2="20" stroke="#8dafae" stroke-width="4.5" stroke-linecap="round" />
-    <line x1="54" y1="36" x2="88" y2="36" stroke="#8dafae" stroke-width="4.5" stroke-linecap="round" />
+    <line x1="54" y1="20" x2="88" y2="20" stroke="#4a6b6a" stroke-width="4.5" stroke-linecap="round" />
+    <line x1="54" y1="36" x2="88" y2="36" stroke="#4a6b6a" stroke-width="4.5" stroke-linecap="round" />
     
     <!-- Full Lines below Circle -->
-    <line x1="12" y1="56" x2="88" y2="56" stroke="#8dafae" stroke-width="4.5" stroke-linecap="round" />
-    <line x1="12" y1="72" x2="88" y2="72" stroke="#8dafae" stroke-width="4.5" stroke-linecap="round" />
-    <line x1="12" y1="88" x2="88" y2="88" stroke="#8dafae" stroke-width="4.5" stroke-linecap="round" />
+    <line x1="12" y1="56" x2="88" y2="56" stroke="#4a6b6a" stroke-width="4.5" stroke-linecap="round" />
+    <line x1="12" y1="72" x2="88" y2="72" stroke="#4a6b6a" stroke-width="4.5" stroke-linecap="round" />
+    <line x1="12" y1="88" x2="88" y2="88" stroke="#4a6b6a" stroke-width="4.5" stroke-linecap="round" />
 </svg>

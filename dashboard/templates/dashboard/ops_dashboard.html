@@ -116,7 +116,7 @@
     }
 
     .search-input {
-        background: rgba(0, 0, 0, 0.2);
+        background: rgba(255, 255, 255, 0.25);
         border: var(--card-border);
         border-radius: 10px;
         padding: 6px 14px;
@@ -129,7 +129,7 @@
 
     .search-input:focus {
         width: 250px;
-        background: rgba(0, 0, 0, 0.35);
+        background: rgba(255, 255, 255, 0.45);
     }
 
     .ops-table-container {
@@ -151,18 +151,18 @@
         text-transform: uppercase;
         letter-spacing: 0.5px;
         padding: 12px 16px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
     }
 
     .ops-table td {
         padding: 12px 16px;
         font-size: 0.88rem;
         color: var(--text-primary);
-        border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        border-bottom: 1px solid rgba(0, 0, 0, 0.04);
     }
 
     .ops-table tr:hover {
-        background: rgba(20, 184, 166, 0.08);
+        background: rgba(255, 255, 255, 0.2);
     }
 
     .plan-pill {
@@ -175,18 +175,18 @@
     }
 
     .plan-pill.free {
-        background: rgba(141, 175, 174, 0.15);
+        background: rgba(90, 90, 117, 0.1);
         color: var(--text-secondary);
     }
 
     .plan-pill.pro {
-        background: rgba(20, 184, 166, 0.15);
+        background: rgba(12, 88, 85, 0.15);
         color: var(--accent-color);
     }
 
     .plan-pill.ultimate {
         background: rgba(245, 158, 11, 0.15);
-        color: #fb923c;
+        color: #b45309;
     }
 
     /* Fix #5: Responsive ops dashboard for mobile */
@@ -351,14 +351,14 @@
             datasets: [{
                 data: [{{ free_plans }}, {{ pro_plans }}, {{ ultimate_plans }}],
                 backgroundColor: [
-                    'rgba(141, 175, 174, 0.45)', // Free
-                    'rgba(20, 184, 166, 0.65)', // Pro
+                    'rgba(90, 90, 117, 0.45)', // Free
+                    'rgba(12, 88, 85, 0.65)', // Pro
                     'rgba(245, 158, 11, 0.65)'  // Ultimate
                 ],
                 borderColor: [
-                    'rgba(2, 17, 16, 0.8)',
-                    'rgba(2, 17, 16, 0.8)',
-                    'rgba(2, 17, 16, 0.8)'
+                    'rgba(255, 255, 255, 0.8)',
+                    'rgba(255, 255, 255, 0.8)',
+                    'rgba(255, 255, 255, 0.8)'
                 ],
                 borderWidth: 1
             }]
@@ -370,7 +370,7 @@
                 legend: {
                     position: 'bottom',
                     labels: {
-                        color: '#8dafae',
+                        color: '#4a6b6a',
                         font: {
                             family: 'Inter',
                             size: 11
@@ -391,12 +391,12 @@
                 label: 'System Achievements',
                 data: [{{ total_todos }}, {{ completed_todos }}, {{ completed_pomodoros }}],
                 backgroundColor: [
-                    'rgba(20, 184, 166, 0.55)',
+                    'rgba(12, 88, 85, 0.55)',
                     'rgba(16, 185, 129, 0.55)',
                     'rgba(239, 68, 68, 0.55)'
                 ],
                 borderColor: [
-                    'rgba(20, 184, 166, 0.85)',
+                    'rgba(12, 88, 85, 0.85)',
                     'rgba(16, 185, 129, 0.85)',
                     'rgba(239, 68, 68, 0.85)'
                 ],
@@ -411,10 +411,10 @@
                 y: {
                     beginAtZero: true,
                     grid: {
-                        color: 'rgba(255,255,255,0.08)'
+                        color: 'rgba(0,0,0,0.03)'
                     },
                     ticks: {
-                        color: '#8dafae'
+                        color: '#4a6b6a'
                     }
                 },
                 x: {
@@ -422,7 +422,7 @@
                         display: false
                     },
                     ticks: {
-                        color: '#8dafae'
+                        color: '#4a6b6a'
                     }
                 }
             },

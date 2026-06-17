@@ -43,7 +43,7 @@
     }
 
     .chaos-to-order-card {
-        background: rgba(6, 29, 28, 0.6);
+        background: rgba(255, 255, 255, 0.7);
         border: var(--card-border);
         box-shadow: var(--card-shadow);
         border-radius: 24px;
@@ -93,8 +93,8 @@
     }
 
     .hero-badge {
-        background: rgba(20, 184, 166, 0.15);
-        border: 1px solid rgba(20, 184, 166, 0.3);
+        background: rgba(12, 88, 85, 0.08);
+        border: 1px solid rgba(12, 88, 85, 0.25);
         padding: 6px 16px;
         border-radius: 30px;
         font-size: 0.85rem;
@@ -138,12 +138,12 @@
         font-weight: 600;
         padding: 16px 36px;
         border-radius: 16px;
-        box-shadow: 0 10px 25px rgba(20, 184, 166, 0.25);
+        box-shadow: 0 10px 25px rgba(12, 88, 85, 0.15);
     }
 
     .btn-hero:hover {
         transform: translateY(-2px);
-        box-shadow: 0 12px 30px rgba(20, 184, 166, 0.35);
+        box-shadow: 0 12px 30px rgba(12, 88, 85, 0.25);
     }
 
     /* Product Preview Mockup */
@@ -151,9 +151,9 @@
         width: 100%;
         max-width: 1000px;
         border-radius: 24px;
-        background: rgba(6, 29, 28, 0.25);
+        background: rgba(255, 255, 255, 0.25);
         border: var(--card-border);
-        box-shadow: 0 30px 60px rgba(0,0,0,0.3);
+        box-shadow: 0 30px 60px rgba(12,88,85,0.06);
         padding: 12px;
         backdrop-filter: var(--backdrop-blur);
         position: relative;
@@ -164,8 +164,8 @@
         width: 100%;
         height: auto;
         border-radius: 16px;
-        background: rgba(6, 29, 28, 0.45);
-        border: 1px solid rgba(20, 184, 166, 0.15);
+        background: rgba(255, 255, 255, 0.45);
+        border: 1px solid rgba(255, 255, 255, 0.6);
         padding: 24px;
         display: grid;
         grid-template-columns: 1fr 1fr;
@@ -173,10 +173,10 @@
     }
 
     .preview-card {
-        background: rgba(20, 184, 166, 0.08);
+        background: rgba(255, 255, 255, 0.5);
         border-radius: 14px;
         padding: 16px;
-        border: 1px solid rgba(20, 184, 166, 0.15);
+        border: 1px solid rgba(255, 255, 255, 0.7);
     }
 
     /* Feature Highlights */
@@ -599,7 +599,7 @@
                         let dist = Math.sqrt(dx * dx + dy * dy);
                         if (dist < maxDist && p1.x < 250 && p2.x < 250) {
                             let alpha = (1 - dist / maxDist) * 0.25 * fadeFactor;
-                            ctx.strokeStyle = `rgba(20, 184, 166, ${alpha})`;
+                            ctx.strokeStyle = `rgba(12, 88, 85, ${alpha})`;
                             ctx.beginPath();
                             ctx.moveTo(p1.x, p1.y);
                             ctx.lineTo(p2.x, p2.y);
@@ -622,14 +622,14 @@
                     ctx.globalAlpha = opacity;
                     
                     // Circle
-                    ctx.strokeStyle = '#14b8a6';
+                    ctx.strokeStyle = '#0c5855';
                     ctx.lineWidth = 4.5;
                     ctx.beginPath();
                     ctx.arc(circleCenterX, circleCenterY, circleRadius, 0, Math.PI * 2);
                     ctx.stroke();
                     
                     // Checkmark
-                    ctx.strokeStyle = '#ffffff';
+                    ctx.strokeStyle = '#0c5855';
                     ctx.lineWidth = 4.5;
                     ctx.lineCap = 'round';
                     ctx.lineJoin = 'round';
@@ -640,7 +640,7 @@
                     ctx.stroke();
                     
                     // Lines
-                    ctx.strokeStyle = '#8dafae';
+                    ctx.strokeStyle = '#4a6b6a';
                     ctx.lineWidth = 4.5;
                     ctx.lineCap = 'round';
                     
@@ -677,12 +677,12 @@
             
             particles.forEach(p => {
                 let size = 2.5;
-                let color = 'rgba(20, 184, 166, 0.6)';
+                let color = 'rgba(12, 88, 85, 0.6)';
                 
                 if (currentState === STATES.ORDER || currentState === STATES.TRANSITION) {
-                    if (p.target.type === 'circle') color = '#14b8a6';
-                    else if (p.target.type === 'checkmark') color = '#ffffff';
-                    else color = '#8dafae';
+                    if (p.target.type === 'circle') color = '#0c5855';
+                    else if (p.target.type === 'checkmark') color = '#0c5855';
+                    else color = '#4a6b6a';
                     size = 3.0;
                 }
                 
