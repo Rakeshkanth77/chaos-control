@@ -87,9 +87,12 @@
         <!-- Minimal Header -->
         <header class="app-header">
             <div class="header-logo">
-                <a href="/" class="header-logo-container" style="text-decoration: none;">
-                    <h1><span>to-do</span></h1>
-                    <span class="header-logo-sub">made by researcher</span>
+                <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                    <img src="{% static 'images/logo.svg' %}" alt="Logo" style="width: 32px; height: 32px;">
+                    <div class="header-logo-container">
+                        <h1><span>to-do</span></h1>
+                        <span class="header-logo-sub">made by researcher</span>
+                    </div>
                 </a>
             </div>
             

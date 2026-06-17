@@ -17,14 +17,79 @@
     }
 
     /* Hero Section */
-    .hero-section {
-        text-align: center;
-        max-width: 800px;
+    .hero-section-wrapper {
+        display: grid;
+        grid-template-columns: 1.2fr 1fr;
+        gap: 60px;
+        align-items: center;
+        width: 100%;
+        max-width: 1200px;
+        margin-top: 40px;
+    }
+
+    .hero-content {
+        display: flex;
+        flex-direction: column;
+        gap: 24px;
+        text-align: left;
+        align-items: flex-start;
+    }
+
+    .hero-animation-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        width: 100%;
+    }
+
+    .chaos-to-order-card {
+        background: rgba(255, 255, 255, 0.35);
+        border: var(--card-border);
+        box-shadow: var(--card-shadow);
+        border-radius: 24px;
+        backdrop-filter: var(--backdrop-blur);
+        padding: 20px;
+        width: 100%;
+        max-width: 500px;
+        aspect-ratio: 5/4;
         display: flex;
         flex-direction: column;
         align-items: center;
-        gap: 24px;
-        margin-top: 40px;
+        position: relative;
+    }
+
+    #chaosCanvas {
+        width: 100%;
+        height: auto;
+        max-height: 340px;
+    }
+
+    .animation-caption {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        color: var(--accent-color);
+        letter-spacing: 2px;
+        margin-top: 10px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .animation-caption::before {
+        content: "";
+        display: inline-block;
+        width: 6px;
+        height: 6px;
+        background: var(--accent-color);
+        border-radius: 50%;
+        animation: pulse 1s infinite alternate;
+    }
+
+    @keyframes pulse {
+        0% { transform: scale(0.8); opacity: 0.5; }
+        100% { transform: scale(1.2); opacity: 1; }
     }
 
     .hero-badge {
@@ -187,9 +252,14 @@
             gap: 40px;
             padding: 24px 16px 60px;
         }
-        .hero-section {
+        .hero-section-wrapper {
+            grid-template-columns: 1fr;
+            gap: 32px;
             margin-top: 20px;
-            gap: 16px;
+        }
+        .hero-content {
+            text-align: center;
+            align-items: center;
         }
         .hero-title {
             font-size: 2.2rem;
@@ -237,15 +307,25 @@
 <div class="landing-container">
 
     <!-- Hero Section -->
-    <section class="hero-section">
-        <div class="hero-badge">Military-grade protocols</div>
-        <h2 class="hero-title">Your Brain in Chaos.<br>Turn it into <span>Structured Power.</span></h2>
-        <p class="hero-tagline">
-            A to-do list engineered around how top researchers structure deep work. It combines Eisenhower priority matrices and reflection insight diagnostics to translate clutter into pure structured power.
-        </p>
-        <div class="hero-cta-group">
-            <a href="/accounts/google/login/" class="btn btn-hero">Activate Google Protocol</a>
-            <a href="/accounts/login/" class="btn btn-secondary btn-hero">Traditional Login</a>
+    <section class="hero-section-wrapper">
+        <div class="hero-content">
+            <div class="hero-badge">Military-grade protocols</div>
+            <h2 class="hero-title">Your Brain in Chaos.<br>Turn it into <span>Structured Power.</span></h2>
+            <p class="hero-tagline">
+                A to-do list engineered around how top researchers structure deep work. It combines Eisenhower priority matrices and reflection insight diagnostics to translate clutter into pure structured power.
+            </p>
+            <div class="hero-cta-group">
+                <a href="/accounts/google/login/" class="btn btn-hero">Activate Google Protocol</a>
+                <a href="/accounts/login/" class="btn btn-secondary btn-hero">Traditional Login</a>
+            </div>
+        </div>
+        <div class="hero-animation-container">
+            <div class="chaos-to-order-card">
+                <canvas id="chaosCanvas" width="500" height="400"></canvas>
+                <div class="animation-caption">
+                    <span id="animationStateText">calibrating focus...</span>
+                </div>
+            </div>
         </div>
     </section>
 
@@ -310,4 +390,311 @@
     </footer>
 
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const canvas = document.getElementById('chaosCanvas');
+        if (!canvas) return;
+        const ctx = canvas.getContext('2d');
+
+        const style = getComputedStyle(document.documentElement);
+        const accentColor = style.getPropertyValue('--accent-color').trim() || '#635b8f';
+        
+        // Scaled coordinates exactly matching static logo.svg
+        const scale = 4.0;
+        const offsetX = 250;
+        const offsetY = 95;
+
+        const targetPoints = {
+            circle: { cx: 28, cy: 28, r: 16 },
+            checkmark: [{x: 21, y: 28}, {x: 26, y: 33}, {x: 35, y: 20}],
+            shortLines: [
+                { x1: 54, y1: 20, x2: 88, y2: 20 },
+                { x1: 54, y1: 36, x2: 88, y2: 36 }
+            ],
+            fullLines: [
+                { x1: 12, y1: 56, x2: 88, y2: 56 },
+                { x1: 12, y1: 72, x2: 88, y2: 72 },
+                { x1: 12, y1: 88, x2: 88, y2: 88 }
+            ]
+        };
+
+        const targets = [];
+
+        // Circle Targets (30 points)
+        const circleCenterX = targetPoints.circle.cx * scale + offsetX;
+        const circleCenterY = targetPoints.circle.cy * scale + offsetY;
+        const circleRadius = targetPoints.circle.r * scale;
+        for (let i = 0; i < 30; i++) {
+            let angle = (i / 30) * Math.PI * 2;
+            targets.push({
+                x: circleCenterX + Math.cos(angle) * circleRadius,
+                y: circleCenterY + Math.sin(angle) * circleRadius,
+                type: 'circle'
+            });
+        }
+
+        // Checkmark Targets (12 points)
+        const p1 = { x: targetPoints.checkmark[0].x * scale + offsetX, y: targetPoints.checkmark[0].y * scale + offsetY };
+        const p2 = { x: targetPoints.checkmark[1].x * scale + offsetX, y: targetPoints.checkmark[1].y * scale + offsetY };
+        const p3 = { x: targetPoints.checkmark[2].x * scale + offsetX, y: targetPoints.checkmark[2].y * scale + offsetY };
+
+        for (let i = 0; i < 5; i++) {
+            let t = i / 4;
+            targets.push({
+                x: p1.x + (p2.x - p1.x) * t,
+                y: p1.y + (p2.y - p1.y) * t,
+                type: 'checkmark'
+            });
+        }
+        for (let i = 1; i < 8; i++) {
+            let t = i / 7;
+            targets.push({
+                x: p2.x + (p3.x - p2.x) * t,
+                y: p2.y + (p3.y - p2.y) * t,
+                type: 'checkmark'
+            });
+        }
+
+        // Line helper to add targets along straight lines
+        function addLinePoints(x1, y1, x2, y2, count, type) {
+            const sx1 = x1 * scale + offsetX;
+            const sy1 = y1 * scale + offsetY;
+            const sx2 = x2 * scale + offsetX;
+            const sy2 = y2 * scale + offsetY;
+            for (let i = 0; i < count; i++) {
+                let t = i / (count - 1);
+                targets.push({
+                    x: sx1 + (sx2 - sx1) * t,
+                    y: sy1 + (sy2 - sy1) * t,
+                    type: type
+                });
+            }
+        }
+
+        // Short Lines
+        addLinePoints(targetPoints.shortLines[0].x1, targetPoints.shortLines[0].y1, targetPoints.shortLines[0].x2, targetPoints.shortLines[0].y2, 10, 'lines');
+        addLinePoints(targetPoints.shortLines[1].x1, targetPoints.shortLines[1].y1, targetPoints.shortLines[1].x2, targetPoints.shortLines[1].y2, 10, 'lines');
+
+        // Full Lines
+        addLinePoints(targetPoints.fullLines[0].x1, targetPoints.fullLines[0].y1, targetPoints.fullLines[0].x2, targetPoints.fullLines[0].y2, 15, 'lines');
+        addLinePoints(targetPoints.fullLines[1].x1, targetPoints.fullLines[1].y1, targetPoints.fullLines[1].x2, targetPoints.fullLines[1].y2, 15, 'lines');
+        addLinePoints(targetPoints.fullLines[2].x1, targetPoints.fullLines[2].y1, targetPoints.fullLines[2].x2, targetPoints.fullLines[2].y2, 15, 'lines');
+
+        // Particles
+        const particles = [];
+        for (let i = 0; i < targets.length; i++) {
+            particles.push({
+                x: Math.random() * 180 + 40,
+                y: Math.random() * 260 + 70,
+                vx: (Math.random() - 0.5) * 1.5,
+                vy: (Math.random() - 0.5) * 1.5,
+                target: targets[i]
+            });
+        }
+
+        const STATES = {
+            CHAOS: 'CHAOS',
+            TRANSITION: 'TRANSITION',
+            ORDER: 'ORDER',
+            DISSOLVE: 'DISSOLVE'
+        };
+
+        let currentState = STATES.CHAOS;
+        let stateTimer = 0;
+        const stateTextEl = document.getElementById('animationStateText');
+
+        function updateState() {
+            stateTimer += 16.67;
+            
+            if (currentState === STATES.CHAOS && stateTimer > 3500) {
+                currentState = STATES.TRANSITION;
+                stateTimer = 0;
+                if (stateTextEl) stateTextEl.innerText = 'organizing chaos...';
+            } else if (currentState === STATES.TRANSITION && stateTimer > 2000) {
+                currentState = STATES.ORDER;
+                stateTimer = 0;
+                if (stateTextEl) stateTextEl.innerText = 'structured power.';
+            } else if (currentState === STATES.ORDER && stateTimer > 4000) {
+                currentState = STATES.DISSOLVE;
+                stateTimer = 0;
+                if (stateTextEl) stateTextEl.innerText = 'resetting entropy...';
+            } else if (currentState === STATES.DISSOLVE && stateTimer > 1500) {
+                currentState = STATES.CHAOS;
+                stateTimer = 0;
+                if (stateTextEl) stateTextEl.innerText = 'brain dump (chaos)';
+            }
+        }
+
+        function animate() {
+            updateState();
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            
+            let k = 0.0;
+            let damping = 0.98;
+            let chaosForce = 0.0;
+            
+            if (currentState === STATES.CHAOS) {
+                chaosForce = 0.18;
+                damping = 0.99;
+            } else if (currentState === STATES.TRANSITION) {
+                k = Math.min(0.08, (stateTimer / 2000) * 0.08);
+                damping = 0.85;
+            } else if (currentState === STATES.ORDER) {
+                k = 0.15;
+                damping = 0.72;
+            } else if (currentState === STATES.DISSOLVE) {
+                damping = 0.96;
+            }
+            
+            particles.forEach(p => {
+                if (currentState === STATES.CHAOS) {
+                    p.vx += (Math.random() - 0.5) * chaosForce;
+                    p.vy += (Math.random() - 0.5) * chaosForce;
+                    
+                    if (p.x < 30) p.vx += 0.25;
+                    if (p.x > 220) p.vx -= 0.25;
+                    if (p.y < 50) p.vy += 0.25;
+                    if (p.y > 350) p.vy -= 0.25;
+                } else if (currentState === STATES.TRANSITION || currentState === STATES.ORDER) {
+                    let ax = (p.target.x - p.x) * k;
+                    let ay = (p.target.y - p.y) * k;
+                    p.vx = p.vx * damping + ax;
+                    p.vy = p.vy * damping + ay;
+                } else if (currentState === STATES.DISSOLVE) {
+                    let tx = Math.random() * 150 + 50;
+                    let ty = Math.random() * 250 + 75;
+                    p.vx += (tx - p.x) * 0.008;
+                    p.vy += (ty - p.y) * 0.008;
+                }
+                
+                let speed = Math.sqrt(p.vx * p.vx + p.vy * p.vy);
+                if (speed > 8) {
+                    p.vx = (p.vx / speed) * 8;
+                    p.vy = (p.vy / speed) * 8;
+                }
+                
+                p.x += p.vx;
+                p.y += p.vy;
+            });
+            
+            if (currentState === STATES.CHAOS || currentState === STATES.DISSOLVE || currentState === STATES.TRANSITION) {
+                let maxDist = 55;
+                let fadeFactor = 1.0;
+                if (currentState === STATES.TRANSITION) {
+                    fadeFactor = Math.max(0, 1 - (stateTimer / 1200));
+                } else if (currentState === STATES.DISSOLVE) {
+                    fadeFactor = Math.min(1, stateTimer / 800);
+                }
+                
+                ctx.lineWidth = 1.0;
+                for (let i = 0; i < particles.length; i++) {
+                    for (let j = i + 1; j < particles.length; j++) {
+                        let p1 = particles[i];
+                        let p2 = particles[j];
+                        let dx = p1.x - p2.x;
+                        let dy = p1.y - p2.y;
+                        let dist = Math.sqrt(dx * dx + dy * dy);
+                        if (dist < maxDist && p1.x < 250 && p2.x < 250) {
+                            let alpha = (1 - dist / maxDist) * 0.25 * fadeFactor;
+                            ctx.strokeStyle = `rgba(99, 91, 143, ${alpha})`;
+                            ctx.beginPath();
+                            ctx.moveTo(p1.x, p1.y);
+                            ctx.lineTo(p2.x, p2.y);
+                            ctx.stroke();
+                        }
+                    }
+                }
+            }
+            
+            if (currentState === STATES.ORDER || currentState === STATES.TRANSITION) {
+                let opacity = 0;
+                if (currentState === STATES.TRANSITION) {
+                    opacity = Math.max(0, (stateTimer - 1000) / 1000);
+                } else if (currentState === STATES.ORDER) {
+                    opacity = 1.0;
+                }
+                
+                if (opacity > 0) {
+                    ctx.save();
+                    ctx.globalAlpha = opacity;
+                    
+                    // Circle
+                    ctx.strokeStyle = '#1a5e66';
+                    ctx.lineWidth = 4.5;
+                    ctx.beginPath();
+                    ctx.arc(circleCenterX, circleCenterY, circleRadius, 0, Math.PI * 2);
+                    ctx.stroke();
+                    
+                    // Checkmark
+                    ctx.strokeStyle = '#1a2636';
+                    ctx.lineWidth = 4.5;
+                    ctx.lineCap = 'round';
+                    ctx.lineJoin = 'round';
+                    ctx.beginPath();
+                    ctx.moveTo(p1.x, p1.y);
+                    ctx.lineTo(p2.x, p2.y);
+                    ctx.lineTo(p3.x, p3.y);
+                    ctx.stroke();
+                    
+                    // Lines
+                    ctx.strokeStyle = '#5c6d7a';
+                    ctx.lineWidth = 4.5;
+                    ctx.lineCap = 'round';
+                    
+                    // Short Lines
+                    ctx.beginPath(); 
+                    ctx.moveTo(targetPoints.shortLines[0].x1 * scale + offsetX, targetPoints.shortLines[0].y1 * scale + offsetY); 
+                    ctx.lineTo(targetPoints.shortLines[0].x2 * scale + offsetX, targetPoints.shortLines[0].y2 * scale + offsetY); 
+                    ctx.stroke();
+                    
+                    ctx.beginPath(); 
+                    ctx.moveTo(targetPoints.shortLines[1].x1 * scale + offsetX, targetPoints.shortLines[1].y1 * scale + offsetY); 
+                    ctx.lineTo(targetPoints.shortLines[1].x2 * scale + offsetX, targetPoints.shortLines[1].y2 * scale + offsetY); 
+                    ctx.stroke();
+                    
+                    // Full Lines
+                    ctx.beginPath(); 
+                    ctx.moveTo(targetPoints.fullLines[0].x1 * scale + offsetX, targetPoints.fullLines[0].y1 * scale + offsetY); 
+                    ctx.lineTo(targetPoints.fullLines[0].x2 * scale + offsetX, targetPoints.fullLines[0].y2 * scale + offsetY); 
+                    ctx.stroke();
+                    
+                    ctx.beginPath(); 
+                    ctx.moveTo(targetPoints.fullLines[1].x1 * scale + offsetX, targetPoints.fullLines[1].y1 * scale + offsetY); 
+                    ctx.lineTo(targetPoints.fullLines[1].x2 * scale + offsetX, targetPoints.fullLines[1].y2 * scale + offsetY); 
+                    ctx.stroke();
+                    
+                    ctx.beginPath(); 
+                    ctx.moveTo(targetPoints.fullLines[2].x1 * scale + offsetX, targetPoints.fullLines[2].y1 * scale + offsetY); 
+                    ctx.lineTo(targetPoints.fullLines[2].x2 * scale + offsetX, targetPoints.fullLines[2].y2 * scale + offsetY); 
+                    ctx.stroke();
+                    
+                    ctx.restore();
+                }
+            }
+            
+            particles.forEach(p => {
+                let size = 2.5;
+                let color = 'rgba(99, 91, 143, 0.6)';
+                
+                if (currentState === STATES.ORDER || currentState === STATES.TRANSITION) {
+                    if (p.target.type === 'circle') color = '#1a5e66';
+                    else if (p.target.type === 'checkmark') color = '#1a2636';
+                    else color = '#5c6d7a';
+                    size = 3.0;
+                }
+                
+                ctx.fillStyle = color;
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+                ctx.fill();
+            });
+            
+            requestAnimationFrame(animate);
+        }
+        requestAnimationFrame(animate);
+    });
+</script>
 {% endblock %}
