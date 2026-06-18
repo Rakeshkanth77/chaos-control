@@ -41,6 +41,8 @@ def parse_brain_dump(content):
         "Do not include any markdown blocks (like ```json) or explanation. Return raw JSON text only."
     )
 
+    errors = []
+
     # Try Gemini first
     if gemini_key:
         try:
@@ -53,7 +55,9 @@ def parse_brain_dump(content):
             if isinstance(todos, list):
                 return [str(t).strip() for t in todos if t]
         except Exception as e:
-            print(f"Gemini API Error in parse_brain_dump: {e}")
+            err_msg = f"Gemini API Error: {e}"
+            errors.append(err_msg)
+            print(err_msg)
 
     # Try OpenAI
     if openai_key:
@@ -82,62 +86,16 @@ def parse_brain_dump(content):
             if isinstance(todos, list):
                 return [str(t).strip() for t in todos if t]
         except Exception as e:
-            print(f"OpenAI/Groq API Error in parse_brain_dump: {e}")
+            err_msg = f"OpenAI/Groq API Error: {e}"
+            errors.append(err_msg)
+            print(err_msg)
 
-    # Fallback: Rule-based local parsing (with compound splitter like Todoist Ramble)
-    print("Falling back to local parsing for brain dump")
-    
-    def split_compound_tasks(line):
-        # Strip common phrase prefixes
-        cleaned = re.sub(r'^(i\s+(want|need|have|should|must)\s+to|please)\s+', '', line, flags=re.IGNORECASE)
-        
-        # Split on conjunctions
-        parts = re.split(r'\b(and|then|also)\b', cleaned, flags=re.IGNORECASE)
-        
-        extracted_tasks = []
-        current_action = ""
-        
-        # Common action verbs to recognize context
-        verbs = ['do', 'work\s+on', 'write', 'read', 'buy', 'email', 'call', 'check', 'clean', 'study', 'make', 'finish', 'complete', 'practice']
-        verb_pattern = r'^(' + '|'.join(verbs) + r')\b'
+    # Error handling when API extraction is unavailable or fails
+    if not gemini_key and not openai_key:
+        raise ValueError("No LLM API keys configured. Please set GEMINI_API_KEY or OPENAI_API_KEY in your settings/.env file.")
+    else:
+        raise RuntimeError(f"Brain dump parsing failed. API error details: {' | '.join(errors)}")
 
-        for part in parts:
-            part = part.strip()
-            if not part or part.lower() in ['and', 'then', 'also']:
-                continue
-                
-            # Clean prefixes inside clauses
-            part_clean = re.sub(r'^(i\s+(want|need|have|should|must)\s+to|want\s+to|need\s+to|have\s+to|to)\s+', '', part, flags=re.IGNORECASE)
-            part_clean = re.sub(r'^(i)\s+', '', part_clean, flags=re.IGNORECASE)
-            
-            # Check if this clause starts with a verb
-            match_verb = re.search(verb_pattern, part_clean, re.IGNORECASE)
-            if match_verb:
-                current_action = match_verb.group(1)
-                extracted_tasks.append(part_clean.capitalize())
-            else:
-                # If no verb, but we had a previous action verb, inherit it
-                if current_action:
-                    extracted_tasks.append(f"{current_action.capitalize()} {part_clean}")
-                else:
-                    extracted_tasks.append(part_clean.capitalize())
-                    
-        return extracted_tasks
-
-    todos = []
-    lines = content.split('\n')
-    for line in lines:
-        line = line.strip()
-        if not line:
-            continue
-        # Strip leading bullet indicators
-        cleaned = re.sub(r'^([\-*+•]|\d+[\.)])\s*', '', line).strip()
-        if cleaned:
-            # Try splitting compound tasks
-            subtasks = split_compound_tasks(cleaned)
-            todos.extend(subtasks)
-            
-    return todos
 
 def generate_ai_reflection(notes):
     """

@@ -1,33 +1,40 @@
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import User
+import unittest.mock as mock
+import os
 from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile
 from .services import parse_brain_dump, generate_ai_reflection
 
 
 class DashboardServicesTestCase(TestCase):
-    def test_local_parse_brain_dump(self):
-        # Test line splitting and bullet cleaning
-        import unittest.mock as mock
-        with mock.patch('os.getenv', return_value=None):
-            dump_text = "- Buy groceries\n* Finish essay\n1. Call dentist\n  Just relax"
-            todos = parse_brain_dump(dump_text)
-            self.assertEqual(len(todos), 4)
-            self.assertEqual(todos[0], "Buy groceries")
-            self.assertEqual(todos[1], "Finish essay")
-            self.assertEqual(todos[2], "Call dentist")
-            self.assertEqual(todos[3], "Just relax")
+    @mock.patch('google.generativeai.GenerativeModel')
+    def test_parse_brain_dump_gemini(self, mock_model_class):
+        with mock.patch.dict(os.environ, {"GEMINI_API_KEY": "mock_gemini_key", "OPENAI_API_KEY": ""}):
+            mock_model = mock.MagicMock()
+            mock_model.generate_content.return_value = mock.MagicMock(text='["Buy groceries", "Finish essay"]')
+            mock_model_class.return_value = mock_model
+            
+            todos = parse_brain_dump("some dump text")
+            self.assertEqual(todos, ["Buy groceries", "Finish essay"])
 
-    def test_local_parse_brain_dump_compound(self):
-        # Test Todoist Ramble compound parsing
-        import unittest.mock as mock
-        with mock.patch('os.getenv', return_value=None):
-            dump_text = "I have to do emails and I want to work on paper two and paper three"
-            todos = parse_brain_dump(dump_text)
-            self.assertEqual(len(todos), 3)
-            self.assertEqual(todos[0], "Do emails")
-            self.assertEqual(todos[1], "Work on paper two")
-            self.assertEqual(todos[2], "Work on paper three")
+    @mock.patch('openai.OpenAI')
+    def test_parse_brain_dump_openai(self, mock_client_class):
+        with mock.patch.dict(os.environ, {"GEMINI_API_KEY": "", "OPENAI_API_KEY": "mock_openai_key"}):
+            mock_client = mock.MagicMock()
+            mock_client.chat.completions.create.return_value = mock.MagicMock(
+                choices=[mock.MagicMock(message=mock.MagicMock(content='["Do emails", "Work on paper two"]'))]
+            )
+            mock_client_class.return_value = mock_client
+            
+            todos = parse_brain_dump("some dump text")
+            self.assertEqual(todos, ["Do emails", "Work on paper two"])
+
+    def test_parse_brain_dump_no_keys(self):
+        with mock.patch.dict(os.environ, {"GEMINI_API_KEY": "", "OPENAI_API_KEY": ""}):
+            with self.assertRaises(ValueError):
+                parse_brain_dump("some dump text")
+
 
     def test_local_generate_ai_reflection_fallback(self):
         # Test keyword analysis
