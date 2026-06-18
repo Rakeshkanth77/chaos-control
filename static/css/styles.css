@@ -1332,3 +1332,94 @@ body {
 }
 
 
+
+
+/* ═══════════════════════════════════════════════════════
+   MOBILE RESPONSIVE — full overrides for <=768px
+═══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+    body, html { overflow-x: hidden; }
+
+    .app-container {
+        padding: 12px !important;
+        min-height: 100vh;
+        overflow: visible !important;
+        height: auto !important;
+    }
+
+    .app-header {
+        padding: 10px 14px !important;
+        margin-bottom: 14px !important;
+        flex-wrap: nowrap !important;
+    }
+
+    .date-navigator { display: none !important; }
+
+    .main-content {
+        overflow: visible !important;
+        height: auto !important;
+        flex: none !important;
+    }
+
+    .dashboard-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .grid-column {
+        height: auto !important;
+        overflow: visible !important;
+    }
+
+    .braindump-card { flex: none !important; min-height: 180px; }
+    .braindump-textarea { min-height: 120px !important; height: 120px; }
+
+    .autotodos-card { height: auto !important; min-height: 200px; }
+    .todo-list-container { max-height: 240px !important; flex: none; }
+
+    .eisenhower-column { height: auto !important; overflow: visible !important; max-height: none !important; }
+    .priority-block { flex: none !important; height: auto !important; min-height: 80px !important; }
+    .priority-list { max-height: 150px !important; overflow-y: auto; }
+
+    .reflection-card { flex: none !important; min-height: 200px; }
+    .reflection-textarea { min-height: 120px !important; }
+    .reflection-results-stack { max-height: 250px !important; }
+
+    .glass-panel { padding: 16px !important; }
+    .btn { padding: 10px 16px !important; font-size: 0.9rem !important; }
+
+    .command-banner { min-height: 56px !important; border-radius: 14px !important; }
+    .command-banner-content { padding: 12px 16px !important; }
+    .banner-stat { display: none !important; }
+    .banner-subtitle { display: none !important; }
+    .banner-title { font-size: 0.68rem !important; letter-spacing: 1.5px !important; }
+
+    .hero-title { font-size: 2.2rem !important; letter-spacing: -1px !important; }
+    .hero-tagline { font-size: 1rem !important; }
+    .hero-cta-group { flex-direction: column !important; align-items: center !important; }
+    .btn-hero { width: 100% !important; max-width: 320px !important; text-align: center !important; }
+
+    .profile-grid { padding: 0 !important; }
+    .pomodoro-card { min-height: auto !important; }
+    .flashcards-card { min-height: auto !important; }
+    .flashcard-wrapper { height: 120px !important; }
+}
+
+/* Tablet 769-1024 */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr 1fr !important;
+        gap: 16px;
+        height: auto !important;
+        overflow: visible !important;
+    }
+    .dashboard-page, .dashboard-page body {
+        height: auto !important; overflow: auto !important;
+    }
+    .dashboard-page .app-container { height: auto !important; overflow: visible !important; }
+    .dashboard-page .main-content { flex: none !important; overflow: visible !important; }
+    .dashboard-page .grid-column { height: auto !important; overflow: visible !important; }
+    .app-header { padding: 14px 18px; }
+}
