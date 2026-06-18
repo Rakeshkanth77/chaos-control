@@ -16,24 +16,23 @@
         margin: 0 auto;
     }
 
-    /* Hero Section */
+    /* ── Hero: 2-column side-by-side ── */
     .hero-section-wrapper {
-        display: flex;
-        flex-direction: column;
-        gap: 40px;
+        display: grid;
+        grid-template-columns: 1fr 1.1fr;
+        gap: 48px;
         align-items: center;
         width: 100%;
-        max-width: 1100px;
+        max-width: 1160px;
         margin-top: 40px;
-        text-align: center;
     }
 
     .hero-content {
         display: flex;
         flex-direction: column;
-        gap: 20px;
-        text-align: center;
-        align-items: center;
+        gap: 22px;
+        text-align: left;
+        align-items: flex-start;
     }
 
     .hero-animation-container {
@@ -43,22 +42,86 @@
         width: 100%;
     }
 
-    /* ── Mind-map flow diagram ── */
+    /* ── Mind-map flow diagram card ── */
     .flow-diagram-wrap {
         width: 100%;
-        max-width: 960px;
-        background: #13131f;
-        border: 1px solid rgba(245, 158, 11, 0.18);
-        border-radius: 20px;
-        box-shadow: 0 8px 48px rgba(0,0,0,0.22), 0 0 0 1px rgba(245,158,11,0.06);
+        background: #0f0f1a;
+        border: 1px solid rgba(245, 158, 11, 0.22);
+        border-radius: 22px;
+        box-shadow: 0 12px 60px rgba(0,0,0,0.35), 0 0 0 1px rgba(245,158,11,0.07),
+                    0 0 40px rgba(245,158,11,0.05) inset;
         overflow: hidden;
-        padding: 10px 0;
+        padding: 16px 8px;
+        position: relative;
     }
-
+    .flow-diagram-wrap::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        background: radial-gradient(ellipse at 50% 50%, rgba(245,158,11,0.04) 0%, transparent 70%);
+        pointer-events: none;
+    }
     .flow-diagram-wrap svg {
         width: 100%;
         height: auto;
         display: block;
+    }
+
+    /* ── Electric pulse animations (CSS) ── */
+    /* Flowing dash on each path */
+    .elec-line {
+        stroke-dasharray: 8 14;
+        stroke-dashoffset: 0;
+    }
+    .elec-line-top    { animation: flowTop    2.2s linear infinite; }
+    .elec-line-mid    { animation: flowMid    1.8s linear infinite; }
+    .elec-line-bot    { animation: flowBot    2.5s linear infinite; }
+    .elec-line-right  { animation: flowRight  2.0s linear infinite; }
+
+    /* Path lengths (approximate) */
+    @keyframes flowTop   { to { stroke-dashoffset: -200; } }
+    @keyframes flowMid   { to { stroke-dashoffset: -202; } }
+    @keyframes flowBot   { to { stroke-dashoffset: -200; } }
+    @keyframes flowRight { to { stroke-dashoffset: -120; } }
+
+    /* Travelling glowing orb */
+    .orb-top    { animation: orbTop    2.2s ease-in-out infinite; }
+    .orb-mid    { animation: orbMid    1.8s ease-in-out infinite 0.3s; }
+    .orb-bot    { animation: orbBot    2.5s ease-in-out infinite 0.6s; }
+    .orb-right  { animation: orbRight  2.0s ease-in-out infinite 1.0s; }
+
+    /* Pulsing connection dots */
+    .pulse-dot  { animation: pulseDot  1.6s ease-in-out infinite alternate; }
+    .pulse-dot2 { animation: pulseDot  1.6s ease-in-out infinite alternate 0.5s; }
+    .pulse-dot3 { animation: pulseDot  1.6s ease-in-out infinite alternate 1.0s; }
+
+    @keyframes pulseDot {
+        0%   { r: 4px; opacity: 0.7; filter: drop-shadow(0 0 0px #f59e0b); }
+        100% { r: 6px; opacity: 1;   filter: drop-shadow(0 0 6px #f59e0b); }
+    }
+
+    /* Center hub amber glow breathe */
+    .hub-glow { animation: hubBreathe 3s ease-in-out infinite alternate; }
+    @keyframes hubBreathe {
+        0%   { opacity: 0.25; filter: blur(6px) drop-shadow(0 0 6px #f59e0b); }
+        100% { opacity: 0.60; filter: blur(8px) drop-shadow(0 0 16px #f59e0b); }
+    }
+
+    /* Right panel teal glow pulse */
+    .teal-dot { animation: tealPulse 2s ease-in-out infinite alternate; }
+    @keyframes tealPulse {
+        0%   { r: 4px; filter: drop-shadow(0 0 0px #2dd4bf); }
+        100% { r: 6px; filter: drop-shadow(0 0 8px #2dd4bf); }
+    }
+
+    @media (max-width: 900px) {
+        .hero-section-wrapper {
+            grid-template-columns: 1fr;
+            gap: 32px;
+            text-align: center;
+        }
+        .hero-content { align-items: center; text-align: center; }
+        .hero-cta-group { justify-content: center; }
     }
 
     .hero-badge {
@@ -487,13 +550,14 @@
 {% block content %}
 <div class="landing-container">
 
-    <!-- Hero Section -->
+    <!-- Hero Section: text LEFT, animated diagram RIGHT -->
     <section class="hero-section-wrapper">
+        <!-- LEFT: Hero text + CTAs -->
         <div class="hero-content">
             <div class="hero-badge">Military-grade protocols</div>
-            <h2 class="hero-title">Your Brain in Chaos.<br>Turn it into <span>Structured Power.</span></h2>
+            <h2 class="hero-title">Your Brain<br>in Chaos.<br>Turn it into<br><span>Structured Power.</span></h2>
             <p class="hero-tagline">
-                A to-do list engineered around how top researchers structure deep work. Combines Eisenhower priority matrices and AI reflection diagnostics to translate clutter into pure structured power.
+                A to-do list built around how top researchers work. Brain dump → AI parsing → Eisenhower priorities → structured execution.
             </p>
             <div class="hero-cta-group">
                 <a href="/accounts/google/login/" class="btn btn-hero">Activate Google Protocol</a>
@@ -501,101 +565,118 @@
             </div>
         </div>
 
-        <!-- ── Instant-render SVG Mind-Map Diagram ── -->
+        <!-- RIGHT: Animated SVG Mind-Map -->
         <div class="hero-animation-container">
             <div class="flow-diagram-wrap">
-                <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+                <svg id="flowSvg" viewBox="0 0 640 260" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
                     <defs>
-                        <!-- Purple→amber gradient for left lines -->
+                        <!-- Purple→amber gradient (left lines) -->
                         <linearGradient id="lineGradL" x1="0%" y1="0%" x2="100%" y2="0%">
-                            <stop offset="0%" stop-color="#9333ea" stop-opacity="0.6"/>
+                            <stop offset="0%" stop-color="#9333ea" stop-opacity="0.55"/>
                             <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.9"/>
                         </linearGradient>
-                        <!-- Amber→muted for right line -->
+                        <!-- Amber→teal gradient (right line) -->
                         <linearGradient id="lineGradR" x1="0%" y1="0%" x2="100%" y2="0%">
                             <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.9"/>
-                            <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.5"/>
+                            <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.6"/>
                         </linearGradient>
-                        <!-- Center amber glow filter -->
-                        <filter id="glowAmber" x="-30%" y="-30%" width="160%" height="160%">
-                            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+                        <!-- Orb glow (amber) -->
+                        <radialGradient id="orbGradA" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#f59e0b" stop-opacity="1"/>
+                            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0"/>
+                        </radialGradient>
+                        <!-- Orb glow (teal) -->
+                        <radialGradient id="orbGradT" cx="50%" cy="50%" r="50%">
+                            <stop offset="0%" stop-color="#2dd4bf" stop-opacity="1"/>
+                            <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0"/>
+                        </radialGradient>
+                        <!-- Center amber glow -->
+                        <filter id="glowAmber" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="7" result="blur"/>
                             <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                         </filter>
-                        <!-- Subtle node shadow -->
-                        <filter id="nodeShadow" x="-10%" y="-10%" width="120%" height="120%">
-                            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
+                        <!-- Node drop shadow -->
+                        <filter id="nodeShadow" x="-15%" y="-15%" width="130%" height="130%">
+                            <feDropShadow dx="0" dy="3" stdDeviation="5" flood-color="#000" flood-opacity="0.5"/>
+                        </filter>
+                        <!-- Teal glow -->
+                        <filter id="glowTeal" x="-40%" y="-40%" width="180%" height="180%">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="5" result="blur"/>
+                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
                         </filter>
                     </defs>
 
-                    <!-- ═══ CONNECTING LINES ═══ -->
-                    <!-- Top node → center -->
-                    <path d="M 218 80 C 310 80, 330 130, 420 130" stroke="url(#lineGradL)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <!-- Middle node → center -->
-                    <path d="M 218 130 L 420 130" stroke="url(#lineGradL)" stroke-width="1.8" fill="none"/>
-                    <!-- Bottom node → center -->
-                    <path d="M 218 180 C 310 180, 330 130, 420 130" stroke="url(#lineGradL)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
-                    <!-- Center → right panel -->
-                    <path d="M 540 130 L 660 130" stroke="url(#lineGradR)" stroke-width="1.8" fill="none"/>
+                    <!-- ═══ BASE LINES (static background) ═══ -->
+                    <path d="M 186 80  C 265 80,  270 130, 348 130" stroke="#9333ea" stroke-width="1" fill="none" opacity="0.25" stroke-linecap="round"/>
+                    <path d="M 186 130 L 348 130"                   stroke="#9333ea" stroke-width="1" fill="none" opacity="0.25"/>
+                    <path d="M 186 180 C 265 180, 270 130, 348 130" stroke="#9333ea" stroke-width="1" fill="none" opacity="0.25" stroke-linecap="round"/>
+                    <path d="M 456 130 L 556 130"                   stroke="#2dd4bf" stroke-width="1" fill="none" opacity="0.25"/>
+
+                    <!-- ═══ ANIMATED ELECTRIC LINES ═══ -->
+                    <!-- Each path gets a flowing dash animation via JS -->
+                    <path id="lineTop"   d="M 186 80  C 265 80,  270 130, 348 130" stroke="url(#lineGradL)" stroke-width="2.2" fill="none" stroke-linecap="round" class="elec-line elec-line-top"/>
+                    <path id="lineMid"   d="M 186 130 L 348 130"                   stroke="url(#lineGradL)" stroke-width="2.2" fill="none"                       class="elec-line elec-line-mid"/>
+                    <path id="lineBot"   d="M 186 180 C 265 180, 270 130, 348 130" stroke="url(#lineGradL)" stroke-width="2.2" fill="none" stroke-linecap="round" class="elec-line elec-line-bot"/>
+                    <path id="lineRight" d="M 456 130 L 556 130"                   stroke="url(#lineGradR)" stroke-width="2.2" fill="none"                       class="elec-line elec-line-right"/>
+
+                    <!-- ═══ TRAVELLING ORB DOTS (JS animated) ═══ -->
+                    <circle id="orbTop"   r="5" fill="url(#orbGradA)" class="orb-top"/>
+                    <circle id="orbMid"   r="5" fill="url(#orbGradA)" class="orb-mid"/>
+                    <circle id="orbBot"   r="5" fill="url(#orbGradA)" class="orb-bot"/>
+                    <circle id="orbRight" r="5" fill="url(#orbGradT)" class="orb-right"/>
 
                     <!-- ═══ LEFT NODES ═══ -->
                     <!-- Node 1: Brain Dump -->
-                    <rect x="62" y="56" width="156" height="46" rx="23" ry="23" fill="#1e1e30" stroke="#2d2d45" stroke-width="1" filter="url(#nodeShadow)"/>
-                    <text x="88" y="84" font-size="18" dominant-baseline="middle">🧠</text>
-                    <text x="112" y="80" fill="#e2e8f0" font-size="13" font-weight="500" dominant-baseline="middle">Brain Dump</text>
-                    <!-- Connection dot -->
-                    <circle cx="218" cy="80" r="4.5" fill="#f59e0b"/>
+                    <rect x="22" y="57" width="164" height="46" rx="23" fill="#1c1c2e" stroke="#2d2d48" stroke-width="1.2" filter="url(#nodeShadow)"/>
+                    <text x="46" y="85" font-size="17" dominant-baseline="middle">🧠</text>
+                    <text x="70" y="81" fill="#e2e8f0" font-size="12.5" font-weight="500" dominant-baseline="middle">Brain Dump</text>
+                    <circle cx="186" cy="80" r="4.5" fill="#f59e0b" class="pulse-dot"/>
 
                     <!-- Node 2: Scattered Tasks -->
-                    <rect x="42" y="106" width="176" height="46" rx="23" ry="23" fill="#1e1e30" stroke="#2d2d45" stroke-width="1" filter="url(#nodeShadow)"/>
-                    <text x="62" y="134" font-size="17" dominant-baseline="middle">⚡</text>
-                    <text x="86" y="130" fill="#e2e8f0" font-size="13" font-weight="500" dominant-baseline="middle">Scattered Tasks</text>
-                    <!-- Connection dot -->
-                    <circle cx="218" cy="130" r="4.5" fill="#f59e0b"/>
+                    <rect x="10" y="107" width="176" height="46" rx="23" fill="#1c1c2e" stroke="#2d2d48" stroke-width="1.2" filter="url(#nodeShadow)"/>
+                    <text x="30" y="135" font-size="16" dominant-baseline="middle">⚡</text>
+                    <text x="54" y="131" fill="#e2e8f0" font-size="12.5" font-weight="500" dominant-baseline="middle">Scattered Tasks</text>
+                    <circle cx="186" cy="130" r="4.5" fill="#f59e0b" class="pulse-dot2"/>
 
                     <!-- Node 3: Deadlines -->
-                    <rect x="44" y="156" width="174" height="46" rx="23" ry="23" fill="#1e1e30" stroke="#2d2d45" stroke-width="1" filter="url(#nodeShadow)"/>
-                    <text x="64" y="184" font-size="17" dominant-baseline="middle">🔥</text>
-                    <text x="88" y="180" fill="#e2e8f0" font-size="13" font-weight="500" dominant-baseline="middle">Deadlines &amp; Stress</text>
-                    <!-- Connection dot -->
-                    <circle cx="218" cy="180" r="4.5" fill="#f59e0b"/>
+                    <rect x="12" y="157" width="174" height="46" rx="23" fill="#1c1c2e" stroke="#2d2d48" stroke-width="1.2" filter="url(#nodeShadow)"/>
+                    <text x="32" y="185" font-size="16" dominant-baseline="middle">🔥</text>
+                    <text x="56" y="181" fill="#e2e8f0" font-size="12.5" font-weight="500" dominant-baseline="middle">Deadlines &amp; Stress</text>
+                    <circle cx="186" cy="180" r="4.5" fill="#f59e0b" class="pulse-dot3"/>
 
                     <!-- ═══ CENTER HUB ═══ -->
-                    <!-- Glow ring -->
-                    <rect x="410" y="90" width="140" height="82" rx="18" ry="18" fill="none" stroke="#f59e0b" stroke-width="2.5" opacity="0.35" filter="url(#glowAmber)"/>
+                    <!-- Amber breathing glow ring -->
+                    <rect x="336" y="92" width="132" height="76" rx="18" fill="none" stroke="#f59e0b" stroke-width="4" class="hub-glow"/>
                     <!-- Main box -->
-                    <rect x="414" y="94" width="132" height="74" rx="16" ry="16" fill="#1a1418" stroke="#f59e0b" stroke-width="1.8"/>
-                    <!-- to-do text -->
-                    <text x="480" y="122" fill="#f59e0b" font-size="22" font-weight="800" font-family="Outfit, Inter, sans-serif" text-anchor="middle" letter-spacing="-0.5">to-do</text>
-                    <!-- subtitle -->
-                    <text x="480" y="148" fill="#2dd4bf" font-size="10" font-weight="500" text-anchor="middle" letter-spacing="0.3">made by researcher</text>
-                    <!-- Left entry dot -->
-                    <circle cx="420" cy="130" r="4.5" fill="#f59e0b"/>
-                    <!-- Right exit dot -->
-                    <circle cx="540" cy="130" r="4.5" fill="#f59e0b"/>
+                    <rect x="340" y="96" width="124" height="68" rx="16" fill="#181214" stroke="#f59e0b" stroke-width="1.8"/>
+                    <text x="402" y="123" fill="#f59e0b" font-size="21" font-weight="800" font-family="Outfit, Inter, sans-serif" text-anchor="middle" letter-spacing="-0.5">to-do</text>
+                    <text x="402" y="148" fill="#2dd4bf" font-size="9.5" font-weight="500" text-anchor="middle" letter-spacing="0.5">made by researcher</text>
+                    <!-- Entry/exit dots -->
+                    <circle cx="348" cy="130" r="4.5" fill="#f59e0b" class="pulse-dot"/>
+                    <circle cx="456" cy="130" r="4.5" fill="#f59e0b" class="pulse-dot2"/>
 
                     <!-- ═══ RIGHT PANEL ═══ -->
-                    <rect x="662" y="56" width="238" height="150" rx="14" ry="14" fill="#191926" stroke="#2a2a40" stroke-width="1" filter="url(#nodeShadow)"/>
-                    <!-- Panel title -->
-                    <text x="684" y="90" fill="#f1f5f9" font-size="14" font-weight="600">Organised</text>
-                    <text x="780" y="90" fill="#2dd4bf" font-size="14" font-weight="700">✓</text>
-                    <!-- Connection entry dot -->
-                    <circle cx="662" cy="130" r="4.5" fill="#2dd4bf"/>
-                    <!-- Priority badges -->
+                    <rect x="558" y="52" width="72" height="156" rx="14" fill="#14141f" stroke="#252538" stroke-width="1" filter="url(#nodeShadow)"/>
+                    <text x="574" y="82" fill="#f1f5f9" font-size="10" font-weight="600">Organised</text>
+                    <text x="614" y="82" fill="#2dd4bf" font-size="10" font-weight="700" filter="url(#glowTeal)">✓</text>
+                    <!-- Entry dot -->
+                    <circle cx="558" cy="130" r="4.5" fill="#2dd4bf" class="teal-dot"/>
                     <!-- Red badge -->
-                    <rect x="682" y="100" width="140" height="22" rx="11" ry="11" fill="#7f1d1d" opacity="0.85"/>
-                    <circle cx="694" cy="111" r="5" fill="#ef4444"/>
-                    <text x="704" y="115" fill="#fca5a5" font-size="10.5" font-weight="500" dominant-baseline="middle">Urgent &amp; Important</text>
+                    <rect x="566" y="92" width="56" height="18" rx="9" fill="#7f1d1d" opacity="0.9"/>
+                    <circle cx="575" cy="101" r="4" fill="#ef4444"/>
+                    <text x="582" y="105" fill="#fca5a5" font-size="8" font-weight="500" dominant-baseline="middle">Urgent</text>
                     <!-- Amber badge -->
-                    <rect x="682" y="128" width="112" height="22" rx="11" ry="11" fill="#78350f" opacity="0.85"/>
-                    <circle cx="694" cy="139" r="5" fill="#f59e0b"/>
-                    <text x="704" y="143" fill="#fcd34d" font-size="10.5" font-weight="500" dominant-baseline="middle">Schedule</text>
+                    <rect x="566" y="116" width="56" height="18" rx="9" fill="#78350f" opacity="0.9"/>
+                    <circle cx="575" cy="125" r="4" fill="#f59e0b"/>
+                    <text x="582" y="129" fill="#fcd34d" font-size="8" font-weight="500" dominant-baseline="middle">Schedule</text>
                     <!-- Green badge -->
-                    <rect x="682" y="156" width="88" height="22" rx="11" ry="11" fill="#064e3b" opacity="0.85"/>
-                    <circle cx="694" cy="167" r="5" fill="#10b981"/>
-                    <text x="704" y="171" fill="#6ee7b7" font-size="10.5" font-weight="500" dominant-baseline="middle">Later</text>
-                    <!-- Muted task lines -->
-                    <rect x="682" y="187" width="90" height="5" rx="2.5" fill="#2d2d45" opacity="0.7"/>
-                    <rect x="682" y="197" width="120" height="5" rx="2.5" fill="#2d2d45" opacity="0.5"/>
+                    <rect x="566" y="140" width="56" height="18" rx="9" fill="#064e3b" opacity="0.9"/>
+                    <circle cx="575" cy="149" r="4" fill="#10b981"/>
+                    <text x="582" y="153" fill="#6ee7b7" font-size="8" font-weight="500" dominant-baseline="middle">Later</text>
+                    <!-- Task lines -->
+                    <rect x="566" y="166" width="48" height="4" rx="2" fill="#252538" opacity="0.8"/>
+                    <rect x="566" y="176" width="56" height="4" rx="2" fill="#252538" opacity="0.6"/>
+                    <rect x="566" y="186" width="38" height="4" rx="2" fill="#252538" opacity="0.5"/>
                 </svg>
             </div>
         </div>
@@ -766,4 +847,60 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}{% endblock %}
+{% block extra_js %}
+<script>
+/* Electric orb animation — travel along SVG paths */
+(function() {
+    // Helper: get point at fraction t along a path element
+    function pointOnPath(pathEl, t) {
+        const len = pathEl.getTotalLength();
+        return pathEl.getPointAtLength(t * len);
+    }
+
+    const configs = [
+        { orbId: 'orbTop',   pathId: 'lineTop',   dur: 2200, delay: 0,    loopDelay: 400 },
+        { orbId: 'orbMid',   pathId: 'lineMid',   dur: 1800, delay: 300,  loopDelay: 300 },
+        { orbId: 'orbBot',   pathId: 'lineBot',   dur: 2500, delay: 600,  loopDelay: 500 },
+        { orbId: 'orbRight', pathId: 'lineRight', dur: 2000, delay: 1000, loopDelay: 400 },
+    ];
+
+    configs.forEach(cfg => {
+        const orb  = document.getElementById(cfg.orbId);
+        const path = document.getElementById(cfg.pathId);
+        if (!orb || !path) return;
+
+        // Start orb hidden
+        orb.setAttribute('opacity', '0');
+
+        function runOrb() {
+            let start = null;
+            orb.setAttribute('opacity', '1');
+
+            function step(ts) {
+                if (!start) start = ts;
+                const elapsed = ts - start;
+                const t = Math.min(elapsed / cfg.dur, 1);
+
+                const pt = pointOnPath(path, t);
+                orb.setAttribute('cx', pt.x);
+                orb.setAttribute('cy', pt.y);
+
+                // Fade in/out at ends
+                const fade = t < 0.12 ? t / 0.12 : t > 0.88 ? (1 - t) / 0.12 : 1;
+                orb.setAttribute('opacity', (fade * 0.95).toFixed(2));
+
+                if (t < 1) {
+                    requestAnimationFrame(step);
+                } else {
+                    orb.setAttribute('opacity', '0');
+                    setTimeout(runOrb, cfg.loopDelay);
+                }
+            }
+            requestAnimationFrame(step);
+        }
+
+        setTimeout(runOrb, cfg.delay);
+    });
+})();
+</script>
+{% endblock %}
