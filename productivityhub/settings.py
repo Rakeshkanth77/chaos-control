@@ -22,6 +22,7 @@ ALLOWED_HOSTS = [h.strip() for h in os.getenv('ALLOWED_HOSTS', 'localhost,127.0.
 CSRF_TRUSTED_ORIGINS = [
     'https://*.railway.app',
     'https://*.up.railway.app',
+    'https://todo.rakeshkanth.me',
 ]
 csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS')
 if csrf_origins:
@@ -177,6 +178,8 @@ SOCIALACCOUNT_PROVIDERS = {
 }
 
 ACCOUNT_LOGIN_METHODS = {'email'}
+ACCOUNT_EMAIL_REQUIRED = True
+ACCOUNT_USERNAME_REQUIRED = False
 ACCOUNT_EMAIL_VERIFICATION = 'none'
 SOCIALACCOUNT_LOGIN_ON_GET = True
 LOGIN_REDIRECT_URL = '/'
