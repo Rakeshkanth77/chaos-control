@@ -5,7 +5,175 @@
 
 {% block body_class %}dashboard-page{% endblock %}
 
+{% block extra_css %}
+<style>
+/* ── Command Center Neural Banner ── */
+.command-banner {
+    width: 100%;
+    background: linear-gradient(135deg, rgba(6,22,22,0.95) 0%, rgba(10,45,42,0.92) 100%);
+    border: 1px solid rgba(45,212,191,0.2);
+    border-radius: 18px;
+    padding: 0;
+    margin-bottom: 20px;
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    min-height: 72px;
+    box-shadow: 0 4px 24px rgba(12,88,85,0.18), 0 0 0 1px rgba(45,212,191,0.07);
+}
+
+.command-banner-canvas-wrap {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+#dashBannerCanvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+}
+
+.command-banner-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    padding: 16px 24px;
+    gap: 16px;
+}
+
+.banner-left {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+}
+
+.banner-pulse-dot {
+    width: 8px;
+    height: 8px;
+    background: #2dd4bf;
+    border-radius: 50%;
+    box-shadow: 0 0 0 0 rgba(45,212,191,0.5);
+    animation: bannerPulse 2s ease-in-out infinite;
+    flex-shrink: 0;
+}
+
+@keyframes bannerPulse {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(45,212,191,0.5); }
+    50% { box-shadow: 0 0 0 8px rgba(45,212,191,0); }
+}
+
+.banner-title {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.72rem;
+    font-weight: 700;
+    letter-spacing: 2.5px;
+    text-transform: uppercase;
+    color: #2dd4bf;
+    white-space: nowrap;
+}
+
+.banner-subtitle {
+    font-size: 0.82rem;
+    color: rgba(200,235,230,0.75);
+    font-weight: 400;
+}
+
+.banner-right {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+}
+
+.banner-stat {
+    text-align: center;
+    padding: 6px 14px;
+    background: rgba(255,255,255,0.05);
+    border: 1px solid rgba(45,212,191,0.15);
+    border-radius: 10px;
+}
+
+.banner-stat-num {
+    font-family: 'Outfit', sans-serif;
+    font-size: 1.2rem;
+    font-weight: 700;
+    color: #fff;
+    line-height: 1;
+}
+
+.banner-stat-label {
+    font-size: 0.65rem;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: rgba(45,212,191,0.7);
+    margin-top: 2px;
+}
+
+.banner-upgrade-btn {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.82rem;
+    font-weight: 600;
+    padding: 8px 18px;
+    border-radius: 10px;
+    background: linear-gradient(135deg, #0c5855, #2dd4bf);
+    color: #fff;
+    text-decoration: none;
+    transition: all 0.2s ease;
+    box-shadow: 0 4px 12px rgba(12,88,85,0.35);
+    white-space: nowrap;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.banner-upgrade-btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(12,88,85,0.5);
+}
+
+@media (max-width: 768px) {
+    .banner-stat { display: none; }
+    .banner-subtitle { display: none; }
+    .command-banner-content { padding: 12px 16px; }
+}
+</style>
+{% endblock %}
+
 {% block content %}
+
+<!-- ── Command Center Neural Banner ── -->
+<div class="command-banner" id="commandBanner">
+    <div class="command-banner-canvas-wrap">
+        <canvas id="dashBannerCanvas"></canvas>
+    </div>
+    <div class="command-banner-content">
+        <div class="banner-left">
+            <div class="banner-pulse-dot"></div>
+            <div>
+                <div class="banner-title">⚡ Command Center Active</div>
+                <div class="banner-subtitle">Thoughts organizing. Priorities locked. Execute.</div>
+            </div>
+        </div>
+        <div class="banner-right">
+            <div class="banner-stat">
+                <div class="banner-stat-num" id="banner-total-tasks">—</div>
+                <div class="banner-stat-label">Tasks Today</div>
+            </div>
+            <div class="banner-stat">
+                <div class="banner-stat-num" id="banner-done-tasks">—</div>
+                <div class="banner-stat-label">Done</div>
+            </div>
+            <a href="#pricing" class="banner-upgrade-btn" onclick="return false;" id="banner-upgrade-link" title="Upgrade to Pro for unlimited AI diagnostics, advanced analytics & more">
+                ⚡ Go Pro &nbsp;·&nbsp; £3.99/mo
+            </a>
+        </div>
+    </div>
+</div>
 <div class="dashboard-grid">
     
     <!-- COLUMN 1: Brain Dump & Auto-Generated Todos -->
@@ -230,5 +398,151 @@
 <script src="{% static 'js/braindump.js' %}"></script>
 <script src="{% static 'js/eisenhower.js' %}"></script>
 <script src="{% static 'js/reflection.js' %}"></script>
+
+<script>
+/* ══════════════════════════════════════════════════════
+   DASHBOARD BANNER — Electric Flow Animation
+   A lightweight electric particle stream running
+   across the dark banner background.
+   Particles flow left → right like electrical pulses,
+   with occasional arc flashes between nearby particles.
+══════════════════════════════════════════════════════ */
+(function initBannerAnimation() {
+    const banner = document.getElementById('commandBanner');
+    const canvas = document.getElementById('dashBannerCanvas');
+    if (!banner || !canvas) return;
+
+    function resize() {
+        canvas.width = banner.offsetWidth;
+        canvas.height = banner.offsetHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    const ctx = canvas.getContext('2d');
+    const NUM_PARTICLES = 28;
+    const particles = [];
+
+    function spawn() {
+        return {
+            x: Math.random() * canvas.width,
+            y: Math.random() * canvas.height,
+            vx: 0.6 + Math.random() * 1.1,
+            vy: (Math.random() - 0.5) * 0.4,
+            r: 1.2 + Math.random() * 1.6,
+            alpha: 0.3 + Math.random() * 0.55,
+            life: 0,
+            maxLife: 220 + Math.random() * 200,
+        };
+    }
+
+    for (let i = 0; i < NUM_PARTICLES; i++) {
+        const p = spawn();
+        p.x = Math.random() * canvas.width; // stagger initial positions
+        particles.push(p);
+    }
+
+    function drawLightning(x1, y1, x2, y2, alpha) {
+        const segs = 4 + Math.floor(Math.random() * 3);
+        ctx.save();
+        ctx.globalAlpha = alpha;
+        ctx.strokeStyle = '#2dd4bf';
+        ctx.lineWidth = 0.6;
+        ctx.shadowColor = '#2dd4bf';
+        ctx.shadowBlur = 5;
+        ctx.beginPath();
+        ctx.moveTo(x1, y1);
+        for (let s = 1; s < segs; s++) {
+            const t = s / segs;
+            ctx.lineTo(
+                x1 + (x2 - x1) * t + (Math.random() - 0.5) * 8,
+                y1 + (y2 - y1) * t + (Math.random() - 0.5) * 8
+            );
+        }
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+        ctx.restore();
+    }
+
+    function frame() {
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+        particles.forEach((p, i) => {
+            p.x += p.vx;
+            p.y += p.vy;
+            p.life++;
+
+            // Wrap around
+            if (p.x > canvas.width + 10) {
+                Object.assign(p, spawn());
+                p.x = -10;
+                p.y = Math.random() * canvas.height;
+            }
+
+            const lifeFade = Math.min(1, Math.min(p.life / 30, (p.maxLife - p.life) / 30));
+            const drawAlpha = p.alpha * lifeFade;
+
+            // Glow halo
+            ctx.save();
+            ctx.globalAlpha = drawAlpha * 0.2;
+            const grd = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r * 4);
+            grd.addColorStop(0, '#2dd4bf');
+            grd.addColorStop(1, 'transparent');
+            ctx.fillStyle = grd;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r * 4, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Core dot
+            ctx.save();
+            ctx.globalAlpha = drawAlpha;
+            ctx.fillStyle = '#2dd4bf';
+            ctx.shadowColor = '#2dd4bf';
+            ctx.shadowBlur = 6;
+            ctx.beginPath();
+            ctx.arc(p.x, p.y, p.r, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+
+            // Lightning arcs to nearby particles (rare)
+            for (let j = i + 1; j < particles.length; j++) {
+                const q = particles[j];
+                const dx = p.x - q.x, dy = p.y - q.y;
+                const dist = Math.sqrt(dx * dx + dy * dy);
+                if (dist < 60 && Math.random() < 0.04) {
+                    drawLightning(p.x, p.y, q.x, q.y, drawAlpha * 0.55);
+                }
+            }
+        });
+
+        requestAnimationFrame(frame);
+    }
+
+    requestAnimationFrame(frame);
+
+    // Live task count from DOM
+    function updateBannerStats() {
+        const allItems = document.querySelectorAll('.todo-item');
+        const doneItems = document.querySelectorAll('.todo-item.completed');
+        const totalEl = document.getElementById('banner-total-tasks');
+        const doneEl = document.getElementById('banner-done-tasks');
+        if (totalEl) totalEl.textContent = allItems.length || '0';
+        if (doneEl) doneEl.textContent = doneItems.length || '0';
+    }
+
+    // Update immediately and on any checkbox toggle
+    updateBannerStats();
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('todo-checkbox')) {
+            setTimeout(updateBannerStats, 100);
+        }
+    });
+    // Also observe DOM mutations for added/removed todos
+    const observer = new MutationObserver(updateBannerStats);
+    const grid = document.querySelector('.dashboard-grid');
+    if (grid) observer.observe(grid, { childList: true, subtree: true });
+})();
+</script>
 
 {% endblock %}
