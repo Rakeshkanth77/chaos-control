@@ -18,21 +18,22 @@
 
     /* Hero Section */
     .hero-section-wrapper {
-        display: grid;
-        grid-template-columns: 1.2fr 1fr;
-        gap: 60px;
+        display: flex;
+        flex-direction: column;
+        gap: 40px;
         align-items: center;
         width: 100%;
-        max-width: 1200px;
+        max-width: 1100px;
         margin-top: 40px;
+        text-align: center;
     }
 
     .hero-content {
         display: flex;
         flex-direction: column;
-        gap: 24px;
-        text-align: left;
-        align-items: flex-start;
+        gap: 20px;
+        text-align: center;
+        align-items: center;
     }
 
     .hero-animation-container {
@@ -42,68 +43,22 @@
         width: 100%;
     }
 
-    /* ── Electric Thought Canvas Card ── */
-    .electric-thought-card {
-        background: rgba(8, 30, 30, 0.85);
-        border: 1px solid rgba(12, 88, 85, 0.4);
-        box-shadow: 0 0 60px rgba(12, 88, 85, 0.18), 0 30px 60px rgba(0,0,0,0.12);
-        border-radius: 24px;
-        backdrop-filter: blur(20px);
-        padding: 20px;
+    /* ── Mind-map flow diagram ── */
+    .flow-diagram-wrap {
         width: 100%;
-        max-width: 500px;
-        aspect-ratio: 5/4;
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        position: relative;
+        max-width: 960px;
+        background: #13131f;
+        border: 1px solid rgba(245, 158, 11, 0.18);
+        border-radius: 20px;
+        box-shadow: 0 8px 48px rgba(0,0,0,0.22), 0 0 0 1px rgba(245,158,11,0.06);
         overflow: hidden;
+        padding: 10px 0;
     }
 
-    .electric-thought-card::before {
-        content: '';
-        position: absolute;
-        inset: 0;
-        background: radial-gradient(ellipse at 50% 50%, rgba(12, 88, 85, 0.12) 0%, transparent 70%);
-        pointer-events: none;
-    }
-
-    #electricCanvas {
+    .flow-diagram-wrap svg {
         width: 100%;
         height: auto;
-        max-height: 340px;
-        position: relative;
-        z-index: 1;
-    }
-
-    .animation-caption {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.72rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: #2dd4bf;
-        letter-spacing: 2.5px;
-        margin-top: 10px;
-        display: flex;
-        align-items: center;
-        gap: 8px;
-        z-index: 1;
-    }
-
-    .animation-caption::before {
-        content: "";
-        display: inline-block;
-        width: 5px;
-        height: 5px;
-        background: #2dd4bf;
-        border-radius: 50%;
-        box-shadow: 0 0 6px #2dd4bf;
-        animation: pulseGlow 1.2s ease-in-out infinite alternate;
-    }
-
-    @keyframes pulseGlow {
-        0% { transform: scale(0.7); opacity: 0.4; box-shadow: 0 0 4px #2dd4bf; }
-        100% { transform: scale(1.3); opacity: 1; box-shadow: 0 0 12px #2dd4bf; }
+        display: block;
     }
 
     .hero-badge {
@@ -538,19 +493,110 @@
             <div class="hero-badge">Military-grade protocols</div>
             <h2 class="hero-title">Your Brain in Chaos.<br>Turn it into <span>Structured Power.</span></h2>
             <p class="hero-tagline">
-                A to-do list engineered around how top researchers structure deep work. It combines Eisenhower priority matrices and reflection insight diagnostics to translate clutter into pure structured power.
+                A to-do list engineered around how top researchers structure deep work. Combines Eisenhower priority matrices and AI reflection diagnostics to translate clutter into pure structured power.
             </p>
             <div class="hero-cta-group">
                 <a href="/accounts/google/login/" class="btn btn-hero">Activate Google Protocol</a>
                 <a href="/accounts/login/" class="btn btn-secondary btn-hero">Traditional Login</a>
             </div>
         </div>
+
+        <!-- ── Instant-render SVG Mind-Map Diagram ── -->
         <div class="hero-animation-container">
-            <div class="electric-thought-card">
-                <canvas id="electricCanvas" width="460" height="360"></canvas>
-                <div class="animation-caption">
-                    <span id="electricStateText">scanning neural pathways...</span>
-                </div>
+            <div class="flow-diagram-wrap">
+                <svg viewBox="0 0 960 260" xmlns="http://www.w3.org/2000/svg" font-family="Inter, system-ui, sans-serif">
+                    <defs>
+                        <!-- Purple→amber gradient for left lines -->
+                        <linearGradient id="lineGradL" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#9333ea" stop-opacity="0.6"/>
+                            <stop offset="100%" stop-color="#f59e0b" stop-opacity="0.9"/>
+                        </linearGradient>
+                        <!-- Amber→muted for right line -->
+                        <linearGradient id="lineGradR" x1="0%" y1="0%" x2="100%" y2="0%">
+                            <stop offset="0%" stop-color="#f59e0b" stop-opacity="0.9"/>
+                            <stop offset="100%" stop-color="#2dd4bf" stop-opacity="0.5"/>
+                        </linearGradient>
+                        <!-- Center amber glow filter -->
+                        <filter id="glowAmber" x="-30%" y="-30%" width="160%" height="160%">
+                            <feGaussianBlur in="SourceGraphic" stdDeviation="6" result="blur"/>
+                            <feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge>
+                        </filter>
+                        <!-- Subtle node shadow -->
+                        <filter id="nodeShadow" x="-10%" y="-10%" width="120%" height="120%">
+                            <feDropShadow dx="0" dy="2" stdDeviation="4" flood-color="#000" flood-opacity="0.4"/>
+                        </filter>
+                    </defs>
+
+                    <!-- ═══ CONNECTING LINES ═══ -->
+                    <!-- Top node → center -->
+                    <path d="M 218 80 C 310 80, 330 130, 420 130" stroke="url(#lineGradL)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <!-- Middle node → center -->
+                    <path d="M 218 130 L 420 130" stroke="url(#lineGradL)" stroke-width="1.8" fill="none"/>
+                    <!-- Bottom node → center -->
+                    <path d="M 218 180 C 310 180, 330 130, 420 130" stroke="url(#lineGradL)" stroke-width="1.8" fill="none" stroke-linecap="round"/>
+                    <!-- Center → right panel -->
+                    <path d="M 540 130 L 660 130" stroke="url(#lineGradR)" stroke-width="1.8" fill="none"/>
+
+                    <!-- ═══ LEFT NODES ═══ -->
+                    <!-- Node 1: Brain Dump -->
+                    <rect x="62" y="56" width="156" height="46" rx="23" ry="23" fill="#1e1e30" stroke="#2d2d45" stroke-width="1" filter="url(#nodeShadow)"/>
+                    <text x="88" y="84" font-size="18" dominant-baseline="middle">🧠</text>
+                    <text x="112" y="80" fill="#e2e8f0" font-size="13" font-weight="500" dominant-baseline="middle">Brain Dump</text>
+                    <!-- Connection dot -->
+                    <circle cx="218" cy="80" r="4.5" fill="#f59e0b"/>
+
+                    <!-- Node 2: Scattered Tasks -->
+                    <rect x="42" y="106" width="176" height="46" rx="23" ry="23" fill="#1e1e30" stroke="#2d2d45" stroke-width="1" filter="url(#nodeShadow)"/>
+                    <text x="62" y="134" font-size="17" dominant-baseline="middle">⚡</text>
+                    <text x="86" y="130" fill="#e2e8f0" font-size="13" font-weight="500" dominant-baseline="middle">Scattered Tasks</text>
+                    <!-- Connection dot -->
+                    <circle cx="218" cy="130" r="4.5" fill="#f59e0b"/>
+
+                    <!-- Node 3: Deadlines -->
+                    <rect x="44" y="156" width="174" height="46" rx="23" ry="23" fill="#1e1e30" stroke="#2d2d45" stroke-width="1" filter="url(#nodeShadow)"/>
+                    <text x="64" y="184" font-size="17" dominant-baseline="middle">🔥</text>
+                    <text x="88" y="180" fill="#e2e8f0" font-size="13" font-weight="500" dominant-baseline="middle">Deadlines &amp; Stress</text>
+                    <!-- Connection dot -->
+                    <circle cx="218" cy="180" r="4.5" fill="#f59e0b"/>
+
+                    <!-- ═══ CENTER HUB ═══ -->
+                    <!-- Glow ring -->
+                    <rect x="410" y="90" width="140" height="82" rx="18" ry="18" fill="none" stroke="#f59e0b" stroke-width="2.5" opacity="0.35" filter="url(#glowAmber)"/>
+                    <!-- Main box -->
+                    <rect x="414" y="94" width="132" height="74" rx="16" ry="16" fill="#1a1418" stroke="#f59e0b" stroke-width="1.8"/>
+                    <!-- to-do text -->
+                    <text x="480" y="122" fill="#f59e0b" font-size="22" font-weight="800" font-family="Outfit, Inter, sans-serif" text-anchor="middle" letter-spacing="-0.5">to-do</text>
+                    <!-- subtitle -->
+                    <text x="480" y="148" fill="#2dd4bf" font-size="10" font-weight="500" text-anchor="middle" letter-spacing="0.3">made by researcher</text>
+                    <!-- Left entry dot -->
+                    <circle cx="420" cy="130" r="4.5" fill="#f59e0b"/>
+                    <!-- Right exit dot -->
+                    <circle cx="540" cy="130" r="4.5" fill="#f59e0b"/>
+
+                    <!-- ═══ RIGHT PANEL ═══ -->
+                    <rect x="662" y="56" width="238" height="150" rx="14" ry="14" fill="#191926" stroke="#2a2a40" stroke-width="1" filter="url(#nodeShadow)"/>
+                    <!-- Panel title -->
+                    <text x="684" y="90" fill="#f1f5f9" font-size="14" font-weight="600">Organised</text>
+                    <text x="780" y="90" fill="#2dd4bf" font-size="14" font-weight="700">✓</text>
+                    <!-- Connection entry dot -->
+                    <circle cx="662" cy="130" r="4.5" fill="#2dd4bf"/>
+                    <!-- Priority badges -->
+                    <!-- Red badge -->
+                    <rect x="682" y="100" width="140" height="22" rx="11" ry="11" fill="#7f1d1d" opacity="0.85"/>
+                    <circle cx="694" cy="111" r="5" fill="#ef4444"/>
+                    <text x="704" y="115" fill="#fca5a5" font-size="10.5" font-weight="500" dominant-baseline="middle">Urgent &amp; Important</text>
+                    <!-- Amber badge -->
+                    <rect x="682" y="128" width="112" height="22" rx="11" ry="11" fill="#78350f" opacity="0.85"/>
+                    <circle cx="694" cy="139" r="5" fill="#f59e0b"/>
+                    <text x="704" y="143" fill="#fcd34d" font-size="10.5" font-weight="500" dominant-baseline="middle">Schedule</text>
+                    <!-- Green badge -->
+                    <rect x="682" y="156" width="88" height="22" rx="11" ry="11" fill="#064e3b" opacity="0.85"/>
+                    <circle cx="694" cy="167" r="5" fill="#10b981"/>
+                    <text x="704" y="171" fill="#6ee7b7" font-size="10.5" font-weight="500" dominant-baseline="middle">Later</text>
+                    <!-- Muted task lines -->
+                    <rect x="682" y="187" width="90" height="5" rx="2.5" fill="#2d2d45" opacity="0.7"/>
+                    <rect x="682" y="197" width="120" height="5" rx="2.5" fill="#2d2d45" opacity="0.5"/>
+                </svg>
             </div>
         </div>
     </section>
@@ -720,301 +766,4 @@
 </div>
 {% endblock %}
 
-{% block extra_js %}
-<script>
-/* ══════════════════════════════════════════════════════
-   ELECTRIC THOUGHT-FLOW ANIMATION
-   Concept: Thought "nodes" float chaotically.
-   Electric arcs jump between nearby nodes.
-   Over time nodes converge into organized task clusters,
-   arcs solidify into structured connection lines.
-   Then the whole thing dissolves and repeats.
-══════════════════════════════════════════════════════ */
-document.addEventListener('DOMContentLoaded', () => {
-    const canvas = document.getElementById('electricCanvas');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
-    const W = canvas.width;
-    const H = canvas.height;
-
-    const stateTextEl = document.getElementById('electricStateText');
-
-    // ── Node thought labels (appear in ORDER phase) ──
-    const thoughtLabels = [
-        'review slides', 'email team', 'deep work', 'focus sprint',
-        'read paper', 'workout', 'plan week', 'buy groceries',
-        'write report', 'meditation', 'clear inbox', 'call mum'
-    ];
-
-    // ── Cluster target positions (organised quadrants) ──
-    const clusters = [
-        { cx: W * 0.27, cy: H * 0.30, label: '🔴 Urgent', color: 'rgba(239,68,68,0.9)' },
-        { cx: W * 0.73, cy: H * 0.30, label: '🟠 Important', color: 'rgba(245,158,11,0.9)' },
-        { cx: W * 0.27, cy: H * 0.72, label: '🔵 Delegate', color: 'rgba(59,130,246,0.9)' },
-        { cx: W * 0.73, cy: H * 0.72, label: '🟢 Later', color: 'rgba(16,185,129,0.9)' },
-    ];
-
-    // ── Nodes ──
-    const NUM_NODES = thoughtLabels.length;
-    const nodes = [];
-    for (let i = 0; i < NUM_NODES; i++) {
-        const cluster = clusters[i % clusters.length];
-        nodes.push({
-            x: Math.random() * (W - 60) + 30,
-            y: Math.random() * (H - 60) + 30,
-            vx: (Math.random() - 0.5) * 2.2,
-            vy: (Math.random() - 0.5) * 2.2,
-            r: 4 + Math.random() * 3,
-            targetCluster: cluster,
-            label: thoughtLabels[i],
-            phase: Math.random() * Math.PI * 2, // for floating bob
-            opacity: 1,
-        });
-    }
-
-    // ── Lightning bolt helper ──
-    // Draws a jagged electric arc between two points
-    function drawLightning(x1, y1, x2, y2, alpha, color) {
-        const segs = 6 + Math.floor(Math.random() * 4);
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.strokeStyle = color || '#2dd4bf';
-        ctx.lineWidth = 0.8 + Math.random() * 0.7;
-        ctx.shadowColor = color || '#2dd4bf';
-        ctx.shadowBlur = 6;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        for (let s = 1; s < segs; s++) {
-            const t = s / segs;
-            const mx = x1 + (x2 - x1) * t + (Math.random() - 0.5) * 18;
-            const my = y1 + (y2 - y1) * t + (Math.random() - 0.5) * 18;
-            ctx.lineTo(mx, my);
-        }
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        ctx.restore();
-    }
-
-    // ── Smooth line helper (ORDER phase) ──
-    function drawSmoothLine(x1, y1, x2, y2, alpha, color) {
-        ctx.save();
-        ctx.globalAlpha = alpha;
-        ctx.strokeStyle = color || 'rgba(45,212,191,0.5)';
-        ctx.lineWidth = 1.5;
-        ctx.shadowColor = color || 'rgba(45,212,191,0.5)';
-        ctx.shadowBlur = 8;
-        ctx.beginPath();
-        ctx.moveTo(x1, y1);
-        ctx.lineTo(x2, y2);
-        ctx.stroke();
-        ctx.restore();
-    }
-
-    // ── State machine ──
-    const STATES = { CHAOS: 0, CHARGE: 1, ORDER: 2, DISSOLVE: 3 };
-    let state = STATES.CHAOS;
-    let stateTime = 0;
-    const stateDurations = { [STATES.CHAOS]: 3800, [STATES.CHARGE]: 2200, [STATES.ORDER]: 4200, [STATES.DISSOLVE]: 1400 };
-    const stateTexts = {
-        [STATES.CHAOS]:   'scanning neural pathways...',
-        [STATES.CHARGE]:  'routing electric impulses...',
-        [STATES.ORDER]:   'structure achieved.',
-        [STATES.DISSOLVE]:'releasing entropy...',
-    };
-
-    let lastTime = performance.now();
-
-    function animate(now) {
-        const dt = Math.min(now - lastTime, 32);
-        lastTime = now;
-        stateTime += dt;
-
-        // State transitions
-        if (stateTime >= stateDurations[state]) {
-            stateTime = 0;
-            state = (state + 1) % 4;
-            if (stateTextEl) stateTextEl.textContent = stateTexts[state];
-
-            if (state === STATES.CHAOS) {
-                // Scatter nodes back randomly
-                nodes.forEach(n => {
-                    n.x = Math.random() * (W - 60) + 30;
-                    n.y = Math.random() * (H - 60) + 30;
-                    n.vx = (Math.random() - 0.5) * 2.2;
-                    n.vy = (Math.random() - 0.5) * 2.2;
-                });
-            }
-        }
-
-        const progress = stateTime / stateDurations[state]; // 0→1
-
-        // ── Clear with dark background tint ──
-        ctx.clearRect(0, 0, W, H);
-
-        // ── Update node physics ──
-        nodes.forEach((n, i) => {
-            n.phase += 0.015;
-
-            if (state === STATES.CHAOS) {
-                // Random brownian drift
-                n.vx += (Math.random() - 0.5) * 0.3;
-                n.vy += (Math.random() - 0.5) * 0.3;
-                n.vx *= 0.97;
-                n.vy *= 0.97;
-                // Bounce off edges
-                if (n.x < 20) n.vx += 0.5;
-                if (n.x > W - 20) n.vx -= 0.5;
-                if (n.y < 20) n.vy += 0.5;
-                if (n.y > H - 20) n.vy -= 0.5;
-            } else if (state === STATES.CHARGE) {
-                // Pull toward cluster with increasing force + electric wobble
-                const force = 0.04 * progress;
-                const tx = n.targetCluster.cx + (Math.sin(n.phase * 3) * 30 * (1 - progress));
-                const ty = n.targetCluster.cy + (Math.cos(n.phase * 2) * 30 * (1 - progress));
-                n.vx += (tx - n.x) * force;
-                n.vy += (ty - n.y) * force;
-                n.vx *= 0.88;
-                n.vy *= 0.88;
-            } else if (state === STATES.ORDER) {
-                // Gently orbit cluster (settled)
-                const orbitR = 40 + (i % 3) * 18;
-                const angle = n.phase * 0.4 + (i / 3) * (Math.PI * 2 / 3);
-                const tx = n.targetCluster.cx + Math.cos(angle) * orbitR;
-                const ty = n.targetCluster.cy + Math.sin(angle) * orbitR;
-                n.vx += (tx - n.x) * 0.06;
-                n.vy += (ty - n.y) * 0.06;
-                n.vx *= 0.78;
-                n.vy *= 0.78;
-            } else if (state === STATES.DISSOLVE) {
-                // Scatter outward with electric jitter
-                n.vx += (Math.random() - 0.5) * 0.8;
-                n.vy += (Math.random() - 0.5) * 0.8;
-                n.vx *= 0.95;
-                n.vy *= 0.95;
-            }
-
-            // Clamp speed
-            const spd = Math.sqrt(n.vx * n.vx + n.vy * n.vy);
-            if (spd > 5) { n.vx = (n.vx / spd) * 5; n.vy = (n.vy / spd) * 5; }
-
-            n.x += n.vx;
-            n.y += n.vy;
-        });
-
-        // ── Draw cluster labels (ORDER phase only) ──
-        if (state === STATES.ORDER) {
-            const alpha = Math.min(1, progress * 3);
-            clusters.forEach(cl => {
-                ctx.save();
-                ctx.globalAlpha = alpha * 0.75;
-                ctx.font = '600 11px Inter, sans-serif';
-                ctx.fillStyle = cl.color;
-                ctx.textAlign = 'center';
-                ctx.fillText(cl.label, cl.cx, cl.cy - 56);
-                ctx.restore();
-
-                // Quadrant boundary circle
-                ctx.save();
-                ctx.globalAlpha = alpha * 0.12;
-                ctx.strokeStyle = cl.color;
-                ctx.lineWidth = 1;
-                ctx.setLineDash([4, 6]);
-                ctx.beginPath();
-                ctx.arc(cl.cx, cl.cy, 70, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-                ctx.restore();
-            });
-        }
-
-        // ── Draw edges / lightning ──
-        const CONNECT_DIST = state === STATES.ORDER ? 75 : 95;
-        for (let i = 0; i < nodes.length; i++) {
-            for (let j = i + 1; j < nodes.length; j++) {
-                const ni = nodes[i], nj = nodes[j];
-                const dx = ni.x - nj.x;
-                const dy = ni.y - nj.y;
-                const dist = Math.sqrt(dx * dx + dy * dy);
-
-                if (dist < CONNECT_DIST) {
-                    const proximity = 1 - dist / CONNECT_DIST;
-
-                    if (state === STATES.CHAOS || state === STATES.DISSOLVE) {
-                        // Random electric arcs — fire probabilistically
-                        const fireProbability = proximity * 0.35;
-                        if (Math.random() < fireProbability) {
-                            const alpha = proximity * 0.7;
-                            const hue = 170 + Math.random() * 30;
-                            drawLightning(ni.x, ni.y, nj.x, nj.y, alpha, `hsla(${hue},80%,65%,1)`);
-                        }
-                    } else if (state === STATES.CHARGE) {
-                        // Charge phase: mix of lightning and smooth lines
-                        if (ni.targetCluster === nj.targetCluster) {
-                            const alpha = proximity * (0.4 + progress * 0.5);
-                            if (Math.random() < 0.5) {
-                                drawLightning(ni.x, ni.y, nj.x, nj.y, alpha * 0.8, '#2dd4bf');
-                            } else {
-                                drawSmoothLine(ni.x, ni.y, nj.x, nj.y, alpha * 0.6, ni.targetCluster.color);
-                            }
-                        }
-                    } else if (state === STATES.ORDER) {
-                        // Solid smooth lines within cluster only
-                        if (ni.targetCluster === nj.targetCluster) {
-                            const alpha = proximity * 0.55;
-                            drawSmoothLine(ni.x, ni.y, nj.x, nj.y, alpha, ni.targetCluster.color);
-                        }
-                    }
-                }
-            }
-        }
-
-        // ── Draw nodes ──
-        nodes.forEach(n => {
-            const isOrdered = state === STATES.ORDER;
-            const color = isOrdered ? n.targetCluster.color : 'rgba(45,212,191,0.9)';
-            const glowColor = isOrdered ? n.targetCluster.color : '#2dd4bf';
-            const radius = isOrdered ? n.r + 1 : n.r;
-
-            // Outer glow ring
-            ctx.save();
-            ctx.globalAlpha = 0.25;
-            const grd = ctx.createRadialGradient(n.x, n.y, 0, n.x, n.y, radius * 3.5);
-            grd.addColorStop(0, glowColor);
-            grd.addColorStop(1, 'transparent');
-            ctx.fillStyle = grd;
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, radius * 3.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-
-            // Node core
-            ctx.save();
-            ctx.globalAlpha = 0.9;
-            ctx.fillStyle = color;
-            ctx.shadowColor = glowColor;
-            ctx.shadowBlur = 10;
-            ctx.beginPath();
-            ctx.arc(n.x, n.y, radius, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.restore();
-
-            // Label (ORDER phase)
-            if (isOrdered) {
-                const labelAlpha = Math.min(1, progress * 2.5);
-                ctx.save();
-                ctx.globalAlpha = labelAlpha * 0.85;
-                ctx.font = '500 9px Inter, sans-serif';
-                ctx.fillStyle = '#e0f7f5';
-                ctx.textAlign = 'center';
-                ctx.fillText(n.label, n.x, n.y - radius - 5);
-                ctx.restore();
-            }
-        });
-
-        requestAnimationFrame(animate);
-    }
-
-    requestAnimationFrame(animate);
-});
-</script>
-{% endblock %}
+{% block extra_js %}{% endblock %}
