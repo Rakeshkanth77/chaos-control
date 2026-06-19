@@ -33,17 +33,24 @@ def parse_brain_dump(content):
         openai_key = None
 
     prompt = (
-        "You are an assistant that extracts actionable tasks (TODOs) from a person's raw brain dump.\n"
-        "If a single sentence or line contains multiple distinct tasks or activities (for example: joined by 'and', 'also', 'then', or commas, like 'I need to check emails and work on paper two and paper three'), you MUST split them into separate, individual actionable tasks.\n"
-        "Extract a list of distinct, clear, and action-oriented tasks.\n"
+        "You are an assistant that extracts high-level, meaningful tasks from a person's raw brain dump.\n"
+        "\n"
+        "Rules:\n"
+        "1. Identify GOALS, not micro-steps. If several phrases all serve one purpose (e.g. 'run models on the server to get results'), keep them as ONE task.\n"
+        "2. Only create a separate task when the action is genuinely independent — a different area of work or a different deliverable.\n"
+        "3. Ignore filler connectors ('and then', 'also', 'in order to') — they do NOT mean a new task.\n"
+        "4. Ignore intent/context phrases like 'think in lines of', 'to achieve', 'properly' — absorb them into the parent task wording.\n"
+        "5. Aim for 3–7 concise tasks maximum. Each task should be immediately understandable with no extra context.\n"
+        "6. Write each task as a short, clear action phrase (e.g. 'Run models on server and validate results').\n"
+        "\n"
         "Return ONLY a raw JSON list of strings, for example:\n"
-        "[\"Check emails\", \"Work on paper two\", \"Work on paper three\"]\n"
+        "[\"Read the research paper\", \"Design flow diagram in Excalidraw\", \"Run models on server and validate results\"]\n"
         "Do not include any markdown blocks (like ```json) or explanation. Return raw JSON text only."
     )
 
     errors = []
 
-    # Try Gemini first
+    # Try Gemini
     if gemini_key:
         try:
             import google.generativeai as genai
