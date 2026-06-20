@@ -325,6 +325,61 @@
             btn.classList.remove('open');
             document.body.style.overflow = '';
         }
+
+        window.confirmDialog = function({ 
+            title = 'Confirm Action', 
+            message = 'Are you sure you want to proceed?', 
+            confirmText = 'Delete', 
+            cancelText = 'Cancel' 
+        } = {}) {
+            return new Promise((resolve) => {
+                const modalId = 'custom-confirm-modal';
+                let modal = document.getElementById(modalId);
+                if (modal) modal.remove();
+
+                modal = document.createElement('div');
+                modal.id = modalId;
+                modal.className = 'custom-confirm-overlay';
+                modal.innerHTML = `
+                    <div class="custom-confirm-box glass-panel">
+                        <div class="custom-confirm-header">
+                            <h3>${title}</h3>
+                        </div>
+                        <div class="custom-confirm-body">
+                            <p>${message}</p>
+                        </div>
+                        <div class="custom-confirm-actions">
+                            <button class="btn btn-secondary confirm-cancel">${cancelText}</button>
+                            <button class="btn confirm-ok">${confirmText}</button>
+                        </div>
+                    </div>
+                `;
+
+                document.body.appendChild(modal);
+
+                // Small delay to trigger CSS transition
+                setTimeout(() => modal.classList.add('show'), 10);
+
+                const cleanUpAndResolve = (result) => {
+                    modal.classList.remove('show');
+                    setTimeout(() => {
+                        modal.remove();
+                        resolve(result);
+                    }, 300);
+                };
+
+                modal.querySelector('.confirm-cancel').addEventListener('click', () => cleanUpAndResolve(false));
+                modal.querySelector('.confirm-ok').addEventListener('click', () => cleanUpAndResolve(true));
+
+                const handleEsc = (e) => {
+                    if (e.key === 'Escape') {
+                        document.removeEventListener('keydown', handleEsc);
+                        cleanUpAndResolve(false);
+                    }
+                };
+                document.addEventListener('keydown', handleEsc);
+            });
+        };
     </script>
     
     {% block extra_js %}{% endblock %}

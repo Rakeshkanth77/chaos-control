@@ -143,7 +143,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const id = card.dataset.id;
 
-            if (confirm('Delete this project?')) {
+            const confirmed = await window.confirmDialog({
+                title: 'Delete Project',
+                message: 'Are you sure you want to delete this project?',
+                confirmText: 'Delete',
+                cancelText: 'Cancel'
+            });
+
+            if (confirmed) {
                 try {
                     const res = await projectApiPost('/api/project/delete/', { id });
 

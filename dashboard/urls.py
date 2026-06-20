@@ -13,6 +13,7 @@ urlpatterns = [
     # API endpoints
     path('api/braindump/save/', api.save_braindump, name='api_save_braindump'),
     path('api/braindump/generate-todos/', api.generate_todos, name='api_generate_todos'),
+    path('api/braindump/clean-ramble/', api.clean_ramble, name='api_clean_ramble'),
     path('api/todo/add/', api.add_todo, name='api_add_todo'),
     path('api/todo/update-priority/', api.update_todo_priority, name='api_update_todo_priority'),
     path('api/todo/toggle/', api.toggle_todo, name='api_toggle_todo'),

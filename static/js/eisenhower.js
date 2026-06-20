@@ -137,7 +137,14 @@ document.addEventListener('DOMContentLoaded', () => {
             if (!todoItem) return;
             const id = todoItem.dataset.id;
             
-            if (confirm('Delete this task?')) {
+            const confirmed = await window.confirmDialog({
+                title: 'Delete Task',
+                message: 'Are you sure you want to delete this task?',
+                confirmText: 'Delete',
+                cancelText: 'Cancel'
+            });
+            
+            if (confirmed) {
                 try {
                     await window.apiPost('/api/todo/delete/', { id });
                     todoItem.style.opacity = '0';
@@ -156,27 +163,110 @@ document.addEventListener('DOMContentLoaded', () => {
     document.addEventListener('click', async (e) => {
         if (e.target.classList.contains('edit') || e.target.closest('.edit')) {
             const todoItem = e.target.closest('.todo-item');
-            if (!todoItem) return;
+            if (!todoItem || todoItem.querySelector('.todo-inline-edit-wrapper')) return;
             
             const id = todoItem.dataset.id;
             const textSpan = todoItem.querySelector('.todo-text');
-            const oldTitle = textSpan.textContent;
+            const oldTitle = textSpan.textContent.trim();
             
-            const newTitle = prompt('Edit Target Title:', oldTitle);
-            if (newTitle !== null && newTitle.trim() !== '' && newTitle.trim() !== oldTitle) {
-                try {
-                    const response = await window.apiPost('/api/todo/update-title/', {
-                        id: id,
-                        title: newTitle.trim()
-                    });
-                    if (response.status === 'success') {
-                        textSpan.textContent = response.title;
+            const contentWrapper = todoItem.querySelector('.todo-content-wrapper');
+            const actionsWrapper = todoItem.querySelector('.todo-actions');
+            
+            // Hide normal UI
+            contentWrapper.style.display = 'none';
+            actionsWrapper.style.display = 'none';
+            todoItem.setAttribute('draggable', 'false');
+            
+            // Create inline edit interface
+            const editWrapper = document.createElement('div');
+            editWrapper.className = 'todo-inline-edit-wrapper';
+            editWrapper.style.cssText = 'display: flex; align-items: center; width: 100%; gap: 8px;';
+            
+            const input = document.createElement('input');
+            input.type = 'text';
+            input.className = 'inline-input todo-edit-input';
+            input.value = oldTitle;
+            input.style.cssText = 'flex-grow: 1; font-size: 0.88rem; padding: 4px 8px; margin: 0;';
+            
+            const saveBtn = document.createElement('button');
+            saveBtn.className = 'action-btn save-edit';
+            saveBtn.style.cssText = 'color: var(--neither-text); font-size: 0.95rem; font-weight: bold; padding: 4px 8px; cursor: pointer;';
+            saveBtn.textContent = '✓';
+            
+            const cancelBtn = document.createElement('button');
+            cancelBtn.className = 'action-btn cancel-edit';
+            cancelBtn.style.cssText = 'color: var(--urgent-important-text); font-size: 0.95rem; font-weight: bold; padding: 4px 8px; cursor: pointer;';
+            cancelBtn.textContent = '✗';
+            
+            editWrapper.appendChild(input);
+            editWrapper.appendChild(saveBtn);
+            editWrapper.appendChild(cancelBtn);
+            todoItem.appendChild(editWrapper);
+            
+            // Focus and set cursor to the end
+            input.focus();
+            const valLen = input.value.length;
+            input.setSelectionRange(valLen, valLen);
+            
+            let isSaving = false;
+            
+            const saveChange = async () => {
+                if (isSaving) return;
+                isSaving = true;
+                const newTitle = input.value.trim();
+                if (newTitle && newTitle !== oldTitle) {
+                    try {
+                        const response = await window.apiPost('/api/todo/update-title/', {
+                            id: id,
+                            title: newTitle
+                        });
+                        if (response.status === 'success') {
+                            textSpan.textContent = response.title;
+                        }
+                    } catch (err) {
+                        console.error(err);
                     }
-                } catch (err) {
-                    console.error(err);
-                    alert('Failed to update target title.');
                 }
-            }
+                restoreOriginal();
+            };
+            
+            const restoreOriginal = () => {
+                editWrapper.remove();
+                contentWrapper.style.display = '';
+                actionsWrapper.style.display = '';
+                todoItem.setAttribute('draggable', 'true');
+            };
+            
+            input.addEventListener('keydown', (event) => {
+                if (event.key === 'Enter') {
+                    event.preventDefault();
+                    saveChange();
+                } else if (event.key === 'Escape') {
+                    event.preventDefault();
+                    restoreOriginal();
+                }
+            });
+            
+            saveBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                saveChange();
+            });
+            
+            cancelBtn.addEventListener('click', (event) => {
+                event.stopPropagation();
+                restoreOriginal();
+            });
+            
+            input.addEventListener('blur', () => {
+                // Short timeout to let button click trigger first
+                setTimeout(() => {
+                    if (document.activeElement !== saveBtn && document.activeElement !== cancelBtn) {
+                        if (editWrapper.parentNode) {
+                            saveChange();
+                        }
+                    }
+                }, 180);
+            });
         }
     });
 

@@ -209,3 +209,88 @@ def generate_ai_reflection(notes):
         suggestions_list.append("- Schedule your hardest task during your peak energy hours.")
         
     return "\n".join(mistakes_list), "\n".join(suggestions_list)
+
+
+def clean_ramble_text(content):
+    """
+    Cleans up spoken voice notes (rambles), removing filler words, stuttering, and repetitions
+    while retaining all context and key detail.
+    """
+    if not content or not content.strip():
+        return ""
+
+    gemini_key = os.getenv('GEMINI_API_KEY')
+    openai_key = os.getenv('OPENAI_API_KEY')
+    
+    if gemini_key == "your_gemini_api_key_here":
+        gemini_key = None
+    if openai_key == "your_openai_api_key_here":
+        openai_key = None
+
+    prompt = (
+        "You are an assistant that cleans up spoken voice notes (rambles).\n"
+        "Your task is to take a raw transcription and:\n"
+        "1. Remove stuttering and filler words (such as 'ah', 'um', 'uh', 'like', 'you know', 'so yeah', 'basically').\n"
+        "2. Fix grammar and repetitiveness.\n"
+        "3. Reconstruct and flow the text into a clean, cohesive, and structured paragraph/notes.\n"
+        "4. Critical: Keep all original details, intent, and tasks intact. Do NOT summarize or delete tasks.\n"
+        "\n"
+        "Return ONLY the cleaned, polished text. Do not write any introduction, explanation, or wrap it in quotes. Just output the cleaned text."
+    )
+
+    # Try Gemini
+    if gemini_key:
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=gemini_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(f"{prompt}\n\nRaw Ramble Text:\n{content}")
+            result_text = response.text.strip()
+            # Remove any markdown wrapping if the model did it
+            if result_text.startswith("```"):
+                result_text = clean_json_response(result_text)
+            return result_text
+        except Exception as e:
+            print(f"Gemini API Error in clean_ramble_text: {e}")
+
+    # Try OpenAI
+    if openai_key:
+        try:
+            from openai import OpenAI
+            api_key = openai_key.strip("'\"")
+            
+            if api_key.startswith("gsk_"):
+                client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
+                model_name = "llama-3.1-8b-instant"
+            else:
+                client = OpenAI(api_key=api_key)
+                model_name = "gpt-4o-mini"
+                
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": content}
+                ],
+                temperature=0.3,
+            )
+            return response.choices[0].message.content.strip()
+        except Exception as e:
+            print(f"OpenAI/Groq API Error in clean_ramble_text: {e}")
+
+    # Fallback: Local Regex-based basic filler word cleaner
+    print("Falling back to local regex-based ramble cleaner")
+    # Replace common filler words (case-insensitive)
+    fillers = [
+        r'\buh\b', r'\bum\b', r'\bah\b', r'\beh\b', r'\berr\b',
+        r'\blike,\b', r'\byou know,\b', r'\bso yeah,\b', r'\bbasically,\b',
+        r'\blike\b', r'\byou know\b', r'\bso yeah\b', r'\bbasically\b'
+    ]
+    cleaned = content
+    for pattern in fillers:
+        cleaned = re.sub(pattern, '', cleaned, flags=re.IGNORECASE)
+    # Clean up multiple spaces/newlines
+    cleaned = re.sub(r' +', ' ', cleaned)
+    cleaned = re.sub(r'\n+', '\n', cleaned)
+    return cleaned.strip()
+

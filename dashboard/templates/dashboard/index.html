@@ -186,8 +186,16 @@
                 class="braindump-textarea" 
                 placeholder="Unload everything on your mind... targets, ideas, raw thoughts. We'll extract actionable objectives below."
             >{% if braindump %}{{ braindump.content }}{% endif %}</textarea>
-            <div class="card-footer" style="gap: 8px;">
-                <button id="clear-braindump-btn" class="btn btn-secondary">Clear</button>
+            <div class="card-footer" style="gap: 8px; flex-wrap: wrap; justify-content: space-between; width: 100%;">
+                <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                    <button id="voice-input-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px;">
+                        <span class="mic-icon">🎤</span> <span class="btn-text">Voice</span>
+                    </button>
+                    <button id="clean-rambles-btn" class="btn btn-secondary" style="display: flex; align-items: center; gap: 6px;">
+                        <span>✨</span> <span class="clean-text">Clean Ramble</span>
+                    </button>
+                    <button id="clear-braindump-btn" class="btn btn-secondary">Clear</button>
+                </div>
                 <button id="generate-todos-btn" class="btn">Extract Targets</button>
             </div>
         </div>

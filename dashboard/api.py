@@ -435,3 +435,38 @@ def delete_project(request):
         return JsonResponse({'status': 'error', 'message': 'Project not found'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def clean_ramble(request):
+    try:
+        data = json.loads(request.body)
+        target_date = get_date_from_request(data)
+        content = data.get('content', '').strip()
+
+        if not content:
+            return JsonResponse({'status': 'error', 'message': 'Content is empty.'}, status=400)
+
+        # Import the service function
+        from .services import clean_ramble_text
+        cleaned_content = clean_ramble_text(content)
+
+        # Save to BrainDump object
+        braindump, created = BrainDump.objects.get_or_create(
+            date=target_date,
+            user=request.user,
+            defaults={'content': cleaned_content}
+        )
+        if not created:
+            braindump.content = cleaned_content
+            braindump.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'content': cleaned_content
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+

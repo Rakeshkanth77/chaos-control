@@ -1,10 +1,11 @@
+import json
 from django.test import TestCase
 from django.utils import timezone
 from django.contrib.auth.models import User
 import unittest.mock as mock
 import os
 from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile
-from .services import parse_brain_dump, generate_ai_reflection
+from .services import parse_brain_dump, generate_ai_reflection, clean_ramble_text
 
 
 class DashboardServicesTestCase(TestCase):
@@ -126,4 +127,63 @@ class AuthenticationAndAccessTestCase(TestCase):
     def test_api_requires_login_json(self):
         response = self.client.post('/api/todo/add/', content_type='application/json')
         self.assertEqual(response.status_code, 401)
+
+
+class CleanRambleTestCase(TestCase):
+    @mock.patch('google.generativeai.GenerativeModel')
+    def test_clean_ramble_text_gemini(self, mock_model_class):
+        with mock.patch.dict(os.environ, {"GEMINI_API_KEY": "mock_gemini_key", "OPENAI_API_KEY": ""}):
+            mock_model = mock.MagicMock()
+            mock_model.generate_content.return_value = mock.MagicMock(text='Cleaned gemini content')
+            mock_model_class.return_value = mock_model
+            
+            cleaned = clean_ramble_text("some ramble text")
+            self.assertEqual(cleaned, "Cleaned gemini content")
+
+    @mock.patch('openai.OpenAI')
+    def test_clean_ramble_text_openai(self, mock_client_class):
+        with mock.patch.dict(os.environ, {"GEMINI_API_KEY": "", "OPENAI_API_KEY": "mock_openai_key"}):
+            mock_client = mock.MagicMock()
+            mock_client.chat.completions.create.return_value = mock.MagicMock(
+                choices=[mock.MagicMock(message=mock.MagicMock(content='Cleaned openai content'))]
+            )
+            mock_client_class.return_value = mock_client
+            
+            cleaned = clean_ramble_text("some ramble text")
+            self.assertEqual(cleaned, "Cleaned openai content")
+
+    def test_clean_ramble_text_fallback(self):
+        with mock.patch.dict(os.environ, {"GEMINI_API_KEY": "", "OPENAI_API_KEY": ""}):
+            raw_text = "um, so yeah, basically I need to ah work on this uh project."
+            cleaned = clean_ramble_text(raw_text)
+            self.assertNotIn("um", cleaned.lower())
+            self.assertNotIn("uh", cleaned.lower())
+            self.assertNotIn("ah", cleaned.lower())
+            self.assertIn("work on this project", cleaned.lower())
+
+
+class BrainDumpApiTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testapiuser', password='password123')
+        self.today = timezone.localdate()
+
+    @mock.patch('dashboard.services.clean_ramble_text')
+    def test_clean_ramble_api_success(self, mock_clean_service):
+        mock_clean_service.return_value = "This is a clean brain dump."
+        self.client.login(username='testapiuser', password='password123')
+        
+        response = self.client.post('/api/braindump/clean-ramble/', data=json.dumps({
+            'content': 'um, so yeah, raw ramble text',
+            'date': self.today.strftime('%Y-%m-%d')
+        }), content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        res_data = response.json()
+        self.assertEqual(res_data['status'], 'success')
+        self.assertEqual(res_data['content'], 'This is a clean brain dump.')
+        
+        bd = BrainDump.objects.filter(user=self.user, date=self.today).first()
+        self.assertIsNotNone(bd)
+        self.assertEqual(bd.content, 'This is a clean brain dump.')
+
 
