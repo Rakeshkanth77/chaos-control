@@ -132,8 +132,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Delete todo handler (using delegation)
     document.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('delete') || e.target.closest('.delete')) {
-            const todoItem = e.target.closest('.todo-item');
+        const deleteBtn = e.target.closest('.delete');
+        if (deleteBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const todoItem = deleteBtn.closest('.todo-item');
             if (!todoItem) return;
             const id = todoItem.dataset.id;
             
@@ -161,8 +164,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Edit todo handler (using delegation)
     document.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('edit') || e.target.closest('.edit')) {
-            const todoItem = e.target.closest('.todo-item');
+        const editBtn = e.target.closest('.edit');
+        if (editBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const todoItem = editBtn.closest('.todo-item');
             if (!todoItem || todoItem.querySelector('.todo-inline-edit-wrapper')) return;
             
             const id = todoItem.dataset.id;

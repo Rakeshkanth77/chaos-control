@@ -357,8 +357,9 @@
 
                 document.body.appendChild(modal);
 
-                // Small delay to trigger CSS transition
-                setTimeout(() => modal.classList.add('show'), 10);
+                // Force layout reflow to trigger CSS transition
+                modal.offsetHeight;
+                modal.classList.add('show');
 
                 const cleanUpAndResolve = (result) => {
                     modal.classList.remove('show');

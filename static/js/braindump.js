@@ -119,15 +119,17 @@ document.addEventListener('DOMContentLoaded', () => {
             recognition.onstart = () => {
                 isRecording = true;
                 voiceBtn.classList.add('recording');
-                voiceBtn.querySelector('.btn-text').textContent = 'Listening...';
-                voiceBtn.querySelector('.mic-icon').textContent = '🛑';
+                voiceBtn.querySelector('.btn-text').textContent = 'Recording...';
+                voiceBtn.querySelector('.mic-icon').style.display = 'none';
+                voiceBtn.querySelector('.soundwave-container').style.display = 'flex';
             };
 
             recognition.onend = () => {
                 isRecording = false;
                 voiceBtn.classList.remove('recording');
                 voiceBtn.querySelector('.btn-text').textContent = 'Voice';
-                voiceBtn.querySelector('.mic-icon').textContent = '🎤';
+                voiceBtn.querySelector('.mic-icon').style.display = 'inline';
+                voiceBtn.querySelector('.soundwave-container').style.display = 'none';
             };
 
             recognition.onresult = (event) => {
@@ -167,39 +169,5 @@ document.addEventListener('DOMContentLoaded', () => {
             voiceBtn.title = 'Speech recognition not supported in this browser';
             voiceBtn.querySelector('.btn-text').textContent = 'Unsupported';
         }
-    }
-
-    // Clean Ramble handler
-    const cleanBtn = document.getElementById('clean-rambles-btn');
-    if (cleanBtn && dumpInput) {
-        cleanBtn.addEventListener('click', async (e) => {
-            e.preventDefault();
-            const originalVal = dumpInput.value.trim();
-            if (!originalVal) return;
-
-            const cleanTextEl = cleanBtn.querySelector('.clean-text');
-            const originalBtnText = cleanTextEl.textContent;
-            
-            cleanTextEl.textContent = 'Cleaning...';
-            cleanBtn.disabled = true;
-            saveStatus.textContent = 'Cleaning ramble...';
-            saveStatus.style.opacity = '0.7';
-
-            try {
-                const res = await apiPost('/api/braindump/clean-ramble/', { content: originalVal });
-                if (res.status === 'success') {
-                    dumpInput.value = res.content;
-                    saveStatus.textContent = 'Ramble cleaned & saved';
-                    saveStatus.style.opacity = '0.5';
-                }
-            } catch (err) {
-                console.error(err);
-                saveStatus.textContent = 'Error cleaning';
-                saveStatus.style.opacity = '1';
-            } finally {
-                cleanTextEl.textContent = originalBtnText;
-                cleanBtn.disabled = false;
-            }
-        });
     }
 });

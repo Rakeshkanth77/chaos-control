@@ -79,8 +79,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Edit Project (event delegation)
     document.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('project-edit-btn')) {
-            const card = e.target.closest('.project-card');
+        const editBtn = e.target.closest('.project-edit-btn');
+        if (editBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const card = editBtn.closest('.project-card');
             if (!card) return;
 
             const id = card.dataset.id;
@@ -137,8 +140,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Delete Project (event delegation)
     document.addEventListener('click', async (e) => {
-        if (e.target.classList.contains('project-delete-btn')) {
-            const card = e.target.closest('.project-card');
+        const deleteBtn = e.target.closest('.project-delete-btn');
+        if (deleteBtn) {
+            e.preventDefault();
+            e.stopPropagation();
+            const card = deleteBtn.closest('.project-card');
             if (!card) return;
 
             const id = card.dataset.id;

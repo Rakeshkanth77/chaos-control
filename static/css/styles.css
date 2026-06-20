@@ -1610,3 +1610,35 @@ body {
         box-shadow: 0 0 0 10px rgba(239, 68, 68, 0);
     }
 }
+
+/* Soundwave Voice Recording Animation */
+.soundwave-container {
+    display: flex;
+    align-items: center;
+    gap: 2.5px;
+    height: 14px;
+}
+
+.soundwave-container .bar {
+    width: 2.5px;
+    background-color: #ef4444;
+    border-radius: 1px;
+    display: inline-block;
+    animation: soundwaveBounce 0.8s ease-in-out infinite alternate;
+}
+
+.soundwave-container .bar-1 { height: 6px; animation-delay: 0.1s; }
+.soundwave-container .bar-2 { height: 12px; animation-delay: 0.3s; }
+.soundwave-container .bar-3 { height: 8px; animation-delay: 0.2s; }
+.soundwave-container .bar-4 { height: 14px; animation-delay: 0.5s; }
+.soundwave-container .bar-5 { height: 6px; animation-delay: 0.4s; }
+
+@keyframes soundwaveBounce {
+    0% {
+        transform: scaleY(0.3);
+    }
+    100% {
+        transform: scaleY(1.3);
+    }
+}
+
