@@ -361,23 +361,24 @@
                 modal.offsetHeight;
                 modal.classList.add('show');
 
-                const cleanUpAndResolve = (result) => {
+                function handleEsc(e) {
+                    if (e.key === 'Escape') {
+                        cleanUpAndResolve(false);
+                    }
+                }
+
+                function cleanUpAndResolve(result) {
+                    document.removeEventListener('keydown', handleEsc);
                     modal.classList.remove('show');
                     setTimeout(() => {
                         modal.remove();
                         resolve(result);
                     }, 300);
-                };
+                }
 
                 modal.querySelector('.confirm-cancel').addEventListener('click', () => cleanUpAndResolve(false));
                 modal.querySelector('.confirm-ok').addEventListener('click', () => cleanUpAndResolve(true));
 
-                const handleEsc = (e) => {
-                    if (e.key === 'Escape') {
-                        document.removeEventListener('keydown', handleEsc);
-                        cleanUpAndResolve(false);
-                    }
-                };
                 document.addEventListener('keydown', handleEsc);
             });
         };
