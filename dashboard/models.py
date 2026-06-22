@@ -1,5 +1,6 @@
 from django.db import models
 from django.contrib.auth.models import User
+from django.utils import timezone
 
 class BrainDump(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
@@ -70,6 +71,7 @@ class UserProfile(models.Model):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     avatar_url = models.URLField(max_length=1024, null=True, blank=True)
     plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
+    bible_memory_goal = models.IntegerField(default=500)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):
@@ -95,6 +97,30 @@ class Project(models.Model):
 
     def __str__(self):
         return f"{self.name} ({self.user.username})"
+
+
+class BibleVerse(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bible_verses')
+    reference = models.CharField(max_length=200)
+    text = models.TextField()
+    category = models.CharField(max_length=100, default='unassigned')
+    hook = models.TextField(blank=True, default='')
+    context = models.TextField(blank=True, default='')
+    
+    # Spaced Repetition parameters
+    ease_factor = models.FloatField(default=2.5)
+    interval_days = models.IntegerField(default=0) # 0 means review today/immediately
+    next_review = models.DateTimeField(default=timezone.now)
+    last_reviewed = models.DateTimeField(null=True, blank=True)
+    mastered = models.BooleanField(default=False)
+    review_count = models.IntegerField(default=0)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['category', 'reference']
+
+    def __str__(self):
+        return f"{self.reference} ({self.category})"
 
 
 # Signals to automatically create UserProfile on signup and load Google avatar URL

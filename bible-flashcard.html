@@ -1,0 +1,969 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scripture Drill — 500 Verses</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@300;400;500;600;700&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --night:#0b1120;--night2:#111827;--gold:#e2a84b;--gold2:#f5d08a;
+  --parchment:#faf6ef;--ink:#1a1a2e;--muted:#8a8fa8;--rule:#ddd8ce;
+  --white:#fff;--green:#1e7e5a;--greenl:#d4f3e8;--red:#b83232;--redl:#fde8e8;
+  --yellow:#f5a623;--yellowl:#fff8e6;--blue:#2563eb;--bluel:#dbeafe;
+}
+body{font-family:'Inter',sans-serif;background:var(--night);color:var(--ink);min-height:100vh;display:flex;flex-direction:column;}
+nav{background:var(--night);border-bottom:1px solid rgba(226,168,75,0.2);padding:0 16px;height:52px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;position:sticky;top:0;z-index:100;}
+.brand{font-family:'EB Garamond',serif;font-size:17px;color:var(--gold);letter-spacing:.03em;}
+.nav-right{display:flex;gap:4px;}
+.ntab{background:transparent;border:none;color:rgba(255,255,255,0.4);font-size:11px;font-weight:500;letter-spacing:.08em;text-transform:uppercase;padding:5px 10px;border-radius:4px;cursor:pointer;font-family:'Inter',sans-serif;transition:all .15s;}
+.ntab:hover{color:rgba(255,255,255,0.7)}
+.ntab.on{background:rgba(226,168,75,0.15);color:var(--gold)}
+main{flex:1;background:var(--parchment);padding:20px 16px 60px;}
+.page{display:none}.page.on{display:block}
+
+/* DASHBOARD */
+.hero{max-width:600px;margin:0 auto 20px;background:var(--night2);border-radius:10px;padding:24px 20px;text-align:center;border:1px solid rgba(226,168,75,0.15);}
+.hero-verse{font-family:'EB Garamond',serif;font-style:italic;font-size:14px;color:rgba(255,255,255,0.4);margin-bottom:14px;line-height:1.5;}
+.big-count{font-family:'EB Garamond',serif;font-size:64px;color:var(--white);line-height:1;font-weight:600;}
+.big-label{font-size:12px;color:rgba(255,255,255,0.4);letter-spacing:.12em;text-transform:uppercase;margin-top:4px;}
+.pbar-wrap{background:rgba(255,255,255,0.1);border-radius:3px;height:6px;margin:16px 0 6px;}
+.pbar-fill{height:6px;background:linear-gradient(90deg,var(--gold),var(--gold2));border-radius:3px;transition:width .5s ease;}
+.pbar-label{font-size:11px;color:rgba(255,255,255,0.3);text-align:right;}
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;max-width:600px;margin:0 auto 20px;}
+.scard{background:var(--white);border:1px solid var(--rule);border-radius:6px;padding:12px 8px;text-align:center;}
+.scard-num{font-family:'EB Garamond',serif;font-size:26px;font-weight:600;color:var(--ink);line-height:1;}
+.scard-lbl{font-size:9px;color:var(--muted);letter-spacing:.08em;text-transform:uppercase;margin-top:3px;}
+.section-lbl{max-width:600px;margin:0 auto 10px;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);font-weight:500;}
+.mode-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;max-width:600px;margin:0 auto 20px;}
+.mode-card{background:var(--white);border:1px solid var(--rule);border-radius:8px;padding:16px 14px;cursor:pointer;transition:all .15s;display:flex;gap:12px;align-items:flex-start;}
+.mode-card:hover{border-color:var(--gold);box-shadow:0 2px 10px rgba(226,168,75,.12);}
+.mode-icon{font-size:24px;flex-shrink:0;margin-top:1px;}
+.mode-name{font-weight:600;font-size:14px;color:var(--ink);margin-bottom:3px;}
+.mode-desc{font-size:11px;color:var(--muted);line-height:1.4;}
+.mode-badge{display:inline-block;font-size:9px;padding:2px 6px;border-radius:3px;margin-top:5px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;}
+.badge-green{background:var(--greenl);color:var(--green);}
+.badge-red{background:var(--redl);color:var(--red);}
+.badge-yellow{background:var(--yellowl);color:var(--yellow);}
+.badge-blue{background:var(--bluel);color:var(--blue);}
+.due-row{max-width:600px;margin:0 auto;display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px;}
+.due-chip{background:var(--white);border:1px solid var(--rule);border-radius:20px;padding:5px 12px;font-size:11px;color:var(--ink);cursor:pointer;transition:all .12s;font-family:'Inter',sans-serif;font-weight:500;}
+.due-chip:hover,.due-chip.on{background:var(--night);color:var(--gold);border-color:var(--night);}
+.due-num{font-weight:700;color:var(--red);}
+
+/* DRILL WRAP */
+.drill-wrap{max-width:580px;margin:0 auto;}
+.drill-top{display:flex;align-items:center;gap:10px;margin-bottom:14px;}
+.back-btn{background:transparent;border:1px solid var(--rule);border-radius:4px;padding:6px 10px;font-size:12px;color:var(--muted);cursor:pointer;font-family:'Inter',sans-serif;transition:all .12s;}
+.back-btn:hover{border-color:var(--gold);color:var(--gold)}
+.drill-title{font-family:'EB Garamond',serif;font-size:20px;color:var(--ink);}
+.drill-subtitle{font-size:11px;color:var(--muted);margin-left:auto;}
+.drill-pbar-wrap{background:var(--rule);border-radius:2px;height:4px;margin-bottom:16px;}
+.drill-pbar-fill{height:4px;background:var(--gold);border-radius:2px;transition:width .35s;}
+
+/* STEP INDICATOR */
+.steps{display:flex;align-items:center;gap:0;margin-bottom:20px;max-width:580px;}
+.step{flex:1;text-align:center;position:relative;}
+.step-dot{width:28px;height:28px;border-radius:50%;border:2px solid var(--rule);background:var(--white);margin:0 auto 4px;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--muted);position:relative;z-index:1;}
+.step.done .step-dot{background:var(--green);border-color:var(--green);color:var(--white);}
+.step.active .step-dot{background:var(--gold);border-color:var(--gold);color:var(--white);}
+.step-label{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);font-weight:500;}
+.step.active .step-label{color:var(--gold);}
+.step.done .step-label{color:var(--green);}
+.step::before{content:'';position:absolute;top:14px;left:0;right:50%;height:2px;background:var(--rule);z-index:0;}
+.step::after{content:'';position:absolute;top:14px;left:50%;right:0;height:2px;background:var(--rule);z-index:0;}
+.step:first-child::before,.step:last-child::after{display:none;}
+.step.done::before,.step.done::after{background:var(--green);}
+.step.active::before{background:var(--green);}
+
+/* PHASES */
+.phase{display:none}.phase.on{display:block}
+
+/* STEP 1 — LEARN: show full verse */
+.learn-card{background:var(--night2);border-radius:10px;padding:28px 20px;margin-bottom:14px;border:1px solid rgba(226,168,75,.2);}
+.learn-ref{font-family:'EB Garamond',serif;font-style:italic;font-size:13px;color:var(--gold);letter-spacing:.06em;margin-bottom:14px;text-align:center;}
+.learn-verse{font-family:'EB Garamond',serif;font-size:22px;line-height:1.7;color:var(--white);text-align:center;}
+.learn-verse .key{color:var(--gold2);font-weight:600;}
+.info-strip{background:var(--white);border:1px solid var(--rule);border-radius:6px;padding:12px 14px;margin-bottom:10px;}
+.info-label{font-size:9px;letter-spacing:.13em;text-transform:uppercase;color:var(--muted);margin-bottom:5px;font-weight:500;}
+.info-text{font-size:13px;color:var(--ink);line-height:1.55;}
+.read-count-strip{display:flex;align-items:center;gap:10px;background:var(--white);border:1px solid var(--rule);border-radius:6px;padding:10px 14px;margin-bottom:14px;}
+.read-dots{display:flex;gap:5px;}
+.rdot{width:10px;height:10px;border-radius:50%;border:2px solid var(--rule);background:transparent;transition:all .2s;}
+.rdot.lit{background:var(--gold);border-color:var(--gold);}
+.read-msg{font-size:12px;color:var(--muted);}
+
+/* STEP 2 — CLOZE: fill in blanks */
+.cloze-verse{font-family:'EB Garamond',serif;font-size:20px;line-height:1.8;color:var(--ink);padding:20px;background:var(--white);border:1px solid var(--rule);border-radius:8px;margin-bottom:14px;text-align:center;}
+.blank-input{
+  display:inline-block;
+  border:none;border-bottom:2px solid var(--gold);
+  font-family:'EB Garamond',serif;font-size:20px;
+  color:var(--ink);background:transparent;
+  outline:none;text-align:center;
+  min-width:60px;padding:0 2px;
+  vertical-align:baseline;
+}
+.blank-input.correct{border-bottom-color:var(--green);color:var(--green);}
+.blank-input.wrong{border-bottom-color:var(--red);color:var(--red);}
+.cloze-status{text-align:center;font-size:13px;font-weight:600;min-height:22px;margin-bottom:10px;}
+
+/* STEP 3 — TYPE */
+.ref-card{background:var(--night2);border-radius:10px;padding:24px 20px;text-align:center;margin-bottom:12px;border:1px solid rgba(226,168,75,.2);}
+.ref-eyebrow{font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:var(--gold);margin-bottom:8px;font-weight:500;}
+.ref-text{font-family:'EB Garamond',serif;font-size:30px;color:var(--white);font-style:italic;line-height:1.2;}
+.ref-sub{font-size:12px;color:rgba(255,255,255,.35);margin-top:6px;}
+.attempt-box{background:var(--white);border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.attempt-label{font-size:9px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);padding:10px 14px 0;font-weight:500;}
+textarea.attempt{width:100%;border:none;outline:none;font-family:'EB Garamond',serif;font-size:18px;line-height:1.6;color:var(--ink);padding:8px 14px 14px;resize:none;min-height:100px;background:transparent;}
+.attempt-actions{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--rule);background:#f9f7f3;}
+
+/* STEP 4 — COMPARE */
+.compare-card{background:var(--white);border:1px solid var(--rule);border-radius:8px;overflow:hidden;margin-bottom:12px;}
+.compare-section{padding:14px 16px;}
+.compare-section+.compare-section{border-top:1px solid var(--rule);}
+.compare-lbl{font-size:9px;letter-spacing:.14em;text-transform:uppercase;font-weight:500;margin-bottom:6px;}
+.lbl-yours{color:var(--muted)}.lbl-kjv{color:var(--green);}
+.compare-text{font-family:'EB Garamond',serif;font-size:18px;line-height:1.65;color:var(--ink);}
+.compare-text .match{background:#d4f3e8;border-radius:2px;padding:0 1px;}
+.compare-text .miss{background:#fde8e8;border-radius:2px;padding:0 1px;}
+.score-badge{text-align:center;padding:12px;border-top:1px solid var(--rule);background:#f9f7f3;}
+.score-pct{font-family:'EB Garamond',serif;font-size:36px;font-weight:600;line-height:1;}
+.score-label{font-size:11px;color:var(--muted);margin-top:3px;}
+.rate-row{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;margin-bottom:12px;}
+
+/* REVIEW mode */
+.reveal-verse-full{font-family:'EB Garamond',serif;font-size:20px;line-height:1.7;color:var(--ink);text-align:center;padding:20px;background:var(--white);border:1px solid var(--rule);border-radius:8px;margin-bottom:12px;}
+
+/* BUTTONS */
+.btn{border:none;border-radius:5px;padding:10px 18px;font-family:'Inter',sans-serif;font-size:13px;font-weight:600;cursor:pointer;transition:opacity .15s,transform .1s;letter-spacing:.02em;}
+.btn:active{transform:scale(.97)}
+.btn-dark{background:var(--night);color:var(--gold);}.btn-dark:hover{opacity:.85}
+.btn-ghost{background:transparent;border:1px solid var(--rule);color:var(--muted);}.btn-ghost:hover{border-color:var(--gold);color:var(--gold);}
+.btn-green{background:var(--green);color:var(--white);}.btn-green:hover{opacity:.85}
+.btn-red{background:var(--red);color:var(--white);}.btn-red:hover{opacity:.85}
+.btn-yellow{background:var(--yellow);color:var(--white);}
+.btn-full{width:100%;}
+.btn-row{display:flex;gap:8px;}
+
+/* LOADING */
+.loading{text-align:center;padding:52px 16px;}
+.spinner{width:26px;height:26px;border:2px solid var(--rule);border-top-color:var(--gold);border-radius:50%;animation:spin .7s linear infinite;margin:0 auto 12px;}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading p{font-size:13px;color:var(--muted);font-style:italic;}
+
+/* DONE */
+.done-card{text-align:center;padding:40px 20px;}
+
+/* BROWSE */
+.browse-wrap{max-width:600px;margin:0 auto;}
+.search-input{width:100%;padding:10px 14px;border:1px solid var(--rule);border-radius:6px;font-size:14px;font-family:'Inter',sans-serif;background:var(--white);color:var(--ink);margin-bottom:14px;outline:none;}
+.search-input:focus{border-color:var(--gold);}
+.book-section{margin-bottom:18px;}
+.book-sec-title{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted);margin-bottom:7px;font-weight:500;}
+.book-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:5px;}
+.book-btn{background:var(--white);border:1px solid var(--rule);border-radius:4px;padding:7px 6px;font-size:11px;font-family:'Inter',sans-serif;font-weight:500;color:var(--ink);cursor:pointer;text-align:center;transition:all .12s;}
+.book-btn:hover{border-color:var(--gold);color:var(--gold);}
+.book-btn.studied{border-color:rgba(30,126,90,.4);}
+.book-btn .bcount{display:block;font-size:9px;color:var(--muted);font-weight:400;margin-top:1px;}
+.book-btn.studied .bcount{color:var(--green);}
+
+/* LOG */
+.mastered-list{max-width:600px;margin:0 auto;}
+.m-item{background:var(--white);border:1px solid var(--rule);border-radius:5px;padding:10px 14px;margin-bottom:6px;display:flex;align-items:center;gap:10px;}
+.m-ref{font-family:'EB Garamond',serif;font-style:italic;font-size:15px;color:var(--gold);min-width:130px;flex-shrink:0;}
+.m-text{font-size:12px;color:var(--muted);flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}
+.m-score{font-size:11px;font-weight:600;padding:2px 7px;border-radius:3px;flex-shrink:0;}
+
+/* TOAST */
+.toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--night);color:var(--white);font-size:13px;padding:9px 18px;border-radius:20px;border:1px solid rgba(226,168,75,.3);z-index:999;transition:transform .2s ease;white-space:nowrap;}
+.toast.on{transform:translateX(-50%) translateY(0);}
+
+@media(max-width:420px){
+  .rate-row{grid-template-columns:repeat(2,1fr);}
+  .stats-row{grid-template-columns:repeat(2,1fr);}
+  .learn-verse{font-size:19px;}
+}
+</style>
+</head>
+<body>
+
+<nav>
+  <span class="brand">✦ Scripture Drill</span>
+  <div class="nav-right">
+    <button class="ntab on" onclick="gotoPage('home')">Home</button>
+    <button class="ntab" onclick="gotoPage('browse')">Browse</button>
+    <button class="ntab" onclick="gotoPage('log')">Log</button>
+  </div>
+</nav>
+
+<main>
+
+<!-- HOME -->
+<div class="page on" id="page-home">
+  <div class="hero">
+    <p class="hero-verse">"Thy word have I hid in mine heart, that I might not sin against thee." — Psalm 119:11</p>
+    <div class="big-count" id="bigCount">0</div>
+    <p class="big-label">of 500 verses mastered</p>
+    <div class="pbar-wrap"><div class="pbar-fill" id="heroPbar" style="width:0%"></div></div>
+    <p class="pbar-label" id="heroPbarLabel">0% — 60 days</p>
+  </div>
+
+  <div class="stats-row">
+    <div class="scard"><div class="scard-num" id="sDaysLeft">60</div><div class="scard-lbl">Days Left</div></div>
+    <div class="scard"><div class="scard-num" id="sPerDay">9</div><div class="scard-lbl">Need/Day</div></div>
+    <div class="scard"><div class="scard-num" id="sStreak">0</div><div class="scard-lbl">Streak</div></div>
+    <div class="scard"><div class="scard-num" id="sDue">0</div><div class="scard-lbl">Due Review</div></div>
+  </div>
+
+  <p class="section-lbl">Choose Your Mode</p>
+  <div class="mode-grid">
+    <div class="mode-card" onclick="startSession('learn')">
+      <span class="mode-icon">📖</span>
+      <div>
+        <div class="mode-name">Learn New Verse</div>
+        <div class="mode-desc">Read → fill blanks → type it → mastered. Step by step.</div>
+        <span class="mode-badge badge-blue">Start here</span>
+      </div>
+    </div>
+    <div class="mode-card" onclick="startSession('review')">
+      <span class="mode-icon">🔁</span>
+      <div>
+        <div class="mode-name">Review Due</div>
+        <div class="mode-desc">Verses you marked hard come back here. Spaced repetition.</div>
+        <span class="mode-badge badge-red">Weak verses</span>
+      </div>
+    </div>
+    <div class="mode-card" onclick="startSession('quick')">
+      <span class="mode-icon">⚡</span>
+      <div>
+        <div class="mode-name">Quick Recall</div>
+        <div class="mode-desc">See reference, recall in your head, reveal and rate yourself.</div>
+        <span class="mode-badge badge-yellow">Already learned</span>
+      </div>
+    </div>
+    <div class="mode-card" onclick="startSession('type')">
+      <span class="mode-icon">⌨️</span>
+      <div>
+        <div class="mode-name">Type It Cold</div>
+        <div class="mode-desc">Reference only. Type the full verse. Hard mode.</div>
+        <span class="mode-badge badge-green">Advanced</span>
+      </div>
+    </div>
+  </div>
+
+  <p class="section-lbl">Drill by Book</p>
+  <div class="due-row" id="dueRow">
+    <button class="due-chip on" onclick="setBookFilter('all',this)">All Books</button>
+  </div>
+</div>
+
+<!-- DRILL -->
+<div class="page" id="page-drill">
+  <div class="drill-wrap">
+
+    <div class="drill-top">
+      <button class="back-btn" onclick="exitDrill()">← Exit</button>
+      <span class="drill-title" id="drillTitle">Learn</span>
+      <span class="drill-subtitle" id="drillSub"></span>
+    </div>
+    <div class="drill-pbar-wrap"><div class="drill-pbar-fill" id="drillPbar" style="width:0%"></div></div>
+
+    <!-- PHASE: loading -->
+    <div class="phase on" id="ph-loading">
+      <div class="loading"><div class="spinner"></div><p id="loadingMsg">Fetching your verse…</p></div>
+    </div>
+
+    <!-- PHASE: STEP 1 — Read the verse -->
+    <div class="phase" id="ph-read">
+      <div class="steps" id="stepBar"></div>
+      <div class="learn-card">
+        <p class="learn-ref" id="readRef">—</p>
+        <p class="learn-verse" id="readVerse">—</p>
+      </div>
+      <div class="info-strip" style="margin-bottom:8px;">
+        <p class="info-label">Memory Hook</p>
+        <p class="info-text" id="readHook">—</p>
+      </div>
+      <div class="info-strip" style="margin-bottom:14px;">
+        <p class="info-label">Context</p>
+        <p class="info-text" id="readContext">—</p>
+      </div>
+      <div class="read-count-strip">
+        <div class="read-dots" id="readDots">
+          <div class="rdot" id="rd0"></div>
+          <div class="rdot" id="rd1"></div>
+          <div class="rdot" id="rd2"></div>
+        </div>
+        <p class="read-msg" id="readMsg">Read it carefully. Read it again. Then once more.</p>
+      </div>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="exitDrill()">Exit</button>
+        <button class="btn btn-dark" id="readNextBtn" style="flex:1" onclick="advanceRead()">Read Again →</button>
+      </div>
+    </div>
+
+    <!-- PHASE: STEP 2 — Fill the blanks (cloze) -->
+    <div class="phase" id="ph-cloze">
+      <div class="steps" id="stepBar2"></div>
+      <div class="info-strip" style="margin-bottom:10px;">
+        <p class="info-label" id="clozeRef2">—</p>
+        <p class="info-text" style="font-size:11px;color:var(--muted);" id="clozeHook2">—</p>
+      </div>
+      <div class="cloze-verse" id="clozeVerse">—</div>
+      <p class="cloze-status" id="clozeStatus"></p>
+      <div class="btn-row">
+        <button class="btn btn-ghost" onclick="clozeHint()">💡 Hint</button>
+        <button class="btn btn-dark" style="flex:1" id="clozeNextBtn" onclick="gotoClozeNext()" disabled>Check & Continue →</button>
+      </div>
+    </div>
+
+    <!-- PHASE: STEP 3 — Type from memory -->
+    <div class="phase" id="ph-type">
+      <div class="steps" id="stepBar3"></div>
+      <div class="ref-card">
+        <p class="ref-eyebrow">Now type it from memory</p>
+        <p class="ref-text" id="typeRef">—</p>
+        <p class="ref-sub" id="typeTheme">—</p>
+      </div>
+      <div class="info-strip" style="margin-bottom:10px;">
+        <p class="info-label">Memory Hook</p>
+        <p class="info-text" id="typeHook">—</p>
+      </div>
+      <div class="attempt-box">
+        <p class="attempt-label">Type the verse</p>
+        <textarea class="attempt" id="typeAttempt" placeholder="Type it out…" rows="4"></textarea>
+        <div class="attempt-actions">
+          <button class="btn btn-ghost" onclick="skipVerse()">Skip →</button>
+          <button class="btn btn-dark" style="flex:1" onclick="checkTyped()">Check Answer</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- PHASE: STEP 4 — Compare result + rate -->
+    <div class="phase" id="ph-compare">
+      <div class="compare-card" id="compareCard"></div>
+      <p style="font-size:12px;color:var(--muted);margin-bottom:8px;text-align:center;">Be honest — how well did you know it?</p>
+      <div class="rate-row">
+        <button class="btn btn-red" onclick="rateVerse(1)">😰 Blank<br><span style="font-size:10px;font-weight:400">Repeat now</span></button>
+        <button class="btn btn-yellow" onclick="rateVerse(2)">😅 Partial<br><span style="font-size:10px;font-weight:400">Review soon</span></button>
+        <button class="btn" style="background:#2563eb;color:#fff" onclick="rateVerse(3)">🙂 Almost<br><span style="font-size:10px;font-weight:400">Review later</span></button>
+        <button class="btn btn-green" onclick="rateVerse(4)">✅ Got it!<br><span style="font-size:10px;font-weight:400">Mastered!</span></button>
+      </div>
+    </div>
+
+    <!-- PHASE: Quick recall (review mode) -->
+    <div class="phase" id="ph-quick">
+      <div class="ref-card">
+        <p class="ref-eyebrow">Recall this verse in your head…</p>
+        <p class="ref-text" id="quickRef">—</p>
+        <p class="ref-sub" id="quickTheme">—</p>
+      </div>
+      <div class="info-strip" style="margin-bottom:12px;" id="quickHookStrip">
+        <p class="info-label">Memory Hook</p>
+        <p class="info-text" id="quickHook">—</p>
+      </div>
+      <button class="btn btn-dark btn-full" id="quickRevealBtn" onclick="quickReveal()" style="margin-bottom:12px;">Reveal Verse</button>
+      <div id="quickVerseBox" style="display:none">
+        <p class="reveal-verse-full" id="quickVerseText">—</p>
+        <p style="font-size:12px;color:var(--muted);margin-bottom:8px;text-align:center;">How well did you recall it?</p>
+        <div class="rate-row">
+          <button class="btn btn-red" onclick="rateVerse(1)">😰 Blank</button>
+          <button class="btn btn-yellow" onclick="rateVerse(2)">😅 Partial</button>
+          <button class="btn" style="background:#2563eb;color:#fff" onclick="rateVerse(3)">🙂 Almost</button>
+          <button class="btn btn-green" onclick="rateVerse(4)">✅ Got it!</button>
+        </div>
+      </div>
+      <button class="btn btn-ghost btn-full" onclick="skipVerse()" style="margin-top:6px;">Skip →</button>
+    </div>
+
+    <!-- PHASE: Session done -->
+    <div class="phase" id="ph-done">
+      <div class="done-card">
+        <div style="font-size:48px;margin-bottom:12px;">🏆</div>
+        <p style="font-family:'EB Garamond',serif;font-size:24px;color:var(--ink);margin-bottom:6px;">Session done!</p>
+        <p style="font-size:13px;color:var(--muted);margin-bottom:20px;" id="doneMsg"></p>
+        <button class="btn btn-dark" onclick="exitDrill()" style="margin-right:8px;">Home</button>
+        <button class="btn btn-green" onclick="continueSession()">Keep Going →</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- BROWSE -->
+<div class="page" id="page-browse">
+  <div class="browse-wrap">
+    <p class="section-lbl">All 66 Books</p>
+    <input class="search-input" id="browseQ" placeholder="Search books…" oninput="renderBrowse()">
+    <div id="bookSections"></div>
+  </div>
+</div>
+
+<!-- LOG -->
+<div class="page" id="page-log">
+  <div class="mastered-list">
+    <p class="section-lbl" id="logCount" style="margin-bottom:10px;">— verses in your log</p>
+    <div id="logItems"></div>
+  </div>
+</div>
+
+</main>
+<div class="toast" id="toast"></div>
+
+<script>
+// ════════════════════════════════════════
+//  CONSTANTS & STATE
+// ════════════════════════════════════════
+const GOAL=500, DAYS=60;
+const START=new Date('2025-06-20');
+
+const BOOKS={
+  'Old Testament':['Genesis','Exodus','Leviticus','Numbers','Deuteronomy','Joshua','Judges','Ruth','1 Samuel','2 Samuel','1 Kings','2 Kings','1 Chronicles','2 Chronicles','Ezra','Nehemiah','Esther','Job','Psalms','Proverbs','Ecclesiastes','Song of Solomon','Isaiah','Jeremiah','Lamentations','Ezekiel','Daniel','Hosea','Joel','Amos','Obadiah','Jonah','Micah','Nahum','Habakkuk','Zephaniah','Haggai','Zechariah','Malachi'],
+  'New Testament':['Matthew','Mark','Luke','John','Acts','Romans','1 Corinthians','2 Corinthians','Galatians','Ephesians','Philippians','Colossians','1 Thessalonians','2 Thessalonians','1 Timothy','2 Timothy','Titus','Philemon','Hebrews','James','1 Peter','2 Peter','1 John','2 John','3 John','Jude','Revelation']
+};
+
+let ST=JSON.parse(localStorage.getItem('bibleD6')||'null')||{verses:{},streak:0,lastDate:null};
+function save(){localStorage.setItem('bibleD6',JSON.stringify(ST));}
+function masteredRefs(){return Object.keys(ST.verses).filter(r=>ST.verses[r].mastered);}
+function masteredCount(){return masteredRefs().length;}
+function dueRefs(){const now=Date.now();return Object.keys(ST.verses).filter(r=>!ST.verses[r].mastered&&ST.verses[r].nextReview&&ST.verses[r].nextReview<=now);}
+
+// Session state
+let sessionMode='learn';
+let bookFilter='all';
+let sessionQueue=[];
+let sessionIdx=0;
+let sessionKnown=0;
+let currentV=null;
+
+// Read phase state
+let readStep=0; // 0,1,2 = 3 reads before advancing
+
+// Cloze state
+let clozeWords=[];
+let clozeHidden=[];
+let clozeInputs=[];
+let clozeCorrect=0;
+
+// ════════════════════════════════════════
+//  NAVIGATION
+// ════════════════════════════════════════
+function gotoPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelectorAll('.ntab').forEach(t=>t.classList.remove('on'));
+  document.getElementById('page-'+id).classList.add('on');
+  const tabs=['home','browse','log'];
+  const i=tabs.indexOf(id);
+  if(i>=0) document.querySelectorAll('.ntab')[i].classList.add('on');
+  if(id==='home') renderHome();
+  if(id==='browse') renderBrowse();
+  if(id==='log') renderLog();
+}
+
+function gotoPageRaw(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('on'));
+  document.querySelector('.ntab')?.classList.remove('on');
+  document.getElementById('page-'+id).classList.add('on');
+}
+
+function showPhase(id){
+  document.querySelectorAll('.phase').forEach(p=>p.classList.remove('on'));
+  document.getElementById(id).classList.add('on');
+}
+
+function setBookFilter(book,el){
+  bookFilter=book;
+  document.querySelectorAll('.due-chip').forEach(c=>c.classList.remove('on'));
+  if(el)el.classList.add('on');
+}
+
+function exitDrill(){gotoPage('home');}
+
+// ════════════════════════════════════════
+//  HOME
+// ════════════════════════════════════════
+function renderHome(){
+  const total=masteredCount();
+  const pct=Math.min(100,total/GOAL*100);
+  const now=new Date();
+  const daysPassed=Math.floor((now-START)/86400000);
+  const daysLeft=Math.max(0,DAYS-daysPassed);
+  const needed=daysLeft>0?Math.ceil((GOAL-total)/daysLeft):0;
+  const due=dueRefs().length;
+  document.getElementById('bigCount').textContent=total;
+  document.getElementById('heroPbar').style.width=pct.toFixed(1)+'%';
+  document.getElementById('heroPbarLabel').textContent=pct.toFixed(0)+'% — '+daysLeft+' days left';
+  document.getElementById('sDaysLeft').textContent=daysLeft;
+  document.getElementById('sPerDay').textContent=needed;
+  document.getElementById('sStreak').textContent=calcStreak();
+  document.getElementById('sDue').textContent=due;
+
+  const dr=document.getElementById('dueRow');
+  const studied=[...new Set(Object.keys(ST.verses).map(r=>r.replace(/\s+\d.*/,'').trim()))];
+  let chips=`<button class="due-chip ${bookFilter==='all'?'on':''}" onclick="setBookFilter('all',this)">All Books</button>`;
+  studied.forEach(b=>{
+    const cnt=Object.keys(ST.verses).filter(r=>r.startsWith(b+' ')||r.startsWith(b+':')).length;
+    chips+=`<button class="due-chip ${bookFilter===b?'on':''}" onclick="setBookFilter('${b}',this)">${b} <span class="due-num">${cnt}</span></button>`;
+  });
+  dr.innerHTML=chips;
+}
+
+function calcStreak(){
+  const today=new Date().toDateString();
+  const yest=new Date(Date.now()-86400000).toDateString();
+  if(ST.lastDate===today||ST.lastDate===yest) return ST.streak||0;
+  return 0;
+}
+
+// ════════════════════════════════════════
+//  SESSION START
+// ════════════════════════════════════════
+function startSession(mode){
+  sessionMode=mode;
+  sessionQueue=[];
+  sessionIdx=0;
+  sessionKnown=0;
+  currentV=null;
+
+  if(mode==='review'){
+    const due=dueRefs();
+    if(!due.length){toast('No verses due yet — go learn some first!');return;}
+    sessionQueue=due.map(r=>({ref:r,...ST.verses[r]}));
+    shuffle(sessionQueue);
+  }
+
+  const titles={learn:'Learn',review:'Review Due',quick:'Quick Recall',type:'Type Cold'};
+  document.getElementById('drillTitle').textContent=titles[mode]||'Drill';
+  document.getElementById('drillSub').textContent='';
+
+  gotoPageRaw('drill');
+  showPhase('ph-loading');
+  fetchNextVerse();
+}
+
+function studySpecificBook(book){
+  bookFilter=book;
+  startSession('learn');
+}
+
+// ════════════════════════════════════════
+//  FETCH VERSE FROM AI
+// ════════════════════════════════════════
+async function fetchNextVerse(){
+  showPhase('ph-loading');
+  document.getElementById('loadingMsg').textContent='Fetching your verse…';
+
+  // If session queue has more, use it
+  if(sessionQueue.length>sessionIdx){
+    currentV=sessionQueue[sessionIdx];
+    renderMode();
+    return;
+  }
+
+  // Fetch fresh
+  const recent=Object.keys(ST.verses).slice(-50).join(', ');
+  const bookLine=bookFilter!=='all'
+    ?`You MUST pick a verse from the book of ${bookFilter} only.`
+    :`Pick from any of the 66 books — vary widely, mix Old and New Testament.`;
+
+  const prompt=`You are a KJV Bible memorization coach. ${bookLine}
+
+Rules:
+- Exact KJV wording only
+- A verse worth memorizing — practical for daily faith, prayer, or quoting at church
+- Avoid these recently seen: ${recent||'none'}
+- hook: short, sticky memory trick (first letters, rhyme, keyword anchor, pattern). MAX 2 sentences.
+- context: one sentence of biblical setting
+
+JSON only, no markdown:
+{"reference":"Book Ch:V","text":"Exact KJV text.","book":"BookName","testament":"Old or New","theme":"2-3 word theme","hook":"Memory tip.","context":"One sentence context."}`;
+
+  try{
+    const res=await fetch('https://api.anthropic.com/v1/messages',{method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({model:'claude-sonnet-4-6',max_tokens:700,messages:[{role:'user',content:prompt}]})
+    });
+    const data=await res.json();
+    const raw=data.content?.map(i=>i.text||'').join('').trim().replace(/```json|```/g,'').trim();
+    const v=JSON.parse(raw);
+    currentV={ref:v.reference,text:v.text,book:v.book,testament:v.testament,theme:v.theme,hook:v.hook,context:v.context||''};
+    if(!ST.verses[v.reference]){
+      ST.verses[v.reference]={text:v.text,hook:v.hook,theme:v.theme,book:v.book,testament:v.testament,context:v.context||'',ratings:[],mastered:false,nextReview:null,easeFactor:2.5};
+      save();
+    }
+    sessionQueue.push(currentV);
+    renderMode();
+  } catch(e){
+    document.getElementById('loadingMsg').innerHTML=`<span style="color:#b83232">Couldn't load verse.</span><br>
+    <button onclick="fetchNextVerse()" style="margin-top:10px;padding:7px 16px;background:var(--night);color:var(--gold);border:none;border-radius:4px;cursor:pointer;font-family:Inter,sans-serif;font-size:13px;">Retry</button>`;
+  }
+}
+
+function renderMode(){
+  updateBar();
+  if(sessionMode==='learn') startReadPhase();
+  else if(sessionMode==='quick'||sessionMode==='review') renderQuickPhase();
+  else if(sessionMode==='type') renderTypePhase();
+}
+
+function updateBar(){
+  const tot=Math.max(sessionQueue.length,sessionIdx+1);
+  document.getElementById('drillPbar').style.width=Math.min(100,(sessionIdx/tot)*100)+'%';
+  document.getElementById('drillSub').textContent=`${sessionIdx}/${tot} · ✓ ${sessionKnown}`;
+}
+
+// ════════════════════════════════════════
+//  STEP 1 — READ (3x)
+// ════════════════════════════════════════
+function startReadPhase(){
+  readStep=0;
+  renderSteps('stepBar',1);
+  document.getElementById('readRef').textContent=currentV.ref+' · '+currentV.testament+' Testament · '+currentV.theme;
+  document.getElementById('readVerse').innerHTML=highlightKeywords(currentV.text);
+  document.getElementById('readHook').textContent=currentV.hook;
+  document.getElementById('readContext').textContent=currentV.context||'—';
+  updateReadDots();
+  document.getElementById('readNextBtn').textContent='Read Again →';
+  showPhase('ph-read');
+}
+
+function highlightKeywords(text){
+  // highlight nouns/key words roughly: words >5 chars not common
+  const common=new Set(['which','their','shall','that','thou','thee','they','have','from','with','this','into','unto','upon','were','also','when','then','there','being','these','those','them','your','been','will','said','more','even','only','about','before','after','every']);
+  return text.split(/\s+/).map(w=>{
+    const clean=w.replace(/[^a-zA-Z]/g,'').toLowerCase();
+    if(clean.length>4&&!common.has(clean)) return `<span class="key">${w}</span>`;
+    return w;
+  }).join(' ');
+}
+
+function updateReadDots(){
+  for(let i=0;i<3;i++){
+    document.getElementById('rd'+i).classList.toggle('lit',i<readStep+1);
+  }
+  const msgs=['Read it carefully. Take it in.','Read it again — feel the words.','One more time. Let it sink in.'];
+  document.getElementById('readMsg').textContent=msgs[readStep]||'';
+}
+
+function advanceRead(){
+  readStep++;
+  if(readStep<3){
+    updateReadDots();
+  } else {
+    // Move to cloze
+    startClozePhase();
+  }
+  if(readStep===2) document.getElementById('readNextBtn').textContent='I\'ve read it — Next Step →';
+  else document.getElementById('readNextBtn').textContent='Read Again →';
+}
+
+// ════════════════════════════════════════
+//  STEP 2 — CLOZE (fill blanks)
+// ════════════════════════════════════════
+function startClozePhase(){
+  renderSteps('stepBar2',2);
+  document.getElementById('clozeRef2').textContent=currentV.ref;
+  document.getElementById('clozeHook2').textContent='Hook: '+currentV.hook;
+
+  const words=currentV.text.split(/\s+/);
+  clozeWords=words;
+  // Hide ~30% of words (key ones, not tiny words)
+  const tiny=new Set(['a','an','the','of','in','is','to','and','or','but','for','not','my','me','he','we','be','it','at','by','do','go','no','so','up','as','on','if','I']);
+  const candidates=words.map((w,i)=>({w,i})).filter(({w})=>w.replace(/[^a-zA-Z]/g,'').length>2&&!tiny.has(w.replace(/[^a-zA-Z]/g,'').toLowerCase()));
+  // Pick up to 40% of them
+  const hideCount=Math.max(2,Math.floor(candidates.length*0.4));
+  const picked=shuffle([...candidates]).slice(0,hideCount).map(c=>c.i);
+  clozeHidden=new Set(picked);
+  clozeCorrect=0;
+
+  // Build HTML
+  let html='';
+  words.forEach((w,i)=>{
+    if(clozeHidden.has(i)){
+      const bare=w.replace(/[^a-zA-Z']/g,'');
+      const trail=w.replace(/[a-zA-Z']/g,'');
+      const width=Math.max(50,bare.length*14)+'px';
+      html+=`<input class="blank-input" id="ci${i}" data-idx="${i}" data-word="${bare}" style="width:${width}" maxlength="${bare.length+2}" autocomplete="off" autocorrect="off" spellcheck="false">${trail} `;
+    } else {
+      html+=w+' ';
+    }
+  });
+  document.getElementById('clozeVerse').innerHTML=html;
+  document.getElementById('clozeStatus').textContent='Fill in the blanks';
+  document.getElementById('clozeStatus').style.color=getComputedStyle(document.documentElement).getPropertyValue('--muted');
+  document.getElementById('clozeNextBtn').disabled=true;
+
+  // Attach listeners
+  clozeHidden.forEach(i=>{
+    const inp=document.getElementById('ci'+i);
+    if(!inp)return;
+    inp.addEventListener('input',checkClozeInput);
+    inp.addEventListener('keydown',e=>{if(e.key==='Enter')moveClozeNext(i);});
+  });
+
+  showPhase('ph-cloze');
+  // Focus first blank
+  const firstIdx=[...clozeHidden].sort((a,b)=>a-b)[0];
+  setTimeout(()=>{const el=document.getElementById('ci'+firstIdx);if(el)el.focus();},200);
+}
+
+function checkClozeInput(e){
+  const inp=e.target;
+  const idx=parseInt(inp.dataset.idx);
+  const target=inp.dataset.word.toLowerCase();
+  const val=inp.value.replace(/[^a-zA-Z']/g,'').toLowerCase();
+
+  if(val===target){
+    inp.classList.add('correct');
+    inp.classList.remove('wrong');
+  } else if(val.length>=target.length){
+    inp.classList.add('wrong');
+    inp.classList.remove('correct');
+  } else {
+    inp.classList.remove('correct','wrong');
+  }
+
+  // Check all done
+  const allCorrect=[...clozeHidden].every(i=>{
+    const el=document.getElementById('ci'+i);
+    return el&&el.classList.contains('correct');
+  });
+
+  if(allCorrect){
+    document.getElementById('clozeStatus').textContent='✓ All correct! Great memory!';
+    document.getElementById('clozeStatus').style.color='var(--green)';
+    document.getElementById('clozeNextBtn').disabled=false;
+    document.getElementById('clozeNextBtn').textContent='Next Step →';
+  } else {
+    const done=[...clozeHidden].filter(i=>{const el=document.getElementById('ci'+i);return el&&el.classList.contains('correct');}).length;
+    document.getElementById('clozeStatus').textContent=done+' / '+clozeHidden.size+' correct';
+    document.getElementById('clozeStatus').style.color='var(--muted)';
+  }
+}
+
+function moveClozeNext(currentIdx){
+  const sorted=[...clozeHidden].sort((a,b)=>a-b);
+  const pos=sorted.indexOf(currentIdx);
+  if(pos<sorted.length-1){
+    const next=document.getElementById('ci'+sorted[pos+1]);
+    if(next)next.focus();
+  }
+}
+
+function clozeHint(){
+  // Reveal first letter of each wrong blank
+  [...clozeHidden].forEach(i=>{
+    const el=document.getElementById('ci'+i);
+    if(!el||el.classList.contains('correct'))return;
+    const word=el.dataset.word;
+    if(!el.value) el.value=word[0];
+    el.dispatchEvent(new Event('input'));
+  });
+  toast('First letters revealed — finish the words!');
+}
+
+function gotoClozeNext(){
+  // Fill any remaining wrong blanks with correct answers (show them)
+  [...clozeHidden].forEach(i=>{
+    const el=document.getElementById('ci'+i);
+    if(el&&!el.classList.contains('correct')){
+      el.value=el.dataset.word;
+      el.classList.add('correct');
+    }
+  });
+  // Move to type phase after short pause
+  setTimeout(()=>renderTypePhase(),400);
+}
+
+// ════════════════════════════════════════
+//  STEP 3 — TYPE FROM MEMORY
+// ════════════════════════════════════════
+function renderTypePhase(){
+  if(sessionMode==='learn') renderSteps('stepBar3',3);
+  document.getElementById('typeRef').textContent=currentV.ref;
+  document.getElementById('typeTheme').textContent=currentV.theme+' · '+currentV.testament+' Testament';
+  document.getElementById('typeHook').textContent=currentV.hook;
+  document.getElementById('typeAttempt').value='';
+  showPhase('ph-type');
+  setTimeout(()=>document.getElementById('typeAttempt').focus(),200);
+}
+
+function checkTyped(){
+  const attempt=document.getElementById('typeAttempt').value.trim();
+  if(!attempt){toast('Type something — even if you\'re guessing!');return;}
+  const score=scoreMatch(attempt,currentV.text);
+  renderCompare(attempt,currentV.text,score);
+}
+
+function scoreMatch(attempt,kjv){
+  const c=s=>s.toLowerCase().replace(/[^a-z0-9\s]/g,'').trim();
+  const a=c(attempt).split(/\s+/).filter(Boolean);
+  const k=c(kjv).split(/\s+/).filter(Boolean);
+  let m=0; k.forEach((w,i)=>{if(a[i]===w)m++;});
+  return Math.round((m/k.length)*100);
+}
+
+function renderCompare(attempt,kjv,score){
+  const c=s=>s.toLowerCase().replace(/[^a-z0-9]/g,'');
+  const aW=attempt.split(/\s+/);
+  const kW=kjv.split(/\s+/);
+  const kjvHtml=kW.map((w,i)=>{
+    const match=aW[i]&&c(aW[i])===c(w);
+    return match?`<span class="match">${w}</span>`:`<span class="miss">${w}</span>`;
+  }).join(' ');
+  const col=score>=80?'var(--green)':score>=50?'var(--yellow)':'var(--red)';
+  const lbl=score>=80?'Excellent!':score>=50?'Getting there…':'Keep at it!';
+  document.getElementById('compareCard').innerHTML=`
+    <div class="compare-section">
+      <p class="compare-lbl lbl-yours">Your attempt</p>
+      <p class="compare-text" style="color:var(--muted);font-style:italic">${attempt||'(nothing typed)'}</p>
+    </div>
+    <div class="compare-section">
+      <p class="compare-lbl lbl-kjv">KJV — ${currentV.ref}</p>
+      <p class="compare-text">${kjvHtml}</p>
+    </div>
+    <div class="score-badge">
+      <p class="score-pct" style="color:${col}">${score}%</p>
+      <p class="score-label">${lbl}</p>
+    </div>`;
+  showPhase('ph-compare');
+}
+
+// ════════════════════════════════════════
+//  QUICK RECALL (review/quick modes)
+// ════════════════════════════════════════
+function renderQuickPhase(){
+  document.getElementById('quickRef').textContent=currentV.ref;
+  document.getElementById('quickTheme').textContent=currentV.theme+' · '+currentV.testament+' Testament';
+  document.getElementById('quickHook').textContent=currentV.hook;
+  document.getElementById('quickVerseBox').style.display='none';
+  document.getElementById('quickRevealBtn').style.display='block';
+  showPhase('ph-quick');
+}
+
+function quickReveal(){
+  document.getElementById('quickVerseText').textContent=currentV.text;
+  document.getElementById('quickVerseBox').style.display='block';
+  document.getElementById('quickRevealBtn').style.display='none';
+}
+
+// ════════════════════════════════════════
+//  RATING + SPACED REPETITION
+// ════════════════════════════════════════
+function rateVerse(rating){
+  const ref=currentV.ref;
+  const rec=ST.verses[ref]||{ratings:[],easeFactor:2.5};
+  rec.ratings=rec.ratings||[];
+  rec.ratings.push({r:rating,d:Date.now()});
+  let ef=Math.max(1.3,(rec.easeFactor||2.5)+(0.1-(4-rating)*(0.08+(4-rating)*0.02)));
+  rec.easeFactor=ef;
+  const days=[0,1,3,7];
+  rec.nextReview=Date.now()+days[rating-1]*86400000;
+  rec.mastered=(rating===4);
+  rec.text=currentV.text; rec.hook=currentV.hook; rec.theme=currentV.theme;
+  rec.book=currentV.book; rec.testament=currentV.testament; rec.context=currentV.context||'';
+  ST.verses[ref]=rec;
+  if(rating===4){sessionKnown++;updateStreak();toast('✓ '+ref+' — Mastered!');}
+  else if(rating===1){sessionQueue.splice(sessionIdx+2,0,currentV);toast('Added back — you\'ll see it again soon');}
+  save();
+  sessionIdx++;
+  if(sessionIdx>0&&sessionIdx%8===0) showSessionDone();
+  else fetchNextVerse();
+}
+
+function updateStreak(){
+  const today=new Date().toDateString();
+  const yest=new Date(Date.now()-86400000).toDateString();
+  if(ST.lastDate===today)return;
+  ST.streak=ST.lastDate===yest?(ST.streak||0)+1:1;
+  ST.lastDate=today;
+}
+
+function skipVerse(){sessionIdx++;fetchNextVerse();}
+
+function showSessionDone(){
+  document.getElementById('doneMsg').textContent=`${sessionKnown} verse${sessionKnown!==1?'s':''} mastered this session. Total: ${masteredCount()}/500`;
+  showPhase('ph-done');
+}
+
+function continueSession(){showPhase('ph-loading');fetchNextVerse();}
+
+// ════════════════════════════════════════
+//  STEP INDICATOR
+// ════════════════════════════════════════
+function renderSteps(elId,active){
+  const steps=[{n:1,lbl:'Read'},{n:2,lbl:'Fill Blanks'},{n:3,lbl:'Type It'}];
+  const el=document.getElementById(elId);
+  if(!el)return;
+  el.innerHTML=steps.map(s=>{
+    const cls=s.n<active?'done':s.n===active?'active':'';
+    const icon=s.n<active?'✓':s.n;
+    return `<div class="step ${cls}"><div class="step-dot">${icon}</div><div class="step-label">${s.lbl}</div></div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  BROWSE
+// ════════════════════════════════════════
+function renderBrowse(){
+  const q=(document.getElementById('browseQ')?.value||'').toLowerCase();
+  const container=document.getElementById('bookSections');
+  container.innerHTML=Object.entries(BOOKS).map(([testament,books])=>{
+    const filtered=books.filter(b=>!q||b.toLowerCase().includes(q));
+    if(!filtered.length)return'';
+    return `<div class="book-section">
+      <p class="book-sec-title">${testament}</p>
+      <div class="book-grid">
+        ${filtered.map(b=>{
+          const cnt=Object.keys(ST.verses).filter(r=>r.startsWith(b+' ')||r.startsWith(b+':')).length;
+          return `<button class="book-btn ${cnt>0?'studied':''}" onclick="studySpecificBook('${b}')">
+            ${b}<span class="bcount">${cnt>0?cnt+' studied':'learn'}</span>
+          </button>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════
+//  LOG
+// ════════════════════════════════════════
+function renderLog(){
+  const all=Object.entries(ST.verses).sort((a,b)=>{
+    const al=(a[1].ratings||[]).slice(-1)[0]?.d||0;
+    const bl=(b[1].ratings||[]).slice(-1)[0]?.d||0;
+    return bl-al;
+  });
+  document.getElementById('logCount').textContent=`${all.length} verse${all.length!==1?'s':''} in your log`;
+  const cols={1:'var(--red)',2:'var(--yellow)',3:'var(--blue)',4:'var(--green)'};
+  const lbls={1:'Repeat',2:'Soon',3:'Later',4:'Mastered'};
+  document.getElementById('logItems').innerHTML=all.map(([ref,v])=>{
+    const last=(v.ratings||[]).slice(-1)[0]?.r||0;
+    return `<div class="m-item">
+      <span class="m-ref">${ref}</span>
+      <span class="m-text">${v.text||''}</span>
+      ${last?`<span class="m-score" style="background:${cols[last]}22;color:${cols[last]}">${lbls[last]}</span>`:''}
+    </div>`;
+  }).join('')||'<p style="color:var(--muted);font-size:13px;padding:20px 0">No verses yet — go learn!</p>';
+}
+
+// ════════════════════════════════════════
+//  UTILS
+// ════════════════════════════════════════
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+let toastT;
+function toast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;t.classList.add('on');
+  clearTimeout(toastT);toastT=setTimeout(()=>t.classList.remove('on'),2400);
+}
+
+// ════════════════════════════════════════
+//  INIT
+// ════════════════════════════════════════
+renderHome();
+</script>
+</body>
+</html>

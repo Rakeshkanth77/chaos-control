@@ -470,3 +470,365 @@ def clean_ramble(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
+
+# ========== BIBLE MEMORY API ==========
+
+from django.db.models import Q
+from datetime import timedelta
+from .models import BibleVerse
+
+DEFAULT_VERSES = [
+    {
+        "reference": "2 Timothy 1:7",
+        "text": "For God hath not given us the spirit of fear; but of power, and of love, and of a sound mind.",
+        "category": "Fear",
+        "hook": "Fear is not from God. Power, love, and a sound mind are.",
+        "context": "Paul encouraging Timothy to be bold in the ministry."
+    },
+    {
+        "reference": "Isaiah 41:10",
+        "text": "Fear thou not; for I am with thee: be not dismayed; for I am thy God: I will strengthen thee; yea, I will help thee; yea, I will uphold thee with the right hand of my righteousness.",
+        "category": "Fear",
+        "hook": "Five 'I will' statements of comfort from God.",
+        "context": "God's promise of help and strength to Israel."
+    },
+    {
+        "reference": "Psalm 56:3",
+        "text": "What time I am afraid, I will trust in thee.",
+        "category": "Fear",
+        "hook": "A short, simple weapon against fear: trust.",
+        "context": "A psalm of David when the Philistines took him in Gath."
+    },
+    {
+        "reference": "Psalm 27:1",
+        "text": "The Lord is my light and my salvation; whom shall I fear? the Lord is the strength of my life; of whom shall I be afraid?",
+        "category": "Fear",
+        "hook": "Light, salvation, strength. With these, fear is impossible.",
+        "context": "David's declaration of fearless trust in God."
+    },
+    {
+        "reference": "Psalm 95:6",
+        "text": "O come, let us worship and bow down: let us kneel before the Lord our maker.",
+        "category": "Worship",
+        "hook": "An invitation to humble physical worship.",
+        "context": "A call to praise and obedience."
+    },
+    {
+        "reference": "John 4:24",
+        "text": "God is a Spirit: and they that worship him must worship him in spirit and in truth.",
+        "category": "Worship",
+        "hook": "Spirit and truth: the two essential requirements of worship.",
+        "context": "Jesus' conversation with the Samaritan woman at the well."
+    },
+    {
+        "reference": "Psalm 29:2",
+        "text": "Give unto the Lord the glory due unto his name; worship the Lord in the beauty of holiness.",
+        "category": "Worship",
+        "hook": "Give God His due glory in the beauty of holiness.",
+        "context": "A psalm of David describing the powerful voice of God in the storm."
+    },
+    {
+        "reference": "Joshua 1:9",
+        "text": "Have not I commanded thee? Be strong and of a good courage; be not afraid, neither be thou dismayed: for the Lord thy God is with thee whithersoever thou goest.",
+        "category": "Courage",
+        "hook": "God's command to Joshua: Courage is not optional, and God goes with you.",
+        "context": "God commissioning Joshua to lead Israel into the Promised Land."
+    },
+    {
+        "reference": "Psalm 31:24",
+        "text": "Be of good courage, and he shall strengthen your heart, all ye that hope in the Lord.",
+        "category": "Courage",
+        "hook": "Courage leads to a strengthened heart for those who hope.",
+        "context": "David praising God for his goodness and calling the saints to love Him."
+    },
+    {
+        "reference": "Deuteronomy 31:6",
+        "text": "Be strong and of a good courage, fear not, nor be afraid of them: for the Lord thy God, he it is that doth go with thee; he will not fail thee, nor forsake thee.",
+        "category": "Courage",
+        "hook": "God goes with you; He will never fail or forsake you.",
+        "context": "Moses' final words of encouragement to the congregation of Israel."
+    },
+    {
+        "reference": "Philippians 4:7",
+        "text": "And the peace of God, which passeth all understanding, shall keep your hearts and minds through Christ Jesus.",
+        "category": "Peace",
+        "hook": "God's peace transcends human logic and guards your heart.",
+        "context": "Paul's exhortation to pray instead of being anxious."
+    },
+    {
+        "reference": "Isaiah 26:3",
+        "text": "Thou wilt keep him in perfect peace, whose mind is stayed on thee: because he trusteth in thee.",
+        "category": "Peace",
+        "hook": "Perfect peace is the result of a mind anchored on God.",
+        "context": "A song of praise for God's protection and judgment."
+    },
+    {
+        "reference": "John 14:27",
+        "text": "Peace I leave with you, my peace I give unto you: not as the world giveth, give I unto you. Let not your heart be troubled, neither let it be afraid.",
+        "category": "Peace",
+        "hook": "Jesus' legacy: His divine, unique peace that cures troubled hearts.",
+        "context": "Jesus' farewell discourse to the disciples before His crucifixion."
+    },
+    {
+        "reference": "Philippians 4:13",
+        "text": "I can do all things through Christ which strengtheneth me.",
+        "category": "Strength",
+        "hook": "All things through Christ, our source of power.",
+        "context": "Paul sharing the secret of contentment in all circumstances."
+    },
+    {
+        "reference": "Isaiah 40:31",
+        "text": "But they that wait upon the Lord shall renew their strength; they shall mount up with wings as eagles; they shall run, and not be weary; and they shall walk, and not faint.",
+        "category": "Strength",
+        "hook": "Waiting on God yields eagles' wings, endurance to run and walk.",
+        "context": "Isaiah comforting the weary exiles with the greatness of God."
+    }
+]
+
+def seed_user_default_verses(user):
+    created_count = 0
+    for v in DEFAULT_VERSES:
+        if not BibleVerse.objects.filter(user=user, reference=v['reference']).exists():
+            BibleVerse.objects.create(
+                user=user,
+                reference=v['reference'],
+                text=v['text'],
+                category=v['category'],
+                hook=v['hook'],
+                context=v['context'],
+                ease_factor=2.5,
+                interval_days=0,
+                next_review=timezone.now(),
+                mastered=False
+            )
+            created_count += 1
+    return created_count
+
+@csrf_exempt
+@api_login_required
+def get_bible_verses(request):
+    try:
+        # Check if user has any verses, if not seed default ones automatically
+        verses_count = BibleVerse.objects.filter(user=request.user).count()
+        if verses_count == 0:
+            seed_user_default_verses(request.user)
+            
+        verses = BibleVerse.objects.filter(user=request.user)
+        
+        # Serialize verses list
+        result = []
+        for v in verses:
+            result.append({
+                'id': v.id,
+                'reference': v.reference,
+                'text': v.text,
+                'category': v.category,
+                'hook': v.hook,
+                'context': v.context,
+                'ease_factor': v.ease_factor,
+                'interval_days': v.interval_days,
+                'next_review': v.next_review.isoformat(),
+                'last_reviewed': v.last_reviewed.isoformat() if v.last_reviewed else None,
+                'mastered': v.mastered,
+                'review_count': v.review_count,
+            })
+            
+        # Get goal
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        
+        return JsonResponse({
+            'status': 'success',
+            'verses': result,
+            'goal': profile.bible_memory_goal
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def add_bible_verse(request):
+    try:
+        data = json.loads(request.body)
+        reference = data.get('reference', '').strip()
+        text = data.get('text', '').strip()
+        category = data.get('category', 'unassigned').strip()
+        hook = data.get('hook', '').strip()
+        context = data.get('context', '').strip()
+
+        if not reference or not text:
+            return JsonResponse({'status': 'error', 'message': 'Reference and text are required'}, status=400)
+
+        # Normalize category
+        if not category:
+            category = 'unassigned'
+
+        verse = BibleVerse.objects.create(
+            user=request.user,
+            reference=reference,
+            text=text,
+            category=category,
+            hook=hook,
+            context=context,
+            next_review=timezone.now()
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'verse': {
+                'id': verse.id,
+                'reference': verse.reference,
+                'text': verse.text,
+                'category': verse.category,
+                'hook': verse.hook,
+                'context': verse.context,
+                'mastered': verse.mastered
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def update_bible_verse(request):
+    try:
+        data = json.loads(request.body)
+        verse_id = data.get('id')
+        reference = data.get('reference', '').strip()
+        text = data.get('text', '').strip()
+        category = data.get('category', 'unassigned').strip()
+        hook = data.get('hook', '').strip()
+        context = data.get('context', '').strip()
+
+        if not reference or not text:
+            return JsonResponse({'status': 'error', 'message': 'Reference and text are required'}, status=400)
+
+        verse = BibleVerse.objects.get(id=verse_id, user=request.user)
+        verse.reference = reference
+        verse.text = text
+        verse.category = category if category else 'unassigned'
+        verse.hook = hook
+        verse.context = context
+        verse.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'verse': {
+                'id': verse.id,
+                'reference': verse.reference,
+                'text': verse.text,
+                'category': verse.category,
+                'hook': verse.hook,
+                'context': verse.context,
+                'mastered': verse.mastered
+            }
+        })
+    except BibleVerse.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Verse not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def delete_bible_verse(request):
+    try:
+        data = json.loads(request.body)
+        verse_id = data.get('id')
+        
+        verse = BibleVerse.objects.get(id=verse_id, user=request.user)
+        verse.delete()
+        
+        return JsonResponse({'status': 'success'})
+    except BibleVerse.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Verse not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def rate_bible_verse(request):
+    try:
+        data = json.loads(request.body)
+        verse_id = data.get('id')
+        rating = int(data.get('rating')) # 1 = Blank, 2 = Partial, 3 = Almost, 4 = Got it!
+
+        if rating < 1 or rating > 4:
+            return JsonResponse({'status': 'error', 'message': 'Rating must be between 1 and 4'}, status=400)
+
+        verse = BibleVerse.objects.get(id=verse_id, user=request.user)
+        
+        verse.review_count += 1
+        verse.last_reviewed = timezone.now()
+        
+        # Calculate new ease factor
+        # ef_change matches the prototype formula roughly: 0.1 - (4 - rating) * (0.08 + (4 - rating) * 0.02)
+        ef_change = 0.1 - (4 - rating) * (0.08 + (4 - rating) * 0.02)
+        verse.ease_factor = max(1.3, verse.ease_factor + ef_change)
+        
+        # Determine next review interval in days
+        if rating == 4:
+            verse.mastered = True
+            if verse.interval_days == 0:
+                verse.interval_days = 7
+            else:
+                verse.interval_days = min(365, max(1, int(verse.interval_days * verse.ease_factor)))
+        elif rating == 3:
+            verse.mastered = False
+            verse.interval_days = 3
+        elif rating == 2:
+            verse.mastered = False
+            verse.interval_days = 1
+        else: # rating == 1 (Blank)
+            verse.mastered = False
+            verse.interval_days = 0 # review today (added back to queue)
+            
+        verse.next_review = timezone.now() + timedelta(days=verse.interval_days)
+        verse.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'verse': {
+                'id': verse.id,
+                'reference': verse.reference,
+                'mastered': verse.mastered,
+                'interval_days': verse.interval_days,
+                'next_review': verse.next_review.isoformat()
+            }
+        })
+    except BibleVerse.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Verse not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def update_bible_goal(request):
+    try:
+        data = json.loads(request.body)
+        goal = int(data.get('goal', 500))
+        
+        if goal <= 0:
+            return JsonResponse({'status': 'error', 'message': 'Goal must be greater than 0'}, status=400)
+
+        profile, _ = UserProfile.objects.get_or_create(user=request.user)
+        profile.bible_memory_goal = goal
+        profile.save()
+
+        return JsonResponse({'status': 'success', 'goal': profile.bible_memory_goal})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def seed_bible_verses(request):
+    try:
+        count = seed_user_default_verses(request.user)
+        return JsonResponse({'status': 'success', 'seeded_count': count})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+

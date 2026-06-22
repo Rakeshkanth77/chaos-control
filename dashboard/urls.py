@@ -8,6 +8,7 @@ urlpatterns = [
     path('', views.index, name='index'),
     path('profile/', views.profile_view, name='profile'),
     path('projects/', views.projects_view, name='projects'),
+    path('bible-memory/', views.bible_memory_view, name='bible_memory'),
     path('ops/dashboard/', views.ops_dashboard, name='ops_dashboard'),
     
     # API endpoints
@@ -30,4 +31,13 @@ urlpatterns = [
     path('api/project/add/', api.add_project, name='api_add_project'),
     path('api/project/update/', api.update_project, name='api_update_project'),
     path('api/project/delete/', api.delete_project, name='api_delete_project'),
+    
+    # Bible Memory API endpoints
+    path('api/bible-memory/get-verses/', api.get_bible_verses, name='api_get_bible_verses'),
+    path('api/bible-memory/add-verse/', api.add_bible_verse, name='api_add_bible_verse'),
+    path('api/bible-memory/update-verse/', api.update_bible_verse, name='api_update_bible_verse'),
+    path('api/bible-memory/delete-verse/', api.delete_bible_verse, name='api_delete_bible_verse'),
+    path('api/bible-memory/rate/', api.rate_bible_verse, name='api_rate_bible_verse'),
+    path('api/bible-memory/update-goal/', api.update_bible_goal, name='api_update_bible_goal'),
+    path('api/bible-memory/seed/', api.seed_bible_verses, name='api_seed_bible_verses'),
 ]

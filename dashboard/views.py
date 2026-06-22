@@ -107,6 +107,15 @@ def projects_view(request):
     return render(request, 'dashboard/projects.html', context)
 
 
+@login_required
+def bible_memory_view(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+    context = {
+        'profile': profile,
+    }
+    return render(request, 'dashboard/bible_memory.html', context)
+
+
 @user_passes_test(lambda u: u.is_staff, login_url='/')
 def ops_dashboard(request):
     # Retrieve system stats for SaaS corporate metrics

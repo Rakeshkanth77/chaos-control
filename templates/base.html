@@ -212,6 +212,7 @@
             <a href="/" class="mobile-nav-link {% if request.path == '/' %}active{% endif %}">📋 Dashboard</a>
             <a href="/analytics/" class="mobile-nav-link {% if '/analytics/' in request.path %}active{% endif %}">📊 Analytics</a>
             <a href="/projects/" class="mobile-nav-link {% if '/projects/' in request.path %}active{% endif %}">🗂 Projects</a>
+            <a href="/bible-memory/" class="mobile-nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">📖 Bible Memory</a>
             {% if request.user.is_staff %}
                 <a href="/ops/dashboard/" class="mobile-nav-link {% if '/ops/dashboard/' in request.path %}active{% endif %}">⚙️ Ops Panel</a>
             {% endif %}
@@ -259,6 +260,7 @@
                     <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
                     <a href="/analytics/" class="nav-link {% if '/analytics/' in request.path %}active{% endif %}">Analytics</a>
                     <a href="/projects/" class="nav-link {% if '/projects/' in request.path %}active{% endif %}">Projects</a>
+                    <a href="/bible-memory/" class="nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">Bible Memory</a>
                     {% if request.user.is_staff %}
                         <a href="/ops/dashboard/" class="nav-link {% if '/ops/dashboard/' in request.path %}active{% endif %}">Ops Panel</a>
                     {% endif %}
