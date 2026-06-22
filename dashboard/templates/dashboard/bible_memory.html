@@ -1094,6 +1094,9 @@
             <div class="bm-pbar-fill" id="drill-progress-bar" style="width: 0%;"></div>
         </div>
 
+        <!-- Unified Steps Indicator -->
+        <div class="bm-steps" id="unified-steps-indicator" style="margin-bottom: 24px;"></div>
+
         <!-- LOADING PHASE -->
         <div id="phase-loading" class="bm-phase-box active">
             <div class="text-center" style="padding: 50px 0;">
@@ -1103,8 +1106,9 @@
         </div>
 
         <!-- READ PHASE (Step 1) -->
-        <div id="phase-read" class="bm-phase-box">
-            <div class="bm-steps" id="read-steps-indicator"></div>
+        <div id="phase-read" class="bm-phase-box text-center">
+            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 1: Read Aloud 📖</div>
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Read this verse out loud 3 times. Tap the button below each time you finish reading.</p>
             
             <div class="bm-learn-card">
                 <p class="bm-learn-ref" id="read-ref-lbl">--</p>
@@ -1137,8 +1141,9 @@
         </div>
 
         <!-- CLOZE PHASE (Step 2) -->
-        <div id="phase-cloze" class="bm-phase-box">
-            <div class="bm-steps" id="cloze-steps-indicator"></div>
+        <div id="phase-cloze" class="bm-phase-box text-center">
+            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 2: Fill in the Blanks 🧩</div>
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Type the correct letters in the input boxes to complete the missing words.</p>
 
             <div class="bm-info-strip" style="margin-bottom: 12px;">
                 <p class="bm-info-lbl" id="cloze-ref-lbl">--</p>
@@ -1155,8 +1160,9 @@
         </div>
 
         <!-- TYPE PHASE (Step 3) -->
-        <div id="phase-type" class="bm-phase-box">
-            <div class="bm-steps" id="type-steps-indicator"></div>
+        <div id="phase-type" class="bm-phase-box text-center">
+            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 3: Type from Memory ⌨️</div>
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Type the entire verse from memory. No looking!</p>
 
             <div class="bm-ref-preview">
                 <p class="bm-ref-preview-title">Type it from memory</p>
@@ -1179,7 +1185,9 @@
         </div>
 
         <!-- COMPARE PHASE -->
-        <div id="phase-compare" class="bm-phase-box">
+        <div id="phase-compare" class="bm-phase-box text-center">
+            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 4: Check & Rate your Recall ⭐️</div>
+            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Compare your typed attempt with the actual Bible verse text below.</p>
             <div class="bm-compare-card" id="compare-results-card"></div>
             
             <p class="text-center" style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">
@@ -1207,7 +1215,18 @@
         </div>
 
         <!-- ORAL QUICK RECALL PHASE -->
-        <div id="phase-quick" class="bm-phase-box">
+        <div id="phase-quick" class="bm-phase-box text-center">
+            <!-- Step 1 display -->
+            <div id="quick-step1-header">
+                <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 1: Recite Out Loud 🗣️</div>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Say the verse out loud from memory, then click Reveal to check your text.</p>
+            </div>
+            
+            <!-- Step 2 display (shown after reveal) -->
+            <div id="quick-step2-header" style="display:none;">
+                <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 2: Self-Rate your Accuracy ⭐️</div>
+                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">How accurately did you say it? Rate yourself honestly below.</p>
+            </div>
             <div class="bm-ref-preview">
                 <p class="bm-ref-preview-title">Recall this verse orally...</p>
                 <p class="bm-ref-preview-val" id="quick-ref-lbl">--</p>

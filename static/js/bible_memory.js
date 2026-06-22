@@ -548,6 +548,15 @@ function showPhase(phaseId) {
     document.querySelectorAll('.bm-phase-box').forEach(p => p.classList.remove('active'));
     const target = document.getElementById(phaseId);
     if (target) target.classList.add('active');
+    
+    const indicator = document.getElementById('unified-steps-indicator');
+    if (indicator) {
+        if (phaseId === 'phase-loading' || phaseId === 'phase-done') {
+            indicator.style.display = 'none';
+        } else {
+            indicator.style.display = 'flex';
+        }
+    }
 }
 
 function exitDrill() {
@@ -559,7 +568,7 @@ function exitDrill() {
 // ── STEP 1: READ PHASE ──
 function startReadPhase() {
     readStep = 0;
-    renderDrillSteps('read-steps-indicator', 1);
+    renderDrillSteps(1);
 
     document.getElementById('read-ref-lbl').textContent = `${currentV.reference} · Category: ${currentV.category}`;
     document.getElementById('read-text-lbl').innerHTML = highlightKeywords(currentV.text);
@@ -631,7 +640,7 @@ function advanceRead() {
 
 // ── STEP 2: CLOZE PHASE ──
 function startClozePhase() {
-    renderDrillSteps('cloze-steps-indicator', 2);
+    renderDrillSteps(2);
     document.getElementById('cloze-ref-lbl').textContent = currentV.reference;
     document.getElementById('cloze-hook-lbl').textContent = currentV.hook ? `Hook: ${currentV.hook}` : '';
 
@@ -766,13 +775,7 @@ function gotoClozeNext() {
 
 // ── STEP 3: TYPE PHASE ──
 function startTypePhase() {
-    if (sessionMode === 'learn') {
-        renderDrillSteps('type-steps-indicator', 3);
-    } else {
-        // Hide steps if we went straight here
-        const indicator = document.getElementById('type-steps-indicator');
-        if (indicator) indicator.innerHTML = '';
-    }
+    renderDrillSteps(3);
 
     document.getElementById('type-ref-lbl').textContent = currentV.reference;
     document.getElementById('type-attempt-input').value = '';
@@ -842,6 +845,7 @@ function checkTyped() {
     `;
 
     showPhase('phase-compare');
+    renderDrillSteps(4);
 }
 
 // ── STEP 4: ORAL QUICK RECALL PHASE ──
@@ -859,7 +863,12 @@ function startQuickPhase() {
 
     document.getElementById('quick-revealed-section').style.display = 'none';
     document.getElementById('quick-reveal-btn').style.display = 'block';
+    
+    // Toggle quick headers
+    document.getElementById('quick-step1-header').style.display = 'block';
+    document.getElementById('quick-step2-header').style.display = 'none';
 
+    renderDrillSteps(1);
     showPhase('phase-quick');
 }
 
@@ -867,6 +876,12 @@ function revealQuickVerse() {
     document.getElementById('quick-text-lbl').textContent = currentV.text;
     document.getElementById('quick-revealed-section').style.display = 'block';
     document.getElementById('quick-reveal-btn').style.display = 'none';
+    
+    // Toggle quick headers
+    document.getElementById('quick-step1-header').style.display = 'none';
+    document.getElementById('quick-step2-header').style.display = 'block';
+
+    renderDrillSteps(2);
 }
 
 // ── RATINGS & RECORDING PROGRESS ──
@@ -889,21 +904,37 @@ async function rateVerse(rating) {
             if (rating === 4) {
                 sessionMastered++;
                 showToast(`✓ Mastered ${res.verse.reference}!`);
-            } else if (rating === 1) {
-                // Fail: add back into session queue 2 slots later to review again
-                sessionQueue.splice(sessionIdx + 2, 0, currentV);
-                showToast('Added back to session. You will see it again soon.');
+                sessionIdx++;
+                
+                // Limit session blocks: show Done screen after completing 5 verses
+                if (sessionIdx > 0 && sessionIdx % 5 === 0) {
+                    showCelebration();
+                } else {
+                    loadNextVerse();
+                }
             } else {
-                showToast('Review recorded.');
-            }
-
-            sessionIdx++;
-            
-            // Limit session blocks: show Done screen after completing 5 verses
-            if (sessionIdx > 0 && sessionIdx % 5 === 0) {
-                showCelebration();
-            } else {
-                loadNextVerse();
+                if (sessionMode === 'learn' || sessionMode === 'type') {
+                    // Force same verse practice
+                    showToast('Let\'s practice this verse again to lock it in!');
+                    setTimeout(() => {
+                        if (sessionMode === 'learn') {
+                            startClozePhase();
+                        } else {
+                            startTypePhase();
+                        }
+                    }, 1500);
+                } else {
+                    // Review or Quick mode: put back into queue
+                    sessionQueue.splice(sessionIdx + 2, 0, currentV);
+                    showToast('Added back to session. Review recorded.');
+                    sessionIdx++;
+                    
+                    if (sessionIdx > 0 && sessionIdx % 5 === 0) {
+                        showCelebration();
+                    } else {
+                        loadNextVerse();
+                    }
+                }
             }
         }
     } catch (err) {
@@ -941,31 +972,55 @@ function continueSession() {
 //  DRILL LAYOUT HELPERS
 // ════════════════════════════════════════
 
-function renderDrillSteps(elId, activeStep) {
-    const steps = [
-        { n: 1, lbl: 'Read' },
-        { n: 2, lbl: 'Cloze' },
-        { n: 3, lbl: 'Type' }
-    ];
-    const el = document.getElementById(elId);
+function renderDrillSteps(activeStep) {
+    const el = document.getElementById('unified-steps-indicator');
     if (!el) return;
 
-    el.innerHTML = steps.map(s => {
-        let cls = '';
-        let dotVal = s.n;
-        if (s.n < activeStep) {
-            cls = 'done';
-            dotVal = '✓';
-        } else if (s.n === activeStep) {
-            cls = 'active';
-        }
-        return `
-            <div class="bm-step-node ${cls}">
-                <div class="bm-step-dot">${dotVal}</div>
-                <div class="bm-step-lbl">${s.lbl}</div>
-            </div>
-        `;
-    }).join('');
+    if (sessionMode === 'quick' || sessionMode === 'review') {
+        const steps = [
+            { n: 1, lbl: '1. Recite Aloud' },
+            { n: 2, lbl: '2. Rate Self' }
+        ];
+        el.innerHTML = steps.map(s => {
+            let cls = '';
+            let dotVal = s.n;
+            if (s.n < activeStep) {
+                cls = 'done';
+                dotVal = '✓';
+            } else if (s.n === activeStep) {
+                cls = 'active';
+            }
+            return `
+                <div class="bm-step-node ${cls}">
+                    <div class="bm-step-dot">${dotVal}</div>
+                    <div class="bm-step-lbl">${s.lbl}</div>
+                </div>
+            `;
+        }).join('');
+    } else {
+        const steps = [
+            { n: 1, lbl: '1. Read' },
+            { n: 2, lbl: '2. Fill Blanks' },
+            { n: 3, lbl: '3. Type Cold' },
+            { n: 4, lbl: '4. Rate' }
+        ];
+        el.innerHTML = steps.map(s => {
+            let cls = '';
+            let dotVal = s.n;
+            if (s.n < activeStep) {
+                cls = 'done';
+                dotVal = '✓';
+            } else if (s.n === activeStep) {
+                cls = 'active';
+            }
+            return `
+                <div class="bm-step-node ${cls}">
+                    <div class="bm-step-dot">${dotVal}</div>
+                    <div class="bm-step-lbl">${s.lbl}</div>
+                </div>
+            `;
+        }).join('');
+    }
 }
 
 // ════════════════════════════════════════
