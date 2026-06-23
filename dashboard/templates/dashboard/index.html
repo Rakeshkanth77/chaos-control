@@ -141,6 +141,30 @@
     .banner-subtitle { display: none; }
     .command-banner-content { padding: 12px 16px; }
 }
+
+.auto-refresh-control {
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(45, 212, 191, 0.15);
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 12px;
+}
+.auto-refresh-control select {
+    background: transparent;
+    color: #fff;
+    border: none;
+    font-size: 0.8rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+}
+.auto-refresh-control select option {
+    background: #061616;
+    color: #fff;
+}
 </style>
 {% endblock %}
 
@@ -160,6 +184,16 @@
             </div>
         </div>
         <div class="banner-right">
+            <div class="banner-stat auto-refresh-control">
+                <span class="banner-stat-label" style="margin-top: 0; color: rgba(45,212,191,0.85); font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; white-space: nowrap;">Auto Refresh</span>
+                <select id="auto-refresh-select">
+                    <option value="off">Off</option>
+                    <option value="30">30s</option>
+                    <option value="60">1m</option>
+                    <option value="300">5m</option>
+                </select>
+                <span id="refresh-countdown-lbl" style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #2dd4bf; display: none; margin-left: 4px;"></span>
+            </div>
             <div class="banner-stat">
                 <div class="banner-stat-num" id="banner-total-tasks">—</div>
                 <div class="banner-stat-label">Tasks Today</div>
@@ -184,7 +218,7 @@
             <textarea 
                 id="braindump-input" 
                 class="braindump-textarea" 
-                placeholder="Unload everything on your mind... targets, ideas, raw thoughts. We'll extract actionable objectives below."
+                placeholder="Unload everything on your mind... tasks, ideas, raw thoughts. We'll extract actionable objectives below."
             >{% if braindump %}{{ braindump.content }}{% endif %}</textarea>
             <div class="card-footer" style="gap: 8px; flex-wrap: wrap; justify-content: space-between; width: 100%;">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -200,17 +234,17 @@
                     </button>
                     <button id="clear-braindump-btn" class="btn btn-secondary">Clear</button>
                 </div>
-                <button id="generate-todos-btn" class="btn">Extract Targets</button>
+                <button id="generate-todos-btn" class="btn">Extract Tasks</button>
             </div>
         </div>
 
         <!-- Auto-Generated Todos Section -->
         <div class="glass-panel autotodos-card">
-            <h2 class="panel-title">Operational Targets</h2>
+            <h2 class="panel-title">Operational Tasks</h2>
             
             <!-- Mini Quick Add Form -->
             <form id="quick-add-todo" class="add-todo-inline">
-                <input type="text" id="new-todo-title" class="inline-input" placeholder="Deploy target..." required>
+                <input type="text" id="new-todo-title" class="inline-input" placeholder="Deploy task..." required>
                 <button type="submit" class="btn">+</button>
             </form>
 
@@ -231,7 +265,7 @@
                         </div>
                     {% empty %}
                         <div class="empty-state-message" style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 12px 0;">
-                            No unassigned targets. Write a brain dump and extract, or drag objectives here.
+                            No unassigned tasks. Write a brain dump and extract, or drag objectives here.
                         </div>
                     {% endfor %}
                 </div>
@@ -347,57 +381,11 @@
                 class="reflection-textarea" 
                 placeholder="How was your day? Write down your activities, feelings, successes, or details on mistakes you made..."
             >{% if reflection %}{{ reflection.notes }}{% endif %}</textarea>
-            <div class="card-footer">
-                <button id="analyze-reflection-btn" class="btn">Reflect & Analyze</button>
-            </div>
 
         </div>
     </div>
 
-    <!-- COLUMN 4: Flashcards & Reflection Insights -->
-    <div class="grid-column">
-        <!-- Anki Flashcards Link -->
-        <div class="glass-panel anki-link-card">
-            <h2 class="panel-title">Anki Flashcards</h2>
-            <div class="anki-link-content">
-                <div class="anki-icon">📚</div>
-                <p class="anki-description">Review your flashcards using Anki's spaced repetition system for maximum retention.</p>
-                <a href="https://ankiweb.net/" target="_blank" rel="noopener noreferrer" class="btn anki-btn" id="open-anki-btn">
-                    Open AnkiWeb ↗
-                </a>
-            </div>
-        </div>
 
-        <!-- Reflection Insights -->
-        <div class="glass-panel reflection-insights-card">
-            <h2 class="panel-title">Reflection Insights</h2>
-            <div class="reflection-results-stack" style="margin-top: 0; max-height: none;">
-                <!-- Mistakes Output Box -->
-                <div class="reflection-result-box" id="mistakes-box">
-                    <div class="result-box-title">Mistakes to not repeat tomorrow</div>
-                    <div class="reflection-result-content" id="mistakes-content">
-                        {% if reflection and reflection.mistakes %}
-                            {{ reflection.mistakes|linebreaksbr }}
-                        {% else %}
-                            <span class="empty-text">Write reflection notes in Column 3 and click "Reflect" to analyze.</span>
-                        {% endif %}
-                    </div>
-                </div>
-
-                <!-- Suggestions Output Box -->
-                <div class="reflection-result-box" id="suggestions-box">
-                    <div class="result-box-title">Suggestions for tomorrow</div>
-                    <div class="reflection-result-content" id="suggestions-content">
-                        {% if reflection and reflection.suggestions %}
-                            {{ reflection.suggestions|linebreaksbr }}
-                        {% else %}
-                            <span class="empty-text">Write reflection notes in Column 3 and click "Reflect" to analyze.</span>
-                        {% endif %}
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
 </div>
 {% endblock %}
@@ -551,6 +539,54 @@
     const observer = new MutationObserver(updateBannerStats);
     const grid = document.querySelector('.dashboard-grid');
     if (grid) observer.observe(grid, { childList: true, subtree: true });
+})();
+
+(function initAutoRefresh() {
+    const select = document.getElementById('auto-refresh-select');
+    const countdownLbl = document.getElementById('refresh-countdown-lbl');
+    if (!select || !countdownLbl) return;
+
+    let countdownInterval = null;
+    let secondsLeft = 0;
+
+    function startTimer(seconds) {
+        stopTimer();
+        secondsLeft = seconds;
+        countdownLbl.style.display = 'inline';
+        countdownLbl.textContent = `(${secondsLeft}s)`;
+
+        countdownInterval = setInterval(() => {
+            secondsLeft--;
+            if (secondsLeft <= 0) {
+                clearInterval(countdownInterval);
+                window.location.reload();
+            } else {
+                countdownLbl.textContent = `(${secondsLeft}s)`;
+            }
+        }, 1000);
+    }
+
+    function stopTimer() {
+        if (countdownInterval) clearInterval(countdownInterval);
+        countdownLbl.style.display = 'none';
+    }
+
+    select.addEventListener('change', () => {
+        const val = select.value;
+        localStorage.setItem('auto_refresh_interval', val);
+        if (val === 'off') {
+            stopTimer();
+        } else {
+            startTimer(parseInt(val));
+        }
+    });
+
+    // Initialize from localStorage
+    const savedInterval = localStorage.getItem('auto_refresh_interval') || 'off';
+    select.value = savedInterval;
+    if (savedInterval !== 'off') {
+        startTimer(parseInt(savedInterval));
+    }
 })();
 </script>
 

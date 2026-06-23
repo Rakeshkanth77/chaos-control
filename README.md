@@ -2,7 +2,7 @@
 
 A premium daily productivity dashboard built with **pure Django**, **SQLite**, and **Vanilla CSS/JS** featuring a responsive iOS-inspired Glassmorphism user interface. 
 
-Designed for high-performance builders who want to capture mental noise, isolate critical targets, and execute with absolute authority.
+Designed for high-performance builders who want to capture mental noise, isolate critical tasks, and execute with absolute authority.
 
 ## ⚡ The Three-Phase Protocol
 

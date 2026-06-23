@@ -343,7 +343,7 @@ def update_todo_title(request):
         todo.save()
         return JsonResponse({'status': 'success', 'title': todo.title})
     except Todo.DoesNotExist:
-        return JsonResponse({'status': 'error', 'message': 'Target not found'}, status=404)
+        return JsonResponse({'status': 'error', 'message': 'Task not found'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -608,12 +608,13 @@ def seed_user_default_verses(user):
 @api_login_required
 def get_bible_verses(request):
     try:
-        # Check if user has any verses, if not seed default ones automatically
-        verses_count = BibleVerse.objects.filter(user=request.user).count()
-        if verses_count == 0:
+        practice_type = request.GET.get('practice_type', 'bible')
+        # Check if user has any verses, if not and type is 'bible', seed default ones automatically
+        verses_count = BibleVerse.objects.filter(user=request.user, practice_type=practice_type).count()
+        if verses_count == 0 and practice_type == 'bible':
             seed_user_default_verses(request.user)
             
-        verses = BibleVerse.objects.filter(user=request.user)
+        verses = BibleVerse.objects.filter(user=request.user, practice_type=practice_type)
         
         # Serialize verses list
         result = []
@@ -625,6 +626,7 @@ def get_bible_verses(request):
                 'category': v.category,
                 'hook': v.hook,
                 'context': v.context,
+                'practice_type': v.practice_type,
                 'ease_factor': v.ease_factor,
                 'interval_days': v.interval_days,
                 'next_review': v.next_review.isoformat(),
@@ -655,9 +657,10 @@ def add_bible_verse(request):
         category = data.get('category', 'unassigned').strip()
         hook = data.get('hook', '').strip()
         context = data.get('context', '').strip()
+        practice_type = data.get('practice_type', 'bible').strip()
 
         if not reference or not text:
-            return JsonResponse({'status': 'error', 'message': 'Reference and text are required'}, status=400)
+            return JsonResponse({'status': 'error', 'message': 'Reference/Word and Text/Definition are required'}, status=400)
 
         # Normalize category
         if not category:
@@ -670,6 +673,7 @@ def add_bible_verse(request):
             category=category,
             hook=hook,
             context=context,
+            practice_type=practice_type,
             next_review=timezone.now()
         )
 
@@ -682,6 +686,7 @@ def add_bible_verse(request):
                 'category': verse.category,
                 'hook': verse.hook,
                 'context': verse.context,
+                'practice_type': verse.practice_type,
                 'mastered': verse.mastered
             }
         })
@@ -831,4 +836,19 @@ def seed_bible_verses(request):
         return JsonResponse({'status': 'success', 'seeded_count': count})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def fetch_daily_vocab(request):
+    try:
+        from .services import fetch_vocab_words_via_search
+        words = fetch_vocab_words_via_search()
+        return JsonResponse({
+            'status': 'success',
+            'words': words
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
 

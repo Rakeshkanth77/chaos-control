@@ -100,12 +100,17 @@ class Project(models.Model):
 
 
 class BibleVerse(models.Model):
+    PRACTICE_TYPE_CHOICES = [
+        ('bible', 'Bible'),
+        ('english', 'English'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='bible_verses')
     reference = models.CharField(max_length=200)
     text = models.TextField()
     category = models.CharField(max_length=100, default='unassigned')
     hook = models.TextField(blank=True, default='')
     context = models.TextField(blank=True, default='')
+    practice_type = models.CharField(max_length=20, choices=PRACTICE_TYPE_CHOICES, default='bible')
     
     # Spaced Repetition parameters
     ease_factor = models.FloatField(default=2.5)

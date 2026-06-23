@@ -81,7 +81,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         labels: res.labels,
                         datasets: [
                             {
-                                label: 'Targets Created',
+                                label: 'Tasks Created',
                                 data: res.todos_created,
                                 borderColor: 'rgba(99, 91, 143, 0.5)',
                                 backgroundColor: 'rgba(99, 91, 143, 0.05)',
@@ -90,7 +90,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 borderWidth: 2
                             },
                             {
-                                label: 'Targets Secured',
+                                label: 'Tasks Secured',
                                 data: res.todos_completed,
                                 borderColor: 'rgba(16, 185, 129, 0.6)',
                                 backgroundColor: 'rgba(16, 185, 129, 0.05)',

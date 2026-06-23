@@ -60,9 +60,11 @@ async function bibleApiPost(url, body = {}) {
     return await response.json();
 }
 
+let CURRENT_PRACTICE_TYPE = 'bible';
+
 async function loadLibrary() {
     try {
-        const response = await fetch('/api/bible-memory/get-verses/');
+        const response = await fetch(`/api/bible-memory/get-verses/?practice_type=${CURRENT_PRACTICE_TYPE}`);
         const data = await response.json();
         if (data.status === 'success') {
             ALL_VERSES = data.verses;
@@ -71,7 +73,7 @@ async function loadLibrary() {
             renderCategoryChips();
             applyFilters();
         } else {
-            showToast('❌ Error loading scripture library.');
+            showToast(CURRENT_PRACTICE_TYPE === 'english' ? '❌ Error loading vocabulary library.' : '❌ Error loading scripture library.');
         }
     } catch (err) {
         console.error(err);
@@ -100,7 +102,18 @@ function updateOverviewStats() {
     document.getElementById('goal-count-display').textContent = GOAL_TARGET;
     document.getElementById('stat-due-count').textContent = dueCount;
     document.getElementById('stat-total-count').textContent = total;
-    document.getElementById('library-count-label').textContent = `${total} verse${total !== 1 ? 's' : ''}`;
+    
+    if (CURRENT_PRACTICE_TYPE === 'english') {
+        document.getElementById('library-count-label').textContent = `${total} word${total !== 1 ? 's' : ''}`;
+    } else {
+        document.getElementById('library-count-label').textContent = `${total} verse${total !== 1 ? 's' : ''}`;
+    }
+
+    const heroLabel = document.querySelector('.bm-hero p[style*="text-transform: uppercase"]');
+    if (heroLabel) heroLabel.textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Words Mastered' : 'Verses Mastered';
+
+    const statTotalLabel = document.querySelector('.bm-stats-grid .bm-stat-card:nth-child(2) .bm-stat-label');
+    if (statTotalLabel) statTotalLabel.textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Total Words' : 'Total Verses';
 
     // Update Mode review button label
     const modeBadgeDue = document.getElementById('mode-badge-due');
@@ -197,6 +210,9 @@ function applyFilters() {
 
         const excerpt = v.text.length > 50 ? v.text.substring(0, 47) + '...' : v.text;
 
+        const editTitle = CURRENT_PRACTICE_TYPE === 'english' ? 'Edit Word' : 'Edit Verse';
+        const deleteTitle = CURRENT_PRACTICE_TYPE === 'english' ? 'Delete Word' : 'Delete Verse';
+
         html += `
             <tr data-id="${v.id}">
                 <td><span class="bm-verse-ref">${escapeHtml(v.reference)}</span></td>
@@ -204,8 +220,8 @@ function applyFilters() {
                 <td><span class="bm-verse-cat-tag">${escapeHtml(v.category)}</span></td>
                 <td>${statusTag}</td>
                 <td style="text-align: right; white-space: nowrap;">
-                    <button class="action-btn" onclick="editVerse(${v.id})" title="Edit Verse">✏️</button>
-                    <button class="action-btn delete" onclick="deleteVerse(${v.id})" title="Delete Verse">🗑️</button>
+                    <button class="action-btn" onclick="editVerse(${v.id})" title="${editTitle}">✏️</button>
+                    <button class="action-btn delete" onclick="deleteVerse(${v.id})" title="${deleteTitle}">🗑️</button>
                 </td>
             </tr>
         `;
@@ -234,7 +250,11 @@ async function autoFetchVerseText() {
     const refInput = document.getElementById('verse-ref-input');
     const ref = refInput.value.trim();
     if (!ref) {
-        showToast('⚠️ Please enter a reference first (e.g. Joshua 1:9).');
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            showToast('⚠️ Please enter a vocabulary word first.');
+        } else {
+            showToast('⚠️ Please enter a reference first (e.g. John 3:16).');
+        }
         refInput.focus();
         return;
     }
@@ -243,19 +263,69 @@ async function autoFetchVerseText() {
     fetchBtn.disabled = true;
     fetchBtn.textContent = 'Searching...';
 
-    try {
-        const response = await fetch(`https://bible-api.com/${encodeURIComponent(ref)}?translation=kjv`);
-        if (!response.ok) throw new Error('Scripture reference not found');
-        const data = await response.json();
-        
-        document.getElementById('verse-text-input').value = data.text.trim();
-        showToast(`✓ Fetched text for ${data.reference}`);
-    } catch (err) {
-        console.error(err);
-        showToast('❌ Could not auto-fill. Please type scripture manually.');
-    } finally {
-        fetchBtn.disabled = false;
-        fetchBtn.textContent = 'Auto-Fill 🔍';
+    if (CURRENT_PRACTICE_TYPE === 'english') {
+        try {
+            const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(ref)}`);
+            if (!response.ok) throw new Error('Word definition not found');
+            const data = await response.json();
+            
+            const firstMeaning = data[0]?.meanings[0];
+            const firstDefObj = firstMeaning?.definitions[0];
+            const definition = firstDefObj?.definition || '';
+            const example = firstDefObj?.example || '';
+            const category = firstMeaning?.partOfSpeech || 'Nouns';
+
+            document.getElementById('verse-text-input').value = definition;
+            if (example) {
+                document.getElementById('verse-context-input').value = example;
+            }
+            
+            // Set category dropdown if it exists or use Custom
+            const catSelect = document.getElementById('verse-category-input');
+            const catLower = category.toLowerCase();
+            let catName = 'Custom';
+            
+            if (catLower.includes('noun')) catName = 'Nouns';
+            else if (catLower.includes('verb')) catName = 'Verbs';
+            else if (catLower.includes('adject')) catName = 'Adjectives';
+            else if (catLower.includes('adverb')) catName = 'Adverbs';
+            
+            const options = Array.from(catSelect.options).map(o => o.value);
+            if (!options.includes(catName) && catName !== 'Custom') {
+                const opt = document.createElement('option');
+                opt.value = catName;
+                opt.textContent = catName;
+                catSelect.add(opt, catSelect.options[catSelect.options.length - 1]);
+            }
+            catSelect.value = catName;
+            toggleCustomCategory(catSelect);
+            if (catName === 'Custom') {
+                document.getElementById('verse-category-custom-input').value = category;
+            }
+
+            showToast(`✓ Fetched definition for "${ref}"`);
+        } catch (err) {
+            console.error(err);
+            showToast('❌ Could not fetch definition automatically. Please type it.');
+        } finally {
+            fetchBtn.disabled = false;
+            fetchBtn.textContent = 'Define Word 🔍';
+        }
+    } else {
+        try {
+            const response = await fetch(`https://bible-api.com/${encodeURIComponent(ref)}?translation=kjv`);
+            if (!response.ok) throw new Error('Scripture reference not found');
+            const data = await response.json();
+            
+            document.getElementById('verse-text-input').value = data.text.trim();
+            showToast(`✓ Fetched text for ${data.reference}`);
+        } catch (err) {
+            console.error(err);
+            showToast('❌ Could not auto-fill. Please type scripture manually.');
+        } finally {
+            fetchBtn.disabled = false;
+            fetchBtn.textContent = 'Auto-Fill 🔍';
+        }
     }
 }
 
@@ -308,7 +378,8 @@ async function handleVerseSubmit(e) {
                 text,
                 category,
                 hook,
-                context
+                context,
+                practice_type: CURRENT_PRACTICE_TYPE
             });
             if (res.status === 'success') {
                 showToast(`✓ Added ${reference} to library`);
@@ -335,7 +406,7 @@ function editVerse(id) {
     if (!v) return;
 
     // Switch form state
-    document.getElementById('verse-form-title').textContent = 'Edit Memory Verse';
+    document.getElementById('verse-form-title').textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Edit Vocabulary Word' : 'Edit Memory Verse';
     document.getElementById('save-verse-btn').textContent = 'Save Changes';
     document.getElementById('edit-verse-id').value = v.id;
     document.getElementById('verse-ref-input').value = v.reference;
@@ -399,8 +470,8 @@ async function deleteVerse(id) {
 }
 
 function resetVerseForm() {
-    document.getElementById('verse-form-title').textContent = 'Add Memory Verse';
-    document.getElementById('save-verse-btn').textContent = '+ Add Verse';
+    document.getElementById('verse-form-title').textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Add Vocabulary Word' : 'Add Memory Verse';
+    document.getElementById('save-verse-btn').textContent = CURRENT_PRACTICE_TYPE === 'english' ? '+ Add Word' : '+ Add Verse';
     document.getElementById('edit-verse-id').value = '';
     document.getElementById('verse-ref-input').value = '';
     document.getElementById('verse-text-input').value = '';
@@ -508,8 +579,8 @@ function startSession(mode) {
     
     // Set headers
     const modeNames = {
-        learn: 'Learn Verse',
-        review: 'Review Due',
+        learn: CURRENT_PRACTICE_TYPE === 'english' ? 'Learn Word' : 'Learn Verse',
+        review: CURRENT_PRACTICE_TYPE === 'english' ? 'Review Due' : 'Review Due',
         quick: 'Quick Recall (Oral)',
         type: 'Type Cold'
     };
@@ -835,7 +906,7 @@ function checkTyped() {
             <p class="bm-compare-text" style="color: var(--text-secondary); font-style: italic;">${escapeHtml(attempt)}</p>
         </div>
         <div class="bm-compare-sec">
-            <p class="bm-compare-lbl">KJV — ${escapeHtml(currentV.reference)}</p>
+            <p class="bm-compare-lbl">${CURRENT_PRACTICE_TYPE === 'english' ? 'Definition' : 'KJV'} — ${escapeHtml(currentV.reference)}</p>
             <p class="bm-compare-text">${compareHtml}</p>
         </div>
         <div class="bm-score-badge">
@@ -1055,3 +1126,195 @@ function showToast(msg) {
         toast.classList.remove('show');
     }, 2500);
 }
+
+// ════════════════════════════════════════
+//  PRACTICE TYPE SWITCHING & VOCAB INBOX
+// ════════════════════════════════════════
+
+function switchPracticeType(type) {
+    CURRENT_PRACTICE_TYPE = type;
+
+    // Toggle switch buttons
+    const btnBible = document.getElementById('btn-switch-bible');
+    const btnEnglish = document.getElementById('btn-switch-english');
+    if (type === 'bible') {
+        btnBible.classList.add('active');
+        btnEnglish.classList.remove('active');
+        
+        document.getElementById('bm-title-scripture').textContent = 'Bible';
+        document.getElementById('bm-title-memory').textContent = 'Memory';
+        document.getElementById('translation-badge-lbl').textContent = 'KJV Translation';
+        
+        document.getElementById('database-seed-panel').style.display = 'block';
+        document.getElementById('vocab-inbox-panel').style.display = 'none';
+
+        // Form placeholder swaps
+        document.getElementById('verse-ref-input').placeholder = 'e.g. John 3:16';
+        document.getElementById('fetch-verse-btn').textContent = 'Auto-Fill 🔍';
+        document.getElementById('verse-text-input').placeholder = 'Scripture text (KJV wording recommended)...';
+        document.getElementById('verse-hook-input').placeholder = 'Memory Tip / Hook (optional)';
+        document.getElementById('verse-context-input').placeholder = 'Biblical Context (optional)';
+        
+        document.getElementById('library-title-lbl').textContent = 'Verse Library';
+        
+        // Header rows
+        const thRef = document.querySelector('.bm-verse-table th:nth-child(1)');
+        const thExcerpt = document.querySelector('.bm-verse-table th:nth-child(2)');
+        if (thRef) thRef.textContent = 'Reference';
+        if (thExcerpt) thExcerpt.textContent = 'Excerpt';
+
+        // Category dropdown initial values
+        const catSelect = document.getElementById('verse-category-input');
+        catSelect.innerHTML = `
+            <option value="Fear">Fear</option>
+            <option value="Worship">Worship</option>
+            <option value="Courage">Courage</option>
+            <option value="Peace">Peace</option>
+            <option value="Strength">Strength</option>
+            <option value="Custom">-- Custom Category --</option>
+        `;
+    } else {
+        btnBible.classList.remove('active');
+        btnEnglish.classList.add('active');
+
+        document.getElementById('bm-title-scripture').textContent = 'English';
+        document.getElementById('bm-title-memory').textContent = 'Vocabulary';
+        document.getElementById('translation-badge-lbl').textContent = 'SRS learning';
+        
+        document.getElementById('database-seed-panel').style.display = 'none';
+        document.getElementById('vocab-inbox-panel').style.display = 'block';
+
+        // Form placeholder swaps
+        document.getElementById('verse-ref-input').placeholder = 'e.g. Serendipity';
+        document.getElementById('fetch-verse-btn').textContent = 'Define Word 🔍';
+        document.getElementById('verse-text-input').placeholder = 'Word definition/meaning...';
+        document.getElementById('verse-hook-input').placeholder = 'Mnemonic / Association (optional)';
+        document.getElementById('verse-context-input').placeholder = 'Example sentence usage (optional)';
+        
+        document.getElementById('library-title-lbl').textContent = 'Vocabulary Library';
+
+        // Header rows
+        const thRef = document.querySelector('.bm-verse-table th:nth-child(1)');
+        const thExcerpt = document.querySelector('.bm-verse-table th:nth-child(2)');
+        if (thRef) thRef.textContent = 'Word';
+        if (thExcerpt) thExcerpt.textContent = 'Definition';
+
+        // Category dropdown initial values
+        const catSelect = document.getElementById('verse-category-input');
+        catSelect.innerHTML = `
+            <option value="Nouns">Nouns</option>
+            <option value="Verbs">Verbs</option>
+            <option value="Adjectives">Adjectives</option>
+            <option value="Adverbs">Adverbs</option>
+            <option value="GRE">GRE</option>
+            <option value="Advanced">Advanced</option>
+            <option value="Custom">-- Custom Category --</option>
+        `;
+    }
+
+    resetVerseForm();
+    loadLibrary();
+}
+
+async function fetchDailyVocabBatch() {
+    const fetchBtn = document.getElementById('fetch-vocab-btn');
+    const inboxList = document.getElementById('vocab-inbox-list');
+    if (!fetchBtn || !inboxList) return;
+    
+    fetchBtn.disabled = true;
+    fetchBtn.textContent = 'Searching databases...';
+    inboxList.innerHTML = `
+        <div class="text-center" style="padding: 20px 0;">
+            <div class="spinner" style="border-top-color: var(--accent-color); width: 20px; height: 20px; margin: 0 auto 8px;"></div>
+            <p style="font-size: 0.75rem; color: var(--text-secondary);">Analyzing search context...</p>
+        </div>
+    `;
+
+    try {
+        const data = await bibleApiPost('/api/bible-memory/fetch-daily-vocab/');
+        if (data.status === 'success' && data.words) {
+            renderVocabInbox(data.words);
+        } else {
+            showToast('❌ Failed to fetch daily vocabulary.');
+            inboxList.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">Failed to load words.</p>';
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('❌ Error connecting to backend.');
+        inboxList.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">Error loading vocabulary.</p>';
+    } finally {
+        fetchBtn.disabled = false;
+        fetchBtn.textContent = 'Search/Fetch Daily Words 🔍';
+    }
+}
+
+function renderVocabInbox(words) {
+    const inboxList = document.getElementById('vocab-inbox-list');
+    if (!words || words.length === 0) {
+        inboxList.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">No new words discovered.</p>';
+        return;
+    }
+
+    let html = '';
+    words.forEach((w, idx) => {
+        html += `
+            <div class="glass-panel vocab-inbox-card" id="inbox-card-${idx}" style="padding: 12px; background: rgba(255,255,255,0.65); border: 1px solid rgba(12,88,85,0.12); border-radius: 12px; margin-bottom: 8px;">
+                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
+                    <strong style="font-family: 'Outfit', sans-serif; font-size: 1.05rem; color: var(--accent-color);">${escapeHtml(w.reference)}</strong>
+                    <span style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; background: rgba(12,88,85,0.06); padding: 2px 6px; border-radius: 6px; color: var(--text-secondary);">${escapeHtml(w.category)}</span>
+                </div>
+                <p style="font-size: 0.8rem; line-height: 1.35; color: var(--text-primary); margin-bottom: 6px;">${escapeHtml(w.text)}</p>
+                ${w.hook ? `<p style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 4px; font-style: italic;">Mnemonic: ${escapeHtml(w.hook)}</p>` : ''}
+                ${w.context ? `<p style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 8px;">Sentence: "${escapeHtml(w.context)}"</p>` : ''}
+                <div style="display: flex; gap: 8px;">
+                    <button type="button" class="btn" style="padding: 4px 10px; font-size: 0.72rem; flex: 1;" onclick="keepInboxWord(${idx}, '${escapeHtml(w.reference.replace(/'/g, "\\'"))}', '${escapeHtml(w.text.replace(/'/g, "\\'"))}', '${escapeHtml(w.category.replace(/'/g, "\\'"))}', '${escapeHtml((w.hook || '').replace(/'/g, "\\'"))}', '${escapeHtml((w.context || '').replace(/'/g, "\\'"))}')">Keep</button>
+                    <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.72rem; flex: 1;" onclick="dropInboxWord(${idx})">Drop</button>
+                </div>
+            </div>
+        `;
+    });
+    inboxList.innerHTML = html;
+}
+
+function dropInboxWord(idx) {
+    const card = document.getElementById(`inbox-card-${idx}`);
+    if (card) {
+        card.style.opacity = '0';
+        card.style.transform = 'scale(0.9)';
+        card.style.transition = 'all 0.3s ease';
+        setTimeout(() => {
+            card.remove();
+            const list = document.getElementById('vocab-inbox-list');
+            if (list.children.length === 0) {
+                list.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">All daily words processed.</p>';
+            }
+        }, 300);
+    }
+}
+
+async function keepInboxWord(idx, reference, text, category, hook, context) {
+    try {
+        const res = await bibleApiPost('/api/bible-memory/add-verse/', {
+            reference,
+            text,
+            category,
+            hook,
+            context,
+            practice_type: 'english'
+        });
+        if (res.status === 'success') {
+            showToast(`✓ Kept "${reference}"`);
+            ALL_VERSES.push(res.verse);
+            dropInboxWord(idx);
+            updateOverviewStats();
+            renderCategoryChips();
+            applyFilters();
+        } else {
+            showToast('❌ Failed to save word.');
+        }
+    } catch (err) {
+        console.error(err);
+        showToast('❌ Error keeping word.');
+    }
+}
+

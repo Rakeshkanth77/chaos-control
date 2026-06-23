@@ -294,3 +294,144 @@ def clean_ramble_text(content):
     cleaned = re.sub(r'\n+', '\n', cleaned)
     return cleaned.strip()
 
+
+def fetch_vocab_words_via_search():
+    """
+    Fetches a daily batch of 5 high-quality advanced English vocabulary words.
+    First tries calling an LLM to generate them using search query context, and falls back to a curated local list if API keys fail.
+    """
+    gemini_key = os.getenv('GEMINI_API_KEY')
+    openai_key = os.getenv('OPENAI_API_KEY')
+    
+    if gemini_key == "your_gemini_api_key_here":
+        gemini_key = None
+    if openai_key == "your_openai_api_key_here":
+        openai_key = None
+
+    prompt = (
+        "Generate exactly 5 advanced, interesting, and useful English vocabulary words suitable for GRE, SAT, or professional writing.\n"
+        "For each word, provide:\n"
+        "1. The word (spelled correctly)\n"
+        "2. The definition (clear, concise)\n"
+        "3. A suggested category (e.g. Nouns, Verbs, Adjectives, GRE, Advanced)\n"
+        "4. A mnemonic hook (a short reminder or tip to help remember the spelling or meaning)\n"
+        "5. A context sentence (an example sentence using the word naturally, where the word is clearly used in context)\n\n"
+        "Return ONLY a raw JSON list of objects, structured like this example:\n"
+        "[\n"
+        "  {\n"
+        "    \"reference\": \"Serendipity\",\n"
+        "    \"text\": \"The occurrence of events by chance in a happy or beneficial way.\",\n"
+        "    \"category\": \"Nouns\",\n"
+        "    \"hook\": \"Serene + depth: finding peace in depth unexpectedly.\",\n"
+        "    \"context\": \"We found the charming little restaurant by pure serendipity.\"\n"
+        "  }\n"
+        "]\n"
+        "Do not include any markdown blocks (like ```json) or explanation. Return raw JSON text only."
+    )
+
+    # Try Gemini
+    if gemini_key:
+        try:
+            import google.generativeai as genai
+            genai.configure(api_key=gemini_key)
+            model = genai.GenerativeModel('gemini-1.5-flash')
+            response = model.generate_content(prompt)
+            result_text = clean_json_response(response.text)
+            words = json.loads(result_text)
+            if isinstance(words, list) and len(words) > 0:
+                return words
+        except Exception as e:
+            print(f"Gemini API Error in fetch_vocab_words_via_search: {e}")
+
+    # Try OpenAI / Groq
+    if openai_key:
+        try:
+            from openai import OpenAI
+            api_key = openai_key.strip("'\"")
+            
+            if api_key.startswith("gsk_"):
+                client = OpenAI(api_key=api_key, base_url="https://api.groq.com/openai/v1")
+                model_name = "llama-3.1-8b-instant"
+            else:
+                client = OpenAI(api_key=api_key)
+                model_name = "gpt-4o-mini"
+                
+            response = client.chat.completions.create(
+                model=model_name,
+                messages=[
+                    {"role": "system", "content": prompt},
+                    {"role": "user", "content": "Fetch today's vocabulary words."}
+                ],
+                temperature=0.7,
+            )
+            result_text = clean_json_response(response.choices[0].message.content)
+            words = json.loads(result_text)
+            if isinstance(words, list) and len(words) > 0:
+                return words
+        except Exception as e:
+            print(f"OpenAI/Groq API Error in fetch_vocab_words_via_search: {e}")
+
+    # Fallback list of words
+    print("Falling back to local vocabulary generator")
+    import random
+    all_fallback_words = [
+        {
+            "reference": "Capricious",
+            "text": "Given to sudden and unaccountable changes of mood or behavior.",
+            "category": "Adjectives",
+            "hook": "Capri (pants) +cious: changing your pants capriciously.",
+            "context": "The administration's capricious policies left businesses struggling to plan ahead."
+        },
+        {
+            "reference": "Ephemeral",
+            "text": "Lasting for a very short time.",
+            "category": "Adjectives",
+            "hook": "E-fem-eral: like a feminine whisper that fades instantly.",
+            "context": "Fame in the internet age is often ephemeral, lasting only a few days."
+        },
+        {
+            "reference": "Equivocal",
+            "text": "Open to more than one interpretation; ambiguous.",
+            "category": "Adjectives",
+            "hook": "Equi (equal) + vocal: voices of equal strength making it hard to decide.",
+            "context": "The clinical trial results were equivocal, requiring further research."
+        },
+        {
+            "reference": "Laconic",
+            "text": "Using very few words.",
+            "category": "Adjectives",
+            "hook": "Lacking + sonic: lacking sound/words.",
+            "context": "His laconic reply made it clear that he did not want to discuss the matter."
+        },
+        {
+            "reference": "Mitigate",
+            "text": "Make less severe, serious, or painful.",
+            "category": "Verbs",
+            "hook": "Miti (mighty) + gate: a mighty gate holding back a flood.",
+            "context": "Drainage systems were installed to mitigate the risk of flooding."
+        },
+        {
+            "reference": "Pragmatic",
+            "text": "Dealing with things sensibly and realistically in a practical way.",
+            "category": "Adjectives",
+            "hook": "Prag (practical) + matic: automatic practical actions.",
+            "context": "We need a pragmatic approach to solve this logistics crisis."
+        },
+        {
+            "reference": "Kakistocracy",
+            "text": "Government by the least suitable or competent citizens.",
+            "category": "Nouns",
+            "hook": "Kakistos (Greek for worst) + cracy (government).",
+            "context": "Many critics argued the regime had degenerated into a kakistocracy."
+        },
+        {
+            "reference": "Pernicious",
+            "text": "Having a harmful effect, especially in a gradual or subtle way.",
+            "category": "Adjectives",
+            "hook": "Per (throughout) + nic (lethal, noxious) + ious.",
+            "context": "Fake news has a pernicious influence on democratic elections."
+        }
+    ]
+    return random.sample(all_fallback_words, min(5, len(all_fallback_words)))
+
+
