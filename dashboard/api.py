@@ -814,7 +814,7 @@ def rate_bible_verse(request):
 def update_bible_goal(request):
     try:
         data = json.loads(request.body)
-        goal = int(data.get('goal', 500))
+        goal = int(data.get('goal', 1))
         
         if goal <= 0:
             return JsonResponse({'status': 'error', 'message': 'Goal must be greater than 0'}, status=400)

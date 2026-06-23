@@ -71,7 +71,7 @@ class UserProfile(models.Model):
     avatar = models.ImageField(upload_to='avatars/', null=True, blank=True)
     avatar_url = models.URLField(max_length=1024, null=True, blank=True)
     plan = models.CharField(max_length=20, choices=PLAN_CHOICES, default='free')
-    bible_memory_goal = models.IntegerField(default=500)
+    bible_memory_goal = models.IntegerField(default=1)
     created_at = models.DateTimeField(auto_now_add=True)
 
     def __str__(self):

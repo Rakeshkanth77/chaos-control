@@ -3,7 +3,7 @@
 // ════════════════════════════════════════
 
 let ALL_VERSES = [];
-let GOAL_TARGET = 500;
+let GOAL_TARGET = 1;
 let SELECTED_CATEGORY = 'all';
 let SEARCH_QUERY = '';
 
