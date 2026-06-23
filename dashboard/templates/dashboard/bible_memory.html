@@ -15,6 +15,7 @@
         max-width: 1200px;
         margin: 0 auto;
         padding-bottom: 50px;
+        box-sizing: border-box;
     }
 
     .bm-header {
@@ -118,6 +119,8 @@
         display: grid;
         grid-template-columns: 1fr 2fr;
         gap: 20px;
+        width: 100%;
+        min-width: 0;
     }
 
     @media (max-width: 900px) {
@@ -130,6 +133,9 @@
         display: flex;
         flex-direction: column;
         gap: 20px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     /* Stats Grid */
@@ -176,10 +182,13 @@
     .bm-form-row {
         display: flex;
         gap: 8px;
+        width: 100%;
+        min-width: 0;
     }
 
     .form-group-flex {
         flex-grow: 1;
+        min-width: 0;
     }
 
     /* Mode Selection Grid */
@@ -315,6 +324,9 @@
         display: flex;
         flex-direction: column;
         gap: 16px;
+        width: 100%;
+        min-width: 0;
+        box-sizing: border-box;
     }
 
     .bm-search-input {
@@ -892,6 +904,162 @@
 
     .bm-toast.show {
         transform: translateX(-50%) translateY(0);
+    }
+
+    /* ── MOBILE RESPONSIVE LAYOUT ADJUSTMENTS ── */
+    @media (max-width: 768px) {
+        .bm-header {
+            flex-direction: column;
+            align-items: stretch !important;
+            gap: 12px;
+            margin-bottom: 15px;
+        }
+        .bm-header h2 {
+            text-align: center;
+            font-size: 1.5rem;
+        }
+        .bm-header > div {
+            width: 100%;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+        .bm-container {
+            padding: 0 12px 30px !important;
+        }
+        .bm-hero {
+            padding: 16px;
+        }
+        .bm-hero-quote {
+            font-size: 0.95rem;
+            margin-bottom: 12px;
+        }
+        .bm-big-count {
+            font-size: 2.8rem;
+        }
+        .bm-pbar-wrap {
+            margin: 12px auto 6px;
+        }
+        .bm-mode-card {
+            padding: 14px 12px;
+            gap: 8px;
+        }
+        .bm-mode-icon {
+            font-size: 1.3rem;
+        }
+        .bm-mode-name {
+            font-size: 0.88rem;
+        }
+        .bm-mode-desc {
+            font-size: 0.74rem;
+        }
+    }
+
+    @media (max-width: 600px) {
+        /* Hide excerpt and category columns to fit screen cleanly */
+        .bm-verse-table th:nth-child(2),
+        .bm-verse-table td:nth-child(2),
+        .bm-verse-table th:nth-child(3),
+        .bm-verse-table td:nth-child(3) {
+            display: none;
+        }
+        
+        .bm-verse-table th, .bm-verse-table td {
+            padding: 8px 10px;
+            font-size: 0.8rem;
+        }
+        
+        .bm-chip {
+            padding: 4px 10px;
+            font-size: 0.75rem;
+        }
+
+        .bm-form-row {
+            flex-direction: row; /* Keep inline but handle shrink */
+            gap: 6px;
+        }
+
+        /* Practice workspace layout adjustments */
+        .bm-drill-panel {
+            margin: 10px auto;
+            padding: 0 8px;
+        }
+        .bm-learn-card {
+            padding: 20px 16px;
+            margin-bottom: 12px;
+        }
+        .bm-learn-text {
+            font-size: 1.25rem;
+            line-height: 1.5;
+        }
+        .bm-learn-ref {
+            font-size: 1.05rem;
+            margin-bottom: 10px;
+        }
+        .bm-cloze-verse {
+            font-size: 1.2rem;
+            line-height: 1.6;
+            padding: 16px;
+        }
+        .bm-blank-input {
+            font-size: 1.2rem;
+        }
+        .bm-ref-preview-val {
+            font-size: 1.4rem;
+        }
+        textarea.bm-type-textarea {
+            font-size: 1.15rem;
+            padding: 12px;
+            min-height: 100px;
+        }
+        .bm-compare-text {
+            font-size: 1.15rem;
+        }
+        .bm-score-pct {
+            font-size: 1.8rem;
+        }
+        .bm-reveal-card {
+            font-size: 1.2rem;
+            padding: 16px;
+        }
+        .bm-rate-btn {
+            font-size: 0.75rem;
+            padding: 10px 4px;
+        }
+        .bm-rate-btn-sub {
+            font-size: 0.6rem;
+        }
+        .bm-step-lbl {
+            font-size: 0.6rem;
+            text-transform: none;
+            letter-spacing: 0;
+        }
+        .bm-step-dot {
+            width: 28px;
+            height: 28px;
+            font-size: 0.75rem;
+        }
+        .bm-steps::before {
+            top: 13px;
+        }
+    }
+
+    @media (max-width: 400px) {
+        .bm-stats-grid {
+            gap: 8px;
+        }
+        .bm-stat-card {
+            padding: 12px 8px;
+        }
+        .bm-stat-num {
+            font-size: 1.5rem;
+        }
+        .bm-stat-label {
+            font-size: 0.7rem;
+        }
+        .bm-rate-row {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 6px;
+        }
     }
 </style>
 {% endblock %}
