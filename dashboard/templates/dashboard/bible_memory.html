@@ -1083,6 +1083,18 @@
             </div>
         </div>
 
+        <!-- Resume Session Banner -->
+        <div id="resume-session-banner" class="glass-panel" style="display: none; background: rgba(12, 88, 85, 0.05); border: 1px solid rgba(12, 88, 85, 0.2); padding: 12px 16px; margin-bottom: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-radius: 12px; width: 100%;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.2rem;">⏱️</span>
+                <span id="resume-banner-text" style="font-size: 0.88rem; font-weight: 500; color: var(--text-primary);">You have an unfinished practice session.</span>
+            </div>
+            <div style="display: flex; gap: 8px;">
+                <button class="btn" onclick="resumeActiveSession()" style="padding: 4px 12px; font-size: 0.75rem;">Resume</button>
+                <button class="btn btn-secondary" onclick="discardActiveSession()" style="padding: 4px 12px; font-size: 0.75rem; border-color: rgba(12, 88, 85, 0.15);">Dismiss</button>
+            </div>
+        </div>
+
         <!-- Progress Hero Panel -->
         <div class="bm-hero mb-4">
             <p class="bm-hero-quote" id="hero-quote-lbl">"Thy word have I hid in mine heart, that I might not sin against thee." — Psalm 119:11</p>

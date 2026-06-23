@@ -42,6 +42,9 @@ document.addEventListener('DOMContentLoaded', () => {
     if (goalLabel) {
         goalLabel.addEventListener('click', editGoalTarget);
     }
+
+    // Check if there is an unfinished session to resume
+    checkAndPromptResumeSession();
 });
 
 // Helper for CSRF-protected JSON POST
@@ -217,6 +220,7 @@ function applyFilters() {
 
         const editTitle = CURRENT_PRACTICE_TYPE === 'english' ? 'Edit Word' : 'Edit Verse';
         const deleteTitle = CURRENT_PRACTICE_TYPE === 'english' ? 'Delete Word' : 'Delete Verse';
+        const practiceTitle = CURRENT_PRACTICE_TYPE === 'english' ? 'Practice Word' : 'Practice Verse';
 
         html += `
             <tr data-id="${v.id}">
@@ -225,6 +229,7 @@ function applyFilters() {
                 <td><span class="bm-verse-cat-tag">${escapeHtml(v.category)}</span></td>
                 <td>${statusTag}</td>
                 <td style="text-align: right; white-space: nowrap;">
+                    <button class="action-btn" onclick="startSingleVerseSession(${v.id})" title="${practiceTitle}">🎯</button>
                     <button class="action-btn" onclick="editVerse(${v.id})" title="${editTitle}">✏️</button>
                     <button class="action-btn delete" onclick="deleteVerse(${v.id})" title="${deleteTitle}">🗑️</button>
                 </td>
@@ -607,6 +612,7 @@ function startSession(mode) {
     };
     document.getElementById('drill-title-lbl').textContent = modeNames[mode] || 'Study Session';
 
+    saveActiveSessionState();
     loadNextVerse();
 }
 
@@ -616,6 +622,7 @@ function loadNextVerse() {
 
     if (sessionQueue.length > sessionIdx) {
         currentV = sessionQueue[sessionIdx];
+        saveActiveSessionState();
         renderActivePhase();
     } else {
         showCelebration();
@@ -649,11 +656,17 @@ function showPhase(phaseId) {
             indicator.style.display = 'flex';
         }
     }
+
+    // Auto-save the active session state whenever we display a new phase
+    if (phaseId !== 'phase-loading') {
+        saveActiveSessionState();
+    }
 }
 
 function exitDrill() {
     document.getElementById('bm-drill-view').style.display = 'none';
     document.getElementById('bm-main-view').style.display = 'block';
+    localStorage.removeItem('bm_active_session');
     loadLibrary(); // refresh statistics and lists
 }
 
@@ -785,6 +798,8 @@ function startClozePhase() {
     });
 
     document.getElementById('cloze-verse-container').innerHTML = html;
+    // Clear any browser-restored values to prevent duplicate character bugs on resume
+    document.querySelectorAll('.bm-blank-input').forEach(inp => inp.value = '');
     document.getElementById('cloze-status-lbl').textContent = 'Fill in the blanks';
     document.getElementById('cloze-status-lbl').style.color = '';
     document.getElementById('cloze-next-btn').disabled = true;
@@ -1082,6 +1097,7 @@ async function rateVerse(rating) {
                 if (sessionIdx > 0 && sessionIdx % 5 === 0) {
                     showCelebration();
                 } else {
+                    saveActiveSessionState();
                     loadNextVerse();
                 }
             } else {
@@ -1104,6 +1120,7 @@ async function rateVerse(rating) {
                     if (sessionIdx > 0 && sessionIdx % 5 === 0) {
                         showCelebration();
                     } else {
+                        saveActiveSessionState();
                         loadNextVerse();
                     }
                 }
@@ -1117,6 +1134,7 @@ async function rateVerse(rating) {
 
 function skipVerse() {
     sessionIdx++;
+    saveActiveSessionState();
     loadNextVerse();
 }
 
@@ -1134,6 +1152,7 @@ function showCelebration() {
     }
         
     document.getElementById('done-message-lbl').textContent = doneMsg;
+    localStorage.removeItem('bm_active_session');
     showPhase('phase-done');
 }
 
@@ -1513,5 +1532,174 @@ async function keepInboxWord(idx) {
         console.error(err);
         showToast('❌ Error keeping word.');
     }
+}
+
+// ════════════════════════════════════════
+//  ACTIVE SESSION PERSISTENCE & RECOVERY
+// ════════════════════════════════════════
+
+function saveActiveSessionState() {
+    if (sessionQueue && sessionQueue.length > 0 && sessionIdx < sessionQueue.length) {
+        // Find which phase box is currently active (has class 'active')
+        let activePhase = '';
+        document.querySelectorAll('.bm-phase-box').forEach(p => {
+            if (p.classList.contains('active')) {
+                activePhase = p.id;
+            }
+        });
+
+        const state = {
+            practiceType: CURRENT_PRACTICE_TYPE,
+            mode: sessionMode,
+            queueIds: sessionQueue.map(v => v.id),
+            idx: sessionIdx,
+            mastered: sessionMastered,
+            phase: activePhase
+        };
+        localStorage.setItem('bm_active_session', JSON.stringify(state));
+    } else {
+        localStorage.removeItem('bm_active_session');
+    }
+}
+
+function checkAndPromptResumeSession() {
+    const saved = localStorage.getItem('bm_active_session');
+    if (!saved) return;
+
+    try {
+        const state = JSON.parse(saved);
+        if (state.queueIds && state.queueIds.length > 0 && state.idx < state.queueIds.length) {
+            // Show banner
+            const banner = document.getElementById('resume-session-banner');
+            const bannerText = document.getElementById('resume-banner-text');
+            if (banner && bannerText) {
+                const itemWord = state.practiceType === 'english' ? 'word(s)' : 'verse(s)';
+                const modeWord = state.mode === 'learn' ? 'learning' : state.mode === 'review' ? 'review' : 'type challenge';
+                bannerText.textContent = `You have an unfinished ${modeWord} session (${state.idx} of ${state.queueIds.length} ${itemWord} done).`;
+                banner.style.display = 'flex';
+            }
+        } else {
+            localStorage.removeItem('bm_active_session');
+        }
+    } catch (e) {
+        console.error('Error parsing active session cache:', e);
+        localStorage.removeItem('bm_active_session');
+    }
+}
+
+function hideResumeBanner() {
+    const banner = document.getElementById('resume-session-banner');
+    if (banner) banner.style.display = 'none';
+}
+
+function discardActiveSession() {
+    localStorage.removeItem('bm_active_session');
+    hideResumeBanner();
+}
+
+function resumeActiveSession() {
+    const saved = localStorage.getItem('bm_active_session');
+    if (!saved) return;
+
+    try {
+        const state = JSON.parse(saved);
+        
+        // Wait, what if CURRENT_PRACTICE_TYPE doesn't match?
+        // Switch to the correct practice type if needed and load the library
+        if (state.practiceType !== CURRENT_PRACTICE_TYPE) {
+            switchPracticeType(state.practiceType);
+            const checkInterval = setInterval(() => {
+                if (ALL_VERSES && ALL_VERSES.length > 0) {
+                    clearInterval(checkInterval);
+                    doResumeState(state);
+                }
+            }, 100);
+            return;
+        }
+
+        doResumeState(state);
+    } catch (e) {
+        console.error('Error restoring session:', e);
+        localStorage.removeItem('bm_active_session');
+        hideResumeBanner();
+    }
+}
+
+function doResumeState(state) {
+    const queue = state.queueIds.map(id => ALL_VERSES.find(v => v.id === id)).filter(Boolean);
+    if (queue.length === 0) {
+        showToast('⚠️ Could not load session items.');
+        localStorage.removeItem('bm_active_session');
+        hideResumeBanner();
+        return;
+    }
+
+    sessionMode = state.mode;
+    sessionQueue = queue;
+    sessionIdx = state.idx;
+    sessionMastered = state.mastered;
+    currentV = queue[sessionIdx];
+
+    // Toggle views
+    document.getElementById('bm-main-view').style.display = 'none';
+    document.getElementById('bm-drill-view').style.display = 'block';
+    
+    const modeNames = {
+        learn: CURRENT_PRACTICE_TYPE === 'english' ? 'Practice Word' : 'Practice Verse',
+        review: CURRENT_PRACTICE_TYPE === 'english' ? 'Review Word' : 'Review Verse',
+        type: 'Type Cold'
+    };
+    document.getElementById('drill-title-lbl').textContent = modeNames[sessionMode] || 'Study Session';
+
+    hideResumeBanner();
+    
+    // Resume the exact phase
+    if (state.phase && state.phase !== 'phase-loading' && state.phase !== 'phase-done') {
+        const tot = sessionQueue.length;
+        document.getElementById('drill-progress-bar').style.width = `${(sessionIdx / tot) * 100}%`;
+        document.getElementById('drill-counter-lbl').textContent = `${sessionIdx + 1} / ${tot} (✓ ${sessionMastered} mastered)`;
+
+        if (state.phase === 'phase-read') {
+            startReadPhase();
+        } else if (state.phase === 'phase-cloze') {
+            startClozePhase();
+        } else if (state.phase === 'phase-type') {
+            startTypePhase();
+        } else if (state.phase === 'phase-compare') {
+            startTypePhase(); // fallback: type it again
+        } else if (state.phase === 'phase-quick') {
+            startQuickPhase();
+        } else {
+            renderActivePhase();
+        }
+    } else {
+        renderActivePhase();
+    }
+}
+
+function startSingleVerseSession(id, mode = 'learn') {
+    const v = ALL_VERSES.find(item => item.id === id);
+    if (!v) return;
+
+    sessionMode = mode;
+    sessionQueue = [v];
+    sessionIdx = 0;
+    sessionMastered = 0;
+    currentV = v;
+
+    saveActiveSessionState();
+
+    // Toggle views
+    document.getElementById('bm-main-view').style.display = 'none';
+    document.getElementById('bm-drill-view').style.display = 'block';
+    
+    const modeNames = {
+        learn: CURRENT_PRACTICE_TYPE === 'english' ? 'Practice Word' : 'Practice Verse',
+        review: CURRENT_PRACTICE_TYPE === 'english' ? 'Review Word' : 'Review Verse',
+        type: 'Type Cold'
+    };
+    document.getElementById('drill-title-lbl').textContent = modeNames[mode] || 'Study Session';
+
+    loadNextVerse();
 }
 
