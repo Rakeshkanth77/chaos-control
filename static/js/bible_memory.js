@@ -90,11 +90,10 @@ function updateOverviewStats() {
     const total = ALL_VERSES.length;
     const mastered = ALL_VERSES.filter(v => v.mastered).length;
     
-    // Calculate full backlog of due items
+    // Calculate due items — only mastered ones (Review Due is mastered-only)
     const now = new Date();
     const fullDueCount = ALL_VERSES.filter(v => {
-        const nextReviewDate = new Date(v.next_review);
-        return nextReviewDate <= now;
+        return v.mastered && new Date(v.next_review) <= now;
     }).length;
 
     // Cap what we DISPLAY at the daily goal — shows today's target, not an overwhelming backlog
@@ -556,32 +555,40 @@ function startSession(mode) {
     currentV = null;
 
     const now = new Date();
+    const isEnglish = CURRENT_PRACTICE_TYPE === 'english';
+    const itemWord = isEnglish ? 'words' : 'verses';
 
     if (mode === 'review') {
-        // Verses that are due review (next_review <= now)
-        sessionQueue = ALL_VERSES.filter(v => new Date(v.next_review) <= now);
-        if (sessionQueue.length === 0) {
-            showToast('🎉 No verses due review today! Select another mode.');
+        // Only mastered items that are scheduled for review
+        const masteredDue = ALL_VERSES.filter(v => v.mastered && new Date(v.next_review) <= now);
+        if (masteredDue.length === 0) {
+            const hasMastered = ALL_VERSES.some(v => v.mastered);
+            if (!hasMastered) {
+                showToast(`⚠️ No mastered ${itemWord} yet. Use "Learn New" first to master some ${itemWord}!`);
+            } else {
+                showToast(`🎉 All caught up! No mastered ${itemWord} are due for review right now.`);
+            }
             return;
         }
+        sessionQueue = masteredDue;
         shuffle(sessionQueue);
     } else if (mode === 'learn') {
-        // Verses that haven't been reviewed yet or have lowest review count
+        // Only unmastered items — new learning
         sessionQueue = ALL_VERSES.filter(v => v.review_count === 0 && !v.mastered);
         if (sessionQueue.length === 0) {
-            // Fallback: load any unmastered verses
+            // Fallback: any unmastered verse
             sessionQueue = ALL_VERSES.filter(v => !v.mastered);
         }
         if (sessionQueue.length === 0) {
-            showToast('🏆 You have mastered all verses in your library! Add more verses to learn.');
+            showToast(`🏆 You have mastered all ${itemWord} in your library! Add more to learn.`);
             return;
         }
         shuffle(sessionQueue);
     } else {
-        // Quick recall or type cold (applies to all library verses)
-        sessionQueue = [...ALL_VERSES];
+        // Type It Cold — only mastered items (recall challenge)
+        sessionQueue = ALL_VERSES.filter(v => v.mastered);
         if (sessionQueue.length === 0) {
-            showToast('⚠️ Your library is empty. Please add some verses first.');
+            showToast(`⚠️ No mastered ${itemWord} yet. Complete "Learn New" first to unlock this mode!`);
             return;
         }
         shuffle(sessionQueue);
