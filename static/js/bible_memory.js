@@ -90,18 +90,20 @@ function updateOverviewStats() {
     const total = ALL_VERSES.length;
     const mastered = ALL_VERSES.filter(v => v.mastered).length;
     
-    // Calculate Due Count
+    // Calculate full backlog of due items
     const now = new Date();
-    const dueCount = ALL_VERSES.filter(v => {
-        // A verse is due if not mastered, or if it is scheduled for review now/past
+    const fullDueCount = ALL_VERSES.filter(v => {
         const nextReviewDate = new Date(v.next_review);
         return nextReviewDate <= now;
     }).length;
 
+    // Cap what we DISPLAY at the daily goal — shows today's target, not an overwhelming backlog
+    const displayedDueCount = Math.min(fullDueCount, GOAL_TARGET);
+
     // UI counts
     document.getElementById('mastered-count-display').textContent = mastered;
     document.getElementById('goal-count-display').textContent = GOAL_TARGET;
-    document.getElementById('stat-due-count').textContent = dueCount;
+    document.getElementById('stat-due-count').textContent = displayedDueCount;
     document.getElementById('stat-total-count').textContent = total;
     
     if (CURRENT_PRACTICE_TYPE === 'english') {
@@ -119,11 +121,11 @@ function updateOverviewStats() {
     const statDueLabel = document.getElementById('stat-due-label-lbl');
     if (statDueLabel) statDueLabel.textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Words Due Today' : 'Due Today';
 
-    // Update Mode review button label
+    // Update Mode review button label — show goal-capped count
     const modeBadgeDue = document.getElementById('mode-badge-due');
     if (modeBadgeDue) {
-        modeBadgeDue.textContent = `${dueCount} due`;
-        if (dueCount > 0) {
+        modeBadgeDue.textContent = `${displayedDueCount} due`;
+        if (displayedDueCount > 0) {
             modeBadgeDue.className = 'bm-mode-badge bm-badge-red';
         } else {
             modeBadgeDue.className = 'bm-mode-badge bm-badge-green';
