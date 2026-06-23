@@ -1125,7 +1125,7 @@
         <!-- READ PHASE (Step 1) -->
         <div id="phase-read" class="bm-phase-box text-center">
             <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 1: Read Aloud 📖</div>
-            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Read this verse out loud 3 times. Tap the button below each time you finish reading.</p>
+            <p id="read-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Read this verse out loud 3 times. Tap the button below each time you finish reading.</p>
             
             <div class="bm-learn-card">
                 <p class="bm-learn-ref" id="read-ref-lbl">--</p>
@@ -1160,7 +1160,7 @@
         <!-- CLOZE PHASE (Step 2) -->
         <div id="phase-cloze" class="bm-phase-box text-center">
             <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 2: Fill in the Blanks 🧩</div>
-            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Type the correct letters in the input boxes to complete the missing words.</p>
+            <p id="cloze-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Type the correct letters in the input boxes to complete the missing words.</p>
 
             <div class="bm-info-strip" style="margin-bottom: 12px;">
                 <p class="bm-info-lbl" id="cloze-ref-lbl">--</p>
@@ -1179,7 +1179,7 @@
         <!-- TYPE PHASE (Step 3) -->
         <div id="phase-type" class="bm-phase-box text-center">
             <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 3: Type from Memory ⌨️</div>
-            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Type the entire verse from memory. No looking!</p>
+            <p id="type-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Type the entire verse from memory. No looking!</p>
 
             <div class="bm-ref-preview">
                 <p class="bm-ref-preview-title">Type it from memory</p>
@@ -1204,7 +1204,7 @@
         <!-- COMPARE PHASE -->
         <div id="phase-compare" class="bm-phase-box text-center">
             <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 4: Check & Rate your Recall ⭐️</div>
-            <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Compare your typed attempt with the actual Bible verse text below.</p>
+            <p id="compare-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Compare your typed attempt with the actual Bible verse text below.</p>
             <div class="bm-compare-card" id="compare-results-card"></div>
             
             <p class="text-center" style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">
@@ -1236,7 +1236,7 @@
             <!-- Step 1 display -->
             <div id="quick-step1-header">
                 <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 1: Recite Out Loud 🗣️</div>
-                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Say the verse out loud from memory, then click Reveal to check your text.</p>
+                <p id="quick-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Say the verse out loud from memory, then click Reveal to check your text.</p>
             </div>
             
             <!-- Step 2 display (shown after reveal) -->
@@ -1245,7 +1245,7 @@
                 <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">How accurately did you say it? Rate yourself honestly below.</p>
             </div>
             <div class="bm-ref-preview">
-                <p class="bm-ref-preview-title">Recall this verse orally...</p>
+                <p class="bm-ref-preview-title" id="quick-recall-title-lbl">Recall this verse orally...</p>
                 <p class="bm-ref-preview-val" id="quick-ref-lbl">--</p>
             </div>
 
@@ -1283,7 +1283,7 @@
                 </div>
             </div>
             
-            <button class="btn btn-secondary btn-full" onclick="skipVerse()" style="margin-top: 10px;">Skip Verse →</button>
+            <button class="btn btn-secondary btn-full" id="quick-skip-btn" onclick="skipVerse()" style="margin-top: 10px;">Skip Verse →</button>
         </div>
 
         <!-- DONE CELEBRATION -->

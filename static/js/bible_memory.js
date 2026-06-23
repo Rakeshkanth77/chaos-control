@@ -25,7 +25,8 @@ let clozeHidden = new Set();
 // ════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-    loadLibrary();
+    const savedType = localStorage.getItem('bm_practice_type') || 'bible';
+    switchPracticeType(savedType);
 
     // Attach search event
     const searchBox = document.getElementById('verse-search-box');
@@ -641,6 +642,15 @@ function startReadPhase() {
     readStep = 0;
     renderDrillSteps(1);
 
+    const readInst = document.getElementById('read-instruction-lbl');
+    if (readInst) {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            readInst.textContent = 'Read this word and definition out loud 3 times. Tap the button below each time you finish reading.';
+        } else {
+            readInst.textContent = 'Read this verse out loud 3 times. Tap the button below each time you finish reading.';
+        }
+    }
+
     document.getElementById('read-ref-lbl').textContent = `${currentV.reference} · Category: ${currentV.category}`;
     document.getElementById('read-text-lbl').innerHTML = highlightKeywords(currentV.text);
 
@@ -689,7 +699,11 @@ function updateReadDots() {
         dot.classList.toggle('filled', i <= readStep);
     });
 
-    const messages = [
+    const messages = CURRENT_PRACTICE_TYPE === 'english' ? [
+        'Read it carefully. Take in the wording.',
+        'Read it again — emphasize the meaning.',
+        'One more time. Commit the definition to memory.'
+    ] : [
         'Read it carefully. Take in the wording.',
         'Read it again — emphasize the keywords.',
         'One more time. Commit the flow to memory.'
@@ -712,6 +726,14 @@ function advanceRead() {
 // ── STEP 2: CLOZE PHASE ──
 function startClozePhase() {
     renderDrillSteps(2);
+    const clozeInst = document.getElementById('cloze-instruction-lbl');
+    if (clozeInst) {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            clozeInst.textContent = 'Type the correct letters in the input boxes to complete the missing words of the definition.';
+        } else {
+            clozeInst.textContent = 'Type the correct letters in the input boxes to complete the missing words.';
+        }
+    }
     document.getElementById('cloze-ref-lbl').textContent = currentV.reference;
     document.getElementById('cloze-hook-lbl').textContent = currentV.hook ? `Hook: ${currentV.hook}` : '';
 
@@ -848,6 +870,23 @@ function gotoClozeNext() {
 function startTypePhase() {
     renderDrillSteps(3);
 
+    const typeInst = document.getElementById('type-instruction-lbl');
+    if (typeInst) {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            typeInst.textContent = 'Type the entire definition from memory. No looking!';
+        } else {
+            typeInst.textContent = 'Type the entire verse from memory. No looking!';
+        }
+    }
+    const typeInp = document.getElementById('type-attempt-input');
+    if (typeInp) {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            typeInp.placeholder = 'Type the definition out...';
+        } else {
+            typeInp.placeholder = 'Type the scripture out...';
+        }
+    }
+
     document.getElementById('type-ref-lbl').textContent = currentV.reference;
     document.getElementById('type-attempt-input').value = '';
 
@@ -899,6 +938,15 @@ function checkTyped() {
     const scoreColor = score >= 85 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
     const scoreDesc = score >= 85 ? 'Excellent!' : score >= 50 ? 'Getting closer...' : 'Needs review!';
 
+    const compareInst = document.getElementById('compare-instruction-lbl');
+    if (compareInst) {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            compareInst.textContent = 'Compare your typed attempt with the actual definition below.';
+        } else {
+            compareInst.textContent = 'Compare your typed attempt with the actual Bible verse text below.';
+        }
+    }
+
     const card = document.getElementById('compare-results-card');
     card.innerHTML = `
         <div class="bm-compare-sec">
@@ -921,6 +969,39 @@ function checkTyped() {
 
 // ── STEP 4: ORAL QUICK RECALL PHASE ──
 function startQuickPhase() {
+    const quickInst = document.getElementById('quick-instruction-lbl');
+    if (quickInst) {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            quickInst.textContent = 'Say the definition out loud from memory, then click Reveal to check your text.';
+        } else {
+            quickInst.textContent = 'Say the verse out loud from memory, then click Reveal to check your text.';
+        }
+    }
+    const quickTitle = document.getElementById('quick-recall-title-lbl');
+    if (quickTitle) {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            quickTitle.textContent = 'Recall this word definition orally...';
+        } else {
+            quickTitle.textContent = 'Recall this verse orally...';
+        }
+    }
+    const quickReveal = document.getElementById('quick-reveal-btn');
+    if (quickReveal) {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            quickReveal.textContent = 'Reveal Word Definition';
+        } else {
+            quickReveal.textContent = 'Reveal Scripture Text';
+        }
+    }
+    const quickSkip = document.getElementById('quick-skip-btn');
+    if (quickSkip) {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            quickSkip.textContent = 'Skip Word →';
+        } else {
+            quickSkip.textContent = 'Skip Verse →';
+        }
+    }
+
     document.getElementById('quick-ref-lbl').textContent = `${currentV.reference} · Category: ${currentV.category}`;
     
     const hookStrip = document.getElementById('quick-hook-strip');
@@ -1021,9 +1102,16 @@ function skipVerse() {
 
 function showCelebration() {
     const masteredCount = sessionMastered;
-    const doneMsg = masteredCount === 0
-        ? "Review session completed. Consistency is key to remembering!"
-        : `Well done! You mastered ${masteredCount} verse${masteredCount !== 1 ? 's' : ''} in this session!`;
+    let doneMsg = '';
+    if (masteredCount === 0) {
+        doneMsg = "Review session completed. Consistency is key to remembering!";
+    } else {
+        if (CURRENT_PRACTICE_TYPE === 'english') {
+            doneMsg = `Well done! You mastered ${masteredCount} word${masteredCount !== 1 ? 's' : ''} in this session!`;
+        } else {
+            doneMsg = `Well done! You mastered ${masteredCount} verse${masteredCount !== 1 ? 's' : ''} in this session!`;
+        }
+    }
         
     document.getElementById('done-message-lbl').textContent = doneMsg;
     showPhase('phase-done');
@@ -1133,6 +1221,7 @@ function showToast(msg) {
 
 function switchPracticeType(type) {
     CURRENT_PRACTICE_TYPE = type;
+    localStorage.setItem('bm_practice_type', type);
 
     // Toggle switch buttons
     const btnBible = document.getElementById('btn-switch-bible');
@@ -1214,7 +1303,12 @@ function switchPracticeType(type) {
 
     resetVerseForm();
     loadLibrary();
+    if (type === 'english') {
+        loadVocabCurationInbox();
+    }
 }
+
+let INBOX_WORDS = [];
 
 async function fetchDailyVocabBatch() {
     const fetchBtn = document.getElementById('fetch-vocab-btn');
@@ -1233,7 +1327,10 @@ async function fetchDailyVocabBatch() {
     try {
         const data = await bibleApiPost('/api/bible-memory/fetch-daily-vocab/');
         if (data.status === 'success' && data.words) {
+            const todayStr = new Date().toISOString().split('T')[0];
+            localStorage.setItem('vocab_inbox_date', todayStr);
             renderVocabInbox(data.words);
+            showToast('✓ Fetched daily vocabulary batch');
         } else {
             showToast('❌ Failed to fetch daily vocabulary.');
             inboxList.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">Failed to load words.</p>';
@@ -1248,10 +1345,32 @@ async function fetchDailyVocabBatch() {
     }
 }
 
+function loadVocabCurationInbox() {
+    const todayStr = new Date().toISOString().split('T')[0];
+    const cachedDate = localStorage.getItem('vocab_inbox_date');
+    const cachedWordsStr = localStorage.getItem('vocab_inbox_words');
+
+    if (cachedDate === todayStr && cachedWordsStr) {
+        try {
+            const words = JSON.parse(cachedWordsStr);
+            renderVocabInbox(words);
+            return;
+        } catch (e) {
+            console.error('Error parsing cached vocab words:', e);
+        }
+    }
+
+    // Auto-fetch if cache is missing or stale
+    fetchDailyVocabBatch();
+}
+
 function renderVocabInbox(words) {
+    INBOX_WORDS = words;
+    localStorage.setItem('vocab_inbox_words', JSON.stringify(words));
+
     const inboxList = document.getElementById('vocab-inbox-list');
     if (!words || words.length === 0) {
-        inboxList.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">No new words discovered.</p>';
+        inboxList.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">All daily words processed.</p>';
         return;
     }
 
@@ -1267,7 +1386,7 @@ function renderVocabInbox(words) {
                 ${w.hook ? `<p style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 4px; font-style: italic;">Mnemonic: ${escapeHtml(w.hook)}</p>` : ''}
                 ${w.context ? `<p style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 8px;">Sentence: "${escapeHtml(w.context)}"</p>` : ''}
                 <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn" style="padding: 4px 10px; font-size: 0.72rem; flex: 1;" onclick="keepInboxWord(${idx}, '${escapeHtml(w.reference.replace(/'/g, "\\'"))}', '${escapeHtml(w.text.replace(/'/g, "\\'"))}', '${escapeHtml(w.category.replace(/'/g, "\\'"))}', '${escapeHtml((w.hook || '').replace(/'/g, "\\'"))}', '${escapeHtml((w.context || '').replace(/'/g, "\\'"))}')">Keep</button>
+                    <button type="button" class="btn" style="padding: 4px 10px; font-size: 0.72rem; flex: 1;" onclick="keepInboxWord(${idx})">Keep</button>
                     <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.72rem; flex: 1;" onclick="dropInboxWord(${idx})">Drop</button>
                 </div>
             </div>
@@ -1283,27 +1402,27 @@ function dropInboxWord(idx) {
         card.style.transform = 'scale(0.9)';
         card.style.transition = 'all 0.3s ease';
         setTimeout(() => {
-            card.remove();
-            const list = document.getElementById('vocab-inbox-list');
-            if (list.children.length === 0) {
-                list.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">All daily words processed.</p>';
-            }
+            INBOX_WORDS.splice(idx, 1);
+            renderVocabInbox(INBOX_WORDS);
         }, 300);
     }
 }
 
-async function keepInboxWord(idx, reference, text, category, hook, context) {
+async function keepInboxWord(idx) {
+    const w = INBOX_WORDS[idx];
+    if (!w) return;
+
     try {
         const res = await bibleApiPost('/api/bible-memory/add-verse/', {
-            reference,
-            text,
-            category,
-            hook,
-            context,
+            reference: w.reference,
+            text: w.text,
+            category: w.category,
+            hook: w.hook || '',
+            context: w.context || '',
             practice_type: 'english'
         });
         if (res.status === 'success') {
-            showToast(`✓ Kept "${reference}"`);
+            showToast(`✓ Kept "${w.reference}"`);
             ALL_VERSES.push(res.verse);
             dropInboxWord(idx);
             updateOverviewStats();
