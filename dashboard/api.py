@@ -609,11 +609,6 @@ def seed_user_default_verses(user):
 def get_bible_verses(request):
     try:
         practice_type = request.GET.get('practice_type', 'bible')
-        # Check if user has any verses, if not and type is 'bible', seed default ones automatically
-        verses_count = BibleVerse.objects.filter(user=request.user, practice_type=practice_type).count()
-        if verses_count == 0 and practice_type == 'bible':
-            seed_user_default_verses(request.user)
-            
         verses = BibleVerse.objects.filter(user=request.user, practice_type=practice_type)
         
         # Serialize verses list
