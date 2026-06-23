@@ -110,11 +110,14 @@ function updateOverviewStats() {
         document.getElementById('library-count-label').textContent = `${total} verse${total !== 1 ? 's' : ''}`;
     }
 
-    const heroLabel = document.querySelector('.bm-hero p[style*="text-transform: uppercase"]');
+    const heroLabel = document.getElementById('hero-mastered-label-lbl');
     if (heroLabel) heroLabel.textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Words Mastered' : 'Verses Mastered';
 
-    const statTotalLabel = document.querySelector('.bm-stats-grid .bm-stat-card:nth-child(2) .bm-stat-label');
+    const statTotalLabel = document.getElementById('stat-total-label-lbl');
     if (statTotalLabel) statTotalLabel.textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Total Words' : 'Total Verses';
+
+    const statDueLabel = document.getElementById('stat-due-label-lbl');
+    if (statDueLabel) statDueLabel.textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Words Due Today' : 'Due Today';
 
     // Update Mode review button label
     const modeBadgeDue = document.getElementById('mode-badge-due');
@@ -439,9 +442,12 @@ async function deleteVerse(id) {
     const v = ALL_VERSES.find(item => item.id === id);
     if (!v) return;
 
+    const isEnglish = CURRENT_PRACTICE_TYPE === 'english';
     const confirmed = await window.confirmDialog({
-        title: 'Delete Verse',
-        message: `Are you sure you want to remove ${v.reference} from your memory library?`,
+        title: isEnglish ? 'Delete Word' : 'Delete Verse',
+        message: isEnglish 
+            ? `Are you sure you want to remove "${v.reference}" from your vocabulary library?`
+            : `Are you sure you want to remove ${v.reference} from your memory library?`,
         confirmText: 'Delete',
         cancelText: 'Cancel'
     });
@@ -450,7 +456,7 @@ async function deleteVerse(id) {
         try {
             const res = await bibleApiPost('/api/bible-memory/delete-verse/', { id });
             if (res.status === 'success') {
-                showToast(`Deleted ${v.reference}`);
+                showToast(isEnglish ? `Deleted "${v.reference}"` : `Deleted ${v.reference}`);
                 ALL_VERSES = ALL_VERSES.filter(item => item.id !== id);
                 
                 // Clear form if we deleted the verse being edited
@@ -465,7 +471,7 @@ async function deleteVerse(id) {
             }
         } catch (err) {
             console.error(err);
-            showToast('❌ Error deleting verse.');
+            showToast(isEnglish ? '❌ Error deleting word.' : '❌ Error deleting verse.');
         }
     }
 }
@@ -481,12 +487,17 @@ function resetVerseForm() {
     document.getElementById('clear-form-btn').style.display = 'none';
     
     const catSelect = document.getElementById('verse-category-input');
-    catSelect.value = 'Fear';
+    if (CURRENT_PRACTICE_TYPE === 'english') {
+        catSelect.value = 'Nouns';
+    } else {
+        catSelect.value = 'Fear';
+    }
     toggleCustomCategory(catSelect);
 }
 
 async function editGoalTarget() {
-    const goalStr = prompt('Enter your target number of verses to memorize:', GOAL_TARGET);
+    const isEnglish = CURRENT_PRACTICE_TYPE === 'english';
+    const goalStr = prompt(isEnglish ? 'Enter your target number of words to learn:' : 'Enter your target number of verses to memorize:', GOAL_TARGET);
     if (goalStr === null) return;
     
     const goal = parseInt(goalStr);
@@ -500,7 +511,7 @@ async function editGoalTarget() {
         if (res.status === 'success') {
             GOAL_TARGET = res.goal;
             updateOverviewStats();
-            showToast(`Goal updated to ${GOAL_TARGET} verses!`);
+            showToast(isEnglish ? `Goal updated to ${GOAL_TARGET} words!` : `Goal updated to ${GOAL_TARGET} verses!`);
         }
     } catch (err) {
         console.error(err);
@@ -592,7 +603,7 @@ function startSession(mode) {
 
 function loadNextVerse() {
     showPhase('phase-loading');
-    document.getElementById('drill-loading-msg').textContent = 'Preparing next scripture...';
+    document.getElementById('drill-loading-msg').textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Preparing next word...' : 'Preparing next scripture...';
 
     if (sessionQueue.length > sessionIdx) {
         currentV = sessionQueue[sessionIdx];
@@ -1226,6 +1237,7 @@ function switchPracticeType(type) {
     // Toggle switch buttons
     const btnBible = document.getElementById('btn-switch-bible');
     const btnEnglish = document.getElementById('btn-switch-english');
+    
     if (type === 'bible') {
         btnBible.classList.add('active');
         btnEnglish.classList.remove('active');
@@ -1262,6 +1274,26 @@ function switchPracticeType(type) {
             <option value="Strength">Strength</option>
             <option value="Custom">-- Custom Category --</option>
         `;
+
+        // Refined wording & Quote
+        const searchBox = document.getElementById('verse-search-box');
+        if (searchBox) searchBox.placeholder = 'Search reference or text...';
+
+        const quoteLbl = document.getElementById('hero-quote-lbl');
+        if (quoteLbl) quoteLbl.innerHTML = '"Thy word have I hid in mine heart, that I might not sin against thee." — Psalm 119:11';
+
+        const modeLearnIcon = document.getElementById('mode-learn-icon');
+        if (modeLearnIcon) modeLearnIcon.textContent = '📖';
+        const modeLearnName = document.getElementById('mode-learn-name');
+        if (modeLearnName) modeLearnName.textContent = 'Learn New Verse';
+        const modeLearnDesc = document.getElementById('mode-learn-desc');
+        if (modeLearnDesc) modeLearnDesc.textContent = 'Step-by-step training: Read → Blanks → Type.';
+        const modeReviewDesc = document.getElementById('mode-review-desc');
+        if (modeReviewDesc) modeReviewDesc.textContent = 'Review verses due today based on spaced repetition.';
+        const modeQuickDesc = document.getElementById('mode-quick-desc');
+        if (modeQuickDesc) modeQuickDesc.textContent = 'Recall aloud by reference, reveal text, and rate.';
+        const modeTypeDesc = document.getElementById('mode-type-desc');
+        if (modeTypeDesc) modeTypeDesc.textContent = 'See the reference only. Type the full verse from memory.';
     } else {
         btnBible.classList.remove('active');
         btnEnglish.classList.add('active');
@@ -1299,6 +1331,26 @@ function switchPracticeType(type) {
             <option value="Advanced">Advanced</option>
             <option value="Custom">-- Custom Category --</option>
         `;
+
+        // Refined wording & Quote
+        const searchBox = document.getElementById('verse-search-box');
+        if (searchBox) searchBox.placeholder = 'Search word or definition...';
+
+        const quoteLbl = document.getElementById('hero-quote-lbl');
+        if (quoteLbl) quoteLbl.innerHTML = '"The limits of my language mean the limits of my world." — Ludwig Wittgenstein';
+
+        const modeLearnIcon = document.getElementById('mode-learn-icon');
+        if (modeLearnIcon) modeLearnIcon.textContent = '🔤';
+        const modeLearnName = document.getElementById('mode-learn-name');
+        if (modeLearnName) modeLearnName.textContent = 'Learn New Word';
+        const modeLearnDesc = document.getElementById('mode-learn-desc');
+        if (modeLearnDesc) modeLearnDesc.textContent = 'Step-by-step training: Read → Blanks → Type.';
+        const modeReviewDesc = document.getElementById('mode-review-desc');
+        if (modeReviewDesc) modeReviewDesc.textContent = 'Review words due today based on spaced repetition.';
+        const modeQuickDesc = document.getElementById('mode-quick-desc');
+        if (modeQuickDesc) modeQuickDesc.textContent = 'Recall definition aloud by word, reveal definition, and rate.';
+        const modeTypeDesc = document.getElementById('mode-type-desc');
+        if (modeTypeDesc) modeTypeDesc.textContent = 'See the word only. Type the full definition from memory.';
     }
 
     resetVerseForm();
