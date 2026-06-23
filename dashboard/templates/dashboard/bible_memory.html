@@ -194,9 +194,15 @@
 
     .bm-modes-grid {
         display: grid;
-        grid-template-columns: repeat(2, 1fr);
+        grid-template-columns: repeat(3, 1fr);
         gap: 12px;
         margin-bottom: 20px;
+    }
+
+    @media (max-width: 768px) {
+        .bm-modes-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
     }
 
     @media (max-width: 480px) {
@@ -1029,14 +1035,6 @@
                                 <div class="bm-mode-name">Review Due</div>
                                 <div class="bm-mode-desc" id="mode-review-desc">Review verses due today based on spaced repetition.</div>
                                 <span class="bm-mode-badge bm-badge-red" id="mode-badge-due">0 due</span>
-                            </div>
-                        </div>
-                        <div class="bm-mode-card" onclick="startSession('quick')">
-                            <span class="bm-mode-icon">⚡</span>
-                            <div>
-                                <div class="bm-mode-name">Quick Recall (Oral)</div>
-                                <div class="bm-mode-desc" id="mode-quick-desc">Recall aloud by reference, reveal text, and rate.</div>
-                                <span class="bm-mode-badge bm-badge-yellow">No Typing</span>
                             </div>
                         </div>
                         <div class="bm-mode-card" onclick="startSession('type')">

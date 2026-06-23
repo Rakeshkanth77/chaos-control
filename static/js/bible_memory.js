@@ -879,7 +879,7 @@ function gotoClozeNext() {
 
 // ── STEP 3: TYPE PHASE ──
 function startTypePhase() {
-    renderDrillSteps(3);
+    renderDrillSteps(sessionMode === 'type' ? 1 : 3);
 
     const typeInst = document.getElementById('type-instruction-lbl');
     if (typeInst) {
@@ -975,7 +975,7 @@ function checkTyped() {
     `;
 
     showPhase('phase-compare');
-    renderDrillSteps(4);
+    renderDrillSteps(sessionMode === 'type' ? 2 : 4);
 }
 
 // ── STEP 4: ORAL QUICK RECALL PHASE ──
@@ -1148,7 +1148,28 @@ function renderDrillSteps(activeStep) {
 
     if (sessionMode === 'quick' || sessionMode === 'review') {
         const steps = [
-            { n: 1, lbl: '1. Recite Aloud' },
+            { n: 1, lbl: CURRENT_PRACTICE_TYPE === 'english' ? '1. Recite Definition' : '1. Recite Aloud' },
+            { n: 2, lbl: '2. Rate Self' }
+        ];
+        el.innerHTML = steps.map(s => {
+            let cls = '';
+            let dotVal = s.n;
+            if (s.n < activeStep) {
+                cls = 'done';
+                dotVal = '✓';
+            } else if (s.n === activeStep) {
+                cls = 'active';
+            }
+            return `
+                <div class="bm-step-node ${cls}">
+                    <div class="bm-step-dot">${dotVal}</div>
+                    <div class="bm-step-lbl">${s.lbl}</div>
+                </div>
+            `;
+        }).join('');
+    } else if (sessionMode === 'type') {
+        const steps = [
+            { n: 1, lbl: CURRENT_PRACTICE_TYPE === 'english' ? '1. Type Definition' : '1. Type Cold' },
             { n: 2, lbl: '2. Rate Self' }
         ];
         el.innerHTML = steps.map(s => {
@@ -1171,7 +1192,7 @@ function renderDrillSteps(activeStep) {
         const steps = [
             { n: 1, lbl: '1. Read' },
             { n: 2, lbl: '2. Fill Blanks' },
-            { n: 3, lbl: '3. Type Cold' },
+            { n: 3, lbl: CURRENT_PRACTICE_TYPE === 'english' ? '3. Type Definition' : '3. Type Cold' },
             { n: 4, lbl: '4. Rate' }
         ];
         el.innerHTML = steps.map(s => {
@@ -1290,8 +1311,6 @@ function switchPracticeType(type) {
         if (modeLearnDesc) modeLearnDesc.textContent = 'Step-by-step training: Read → Blanks → Type.';
         const modeReviewDesc = document.getElementById('mode-review-desc');
         if (modeReviewDesc) modeReviewDesc.textContent = 'Review verses due today based on spaced repetition.';
-        const modeQuickDesc = document.getElementById('mode-quick-desc');
-        if (modeQuickDesc) modeQuickDesc.textContent = 'Recall aloud by reference, reveal text, and rate.';
         const modeTypeDesc = document.getElementById('mode-type-desc');
         if (modeTypeDesc) modeTypeDesc.textContent = 'See the reference only. Type the full verse from memory.';
     } else {
@@ -1347,8 +1366,6 @@ function switchPracticeType(type) {
         if (modeLearnDesc) modeLearnDesc.textContent = 'Step-by-step training: Read → Blanks → Type.';
         const modeReviewDesc = document.getElementById('mode-review-desc');
         if (modeReviewDesc) modeReviewDesc.textContent = 'Review words due today based on spaced repetition.';
-        const modeQuickDesc = document.getElementById('mode-quick-desc');
-        if (modeQuickDesc) modeQuickDesc.textContent = 'Recall definition aloud by word, reveal definition, and rate.';
         const modeTypeDesc = document.getElementById('mode-type-desc');
         if (modeTypeDesc) modeTypeDesc.textContent = 'See the word only. Type the full definition from memory.';
     }
