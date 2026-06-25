@@ -1559,3 +1559,149 @@ body {
     }
 }
 
+
+/* ── Task Breakdown Column & Panel Styles ── */
+.dashboard-grid.breakdown-open {
+    grid-template-columns: repeat(4, 1fr) !important;
+}
+
+@media (min-width: 769px) {
+    .dashboard-page .dashboard-grid.breakdown-open {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+    .dashboard-grid.breakdown-open {
+        grid-template-columns: 1fr 1fr !important;
+        height: auto !important;
+        overflow: visible !important;
+    }
+}
+
+.task-breakdown-column {
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    overflow: hidden;
+    animation: slideInFromRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes slideInFromRight {
+    from {
+        opacity: 0;
+        transform: translateX(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateX(0);
+    }
+}
+
+.breakdown-card {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: 250px;
+    height: 100%;
+    overflow: hidden;
+}
+
+.breakdown-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+}
+
+.breakdown-header .panel-title {
+    width: 100%;
+    margin-bottom: 0;
+}
+
+.close-panel-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 1.1rem;
+    font-weight: bold;
+    cursor: pointer;
+    padding: 4px 8px;
+    border-radius: 6px;
+    transition: background 0.2s, color 0.2s;
+    line-height: 1;
+}
+
+.close-panel-btn:hover {
+    background: rgba(0, 0, 0, 0.05);
+    color: #ef4444;
+}
+
+.breakdown-fields-container {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    flex-grow: 1;
+    overflow-y: auto;
+    padding-right: 4px;
+}
+
+.breakdown-section {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.breakdown-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--accent-color);
+}
+
+.breakdown-textarea {
+    width: 100%;
+    min-height: 80px;
+    background: rgba(255, 255, 255, 0.5);
+    border: 1px solid rgba(12, 88, 85, 0.15);
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-family: inherit;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    resize: none;
+    outline: none;
+    transition: border-color 0.2s, background 0.2s;
+}
+
+.breakdown-textarea:focus {
+    border-color: rgba(12, 88, 85, 0.4);
+    background: rgba(255, 255, 255, 0.85);
+}
+
+.breakdown-save-status {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    opacity: 0.6;
+    margin-top: 10px;
+    text-align: right;
+    transition: opacity 0.2s;
+}
+
+.todo-item.active-breakdown {
+    border-left: 3.5px solid var(--accent-color) !important;
+    background: rgba(12, 88, 85, 0.04) !important;
+    box-shadow: 0 4px 12px rgba(12, 88, 85, 0.08) !important;
+}
+
+/* Action button styling */
+.action-btn.breakdown {
+    color: var(--accent-color);
+}
+.action-btn.breakdown:hover {
+    background: rgba(12, 88, 85, 0.08);
+}
+
+

@@ -35,7 +35,20 @@ class Todo(models.Model):
     def __str__(self):
         return f"{self.title} ({self.get_priority_display()})"
 
+class TaskBreakdown(models.Model):
+    """Stores structured breakdown notes for a single Todo task."""
+    todo = models.OneToOneField(Todo, on_delete=models.CASCADE, related_name='breakdown')
+    what = models.TextField(blank=True, help_text="What is the task / context")
+    definition = models.TextField(blank=True, help_text="How does task completion look like")
+    steps = models.TextField(blank=True, help_text="Steps to achieve the task")
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Breakdown for Todo #{self.todo_id}: {self.todo.title}"
+
+
 class DailyReflection(models.Model):
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     date = models.DateField()
     notes = models.TextField(blank=True)

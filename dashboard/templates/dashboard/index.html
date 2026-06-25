@@ -260,6 +260,7 @@
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
+                                <button class="action-btn breakdown">details</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -293,6 +294,7 @@
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
+                                <button class="action-btn breakdown">details</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -315,6 +317,7 @@
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
+                                <button class="action-btn breakdown">details</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -337,6 +340,7 @@
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
+                                <button class="action-btn breakdown">details</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -359,6 +363,7 @@
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
+                                <button class="action-btn breakdown">details</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -369,7 +374,50 @@
         </div>
     </div>
 
-    <!-- COLUMN 3: Daily Reflection Notes & AI Suggestions -->
+    <!-- COLUMN 3: Task Breakdown Panel (dynamic, opens on task click) -->
+    <div class="grid-column task-breakdown-column" id="task-breakdown-col" style="display: none;">
+        <div class="glass-panel breakdown-card">
+            <div class="breakdown-header">
+                <h2 class="panel-title" style="display: flex; justify-content: space-between; align-items: center; width: 100%;">
+                    <span id="breakdown-task-title" style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: calc(100% - 30px);">Task Breakdown</span>
+                    <button id="breakdown-close-btn" class="close-panel-btn" title="Close Panel">✕</button>
+                </h2>
+            </div>
+            
+            <div class="breakdown-fields-container">
+                <div class="breakdown-section">
+                    <label class="breakdown-label">1. What was the task</label>
+                    <textarea 
+                        id="breakdown-what" 
+                        class="breakdown-textarea" 
+                        placeholder="Provide details on what this task is..."
+                    ></textarea>
+                </div>
+
+                <div class="breakdown-section">
+                    <label class="breakdown-label">2. How the task completion looks like</label>
+                    <textarea 
+                        id="breakdown-definition" 
+                        class="breakdown-textarea" 
+                        placeholder="What are the success criteria? What does done look like?"
+                    ></textarea>
+                </div>
+
+                <div class="breakdown-section">
+                    <label class="breakdown-label">3. Steps to achieve above challenges</label>
+                    <textarea 
+                        id="breakdown-steps" 
+                        class="breakdown-textarea" 
+                        placeholder="Break it down into actionable steps..."
+                    ></textarea>
+                </div>
+            </div>
+
+            <div class="breakdown-save-status" id="breakdown-save-status">Saved</div>
+        </div>
+    </div>
+
+    <!-- COLUMN 4: Daily Reflection Notes & AI Suggestions -->
     <div class="grid-column">
         <div class="glass-panel reflection-card">
             <h2 class="panel-title">
@@ -395,6 +443,7 @@
 <script src="{% static 'js/braindump.js' %}"></script>
 <script src="{% static 'js/eisenhower.js' %}"></script>
 <script src="{% static 'js/reflection.js' %}"></script>
+<script src="{% static 'js/task_breakdown.js' %}"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════

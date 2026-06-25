@@ -297,6 +297,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
+                                <button class="action-btn breakdown">details</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>

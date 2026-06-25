@@ -26,6 +26,9 @@ urlpatterns = [
     path('api/profile/update-plan/', api.update_plan, name='api_update_plan'),
     path('api/profile/update-avatar/', api.update_avatar, name='api_update_avatar'),
     path('api/todo/update-title/', api.update_todo_title, name='api_update_todo_title'),
+    path('api/todo/breakdown/<int:todo_id>/', api.get_task_breakdown, name='api_get_task_breakdown'),
+    path('api/todo/breakdown/save/', api.save_task_breakdown, name='api_save_task_breakdown'),
+
     
     # Project API endpoints
     path('api/project/add/', api.add_project, name='api_add_project'),

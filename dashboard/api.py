@@ -5,7 +5,7 @@ from django.views.decorators.http import require_POST
 from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import datetime
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project, TaskBreakdown
 from .services import parse_brain_dump, generate_ai_reflection
 
 def get_date_from_request(data):
@@ -847,3 +847,65 @@ def fetch_daily_vocab(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
+# ── Task Breakdown endpoints ──────────────────────────────────────────────────
+
+from django.views.decorators.http import require_http_methods
+
+@csrf_exempt
+@require_http_methods(["GET"])
+@api_login_required
+def get_task_breakdown(request, todo_id):
+    """
+    GET /api/todo/breakdown/<todo_id>/
+    Fetch (or lazily create) the breakdown record for a todo.
+    Returns: { status, id, what, definition, steps }
+    """
+    try:
+        todo = Todo.objects.get(pk=todo_id, user=request.user)
+    except Todo.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Task not found'}, status=404)
+
+    breakdown, _ = TaskBreakdown.objects.get_or_create(todo=todo)
+    return JsonResponse({
+        'status': 'success',
+        'id': breakdown.pk,
+        'todo_id': todo.pk,
+        'what': breakdown.what,
+        'definition': breakdown.definition,
+        'steps': breakdown.steps,
+    })
+
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def save_task_breakdown(request):
+    """
+    POST /api/todo/breakdown/save/
+    Payload: { id (todo id), what?, definition?, steps? }
+    Updates only the fields that are present in the payload.
+    Returns: { status, updated_fields }
+    """
+    try:
+        data = json.loads(request.body)
+        todo_id = data.get('id')
+        if not todo_id:
+            return JsonResponse({'status': 'error', 'message': 'Missing todo id'}, status=400)
+
+        todo = Todo.objects.get(pk=todo_id, user=request.user)
+        breakdown, _ = TaskBreakdown.objects.get_or_create(todo=todo)
+
+        updated = []
+        for field in ('what', 'definition', 'steps'):
+            if field in data:
+                setattr(breakdown, field, data[field])
+                updated.append(field)
+
+        if updated:
+            breakdown.save(update_fields=updated + ['updated_at'])
+
+        return JsonResponse({'status': 'success', 'updated_fields': updated})
+    except Todo.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Task not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
