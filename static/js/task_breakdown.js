@@ -8,8 +8,10 @@ document.addEventListener('DOMContentLoaded', () => {
     const whatTextarea = document.getElementById('breakdown-what');
     const definitionTextarea = document.getElementById('breakdown-definition');
     const stepsTextarea = document.getElementById('breakdown-steps');
+    const challengesTextarea = document.getElementById('breakdown-challenges');
 
     let currentTodoId = null;
+    let currentTodoTitle = null;
     let debounceTimer = null;
 
     // Helper to get CSRF token (if needed, but apiPost handles it)
@@ -46,10 +48,22 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     /**
+     * Auto-grow a textarea to fit its content height.
+     * Resets to auto first so shrinking also works.
+     */
+    function autoGrow(textarea) {
+        if (!textarea) return;
+        textarea.style.height = 'auto';
+        textarea.style.height = textarea.scrollHeight + 'px';
+    }
+
+    /**
      * Open the breakdown panel for a specific task
      */
     async function openTaskBreakdown(todoId, todoTitle, todoElement) {
         if (!todoId) return;
+
+        currentTodoTitle = todoTitle;
 
         // Clear active states on all items and set this one as active
         document.querySelectorAll('.todo-item').forEach(item => {
@@ -79,27 +93,42 @@ document.addEventListener('DOMContentLoaded', () => {
             gridContainer.classList.add('breakdown-open');
         }
 
+        // Clear textareas while loading
+        whatTextarea.value = '';
+        definitionTextarea.value = '';
+        stepsTextarea.value = '';
+        challengesTextarea.value = '';
+
         // Fetch task details from API
         try {
             const res = await fetch(`/api/todo/breakdown/${todoId}/`);
             if (!res.ok) throw new Error('Failed to fetch breakdown details');
             const data = await res.json();
-            
+
             if (data.status === 'success') {
                 // Only populate if we're still looking at the same task
                 if (currentTodoId === todoId) {
-                    whatTextarea.value = data.what || '';
+                    // Auto-populate "what" with task title if blank — saves re-typing
+                    whatTextarea.value = data.what || todoTitle;
                     definitionTextarea.value = data.definition || '';
                     stepsTextarea.value = data.steps || '';
+                    challengesTextarea.value = data.challenges || '';
+
+                    // Resize all textareas after population
+                    [whatTextarea, definitionTextarea, stepsTextarea, challengesTextarea].forEach(autoGrow);
+
                     showSaved();
                 }
             }
         } catch (err) {
             console.error(err);
             if (currentTodoId === todoId) {
-                whatTextarea.value = '';
+                // Still pre-fill "what" with the task title on error
+                whatTextarea.value = todoTitle;
                 definitionTextarea.value = '';
                 stepsTextarea.value = '';
+                challengesTextarea.value = '';
+                [whatTextarea, definitionTextarea, stepsTextarea, challengesTextarea].forEach(autoGrow);
                 saveStatus.textContent = 'Failed to load data';
                 saveStatus.style.opacity = '1';
             }
@@ -111,6 +140,7 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function closeTaskBreakdown() {
         currentTodoId = null;
+        currentTodoTitle = null;
         localStorage.removeItem('active_breakdown_todo_id');
 
         document.querySelectorAll('.todo-item').forEach(item => {
@@ -128,13 +158,17 @@ document.addEventListener('DOMContentLoaded', () => {
         whatTextarea.value = '';
         definitionTextarea.value = '';
         stepsTextarea.value = '';
+        challengesTextarea.value = '';
     }
 
     /**
      * Handle input auto-save changes (debounced)
      */
-    function handleInput() {
+    function handleInput(e) {
         if (!currentTodoId) return;
+
+        // Auto-grow the textarea that was just typed in
+        autoGrow(e.target);
 
         showSaving();
         clearTimeout(debounceTimer);
@@ -144,7 +178,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 id: currentTodoId,
                 what: whatTextarea.value,
                 definition: definitionTextarea.value,
-                steps: stepsTextarea.value
+                steps: stepsTextarea.value,
+                challenges: challengesTextarea.value,
             };
 
             try {
@@ -163,7 +198,7 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Attach text area input event listeners
-    [whatTextarea, definitionTextarea, stepsTextarea].forEach(textarea => {
+    [whatTextarea, definitionTextarea, stepsTextarea, challengesTextarea].forEach(textarea => {
         if (textarea) {
             textarea.addEventListener('input', handleInput);
         }

@@ -41,10 +41,12 @@ class TaskBreakdown(models.Model):
     what = models.TextField(blank=True, help_text="What is the task / context")
     definition = models.TextField(blank=True, help_text="How does task completion look like")
     steps = models.TextField(blank=True, help_text="Steps to achieve the task")
+    challenges = models.TextField(blank=True, help_text="Challenges you might face")
     updated_at = models.DateTimeField(auto_now=True)
 
     def __str__(self):
         return f"Breakdown for Todo #{self.todo_id}: {self.todo.title}"
+
 
 
 class DailyReflection(models.Model):

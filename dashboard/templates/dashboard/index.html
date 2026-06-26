@@ -142,29 +142,7 @@
     .command-banner-content { padding: 12px 16px; }
 }
 
-.auto-refresh-control {
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(45, 212, 191, 0.15);
-    border-radius: 10px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    padding: 6px 12px;
-}
-.auto-refresh-control select {
-    background: transparent;
-    color: #fff;
-    border: none;
-    font-size: 0.8rem;
-    font-family: 'Outfit', sans-serif;
-    font-weight: 600;
-    cursor: pointer;
-    outline: none;
-}
-.auto-refresh-control select option {
-    background: #061616;
-    color: #fff;
-}
+
 </style>
 {% endblock %}
 
@@ -184,16 +162,6 @@
             </div>
         </div>
         <div class="banner-right">
-            <div class="banner-stat auto-refresh-control">
-                <span class="banner-stat-label" style="margin-top: 0; color: rgba(45,212,191,0.85); font-family: 'JetBrains Mono', monospace; font-size: 0.65rem; white-space: nowrap;">Auto Refresh</span>
-                <select id="auto-refresh-select">
-                    <option value="off">Off</option>
-                    <option value="30">30s</option>
-                    <option value="60">1m</option>
-                    <option value="300">5m</option>
-                </select>
-                <span id="refresh-countdown-lbl" style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #2dd4bf; display: none; margin-left: 4px;"></span>
-            </div>
             <div class="banner-stat">
                 <div class="banner-stat-num" id="banner-total-tasks">—</div>
                 <div class="banner-stat-label">Tasks Today</div>
@@ -384,13 +352,14 @@
                 </h2>
             </div>
             
-            <div class="breakdown-fields-container">
+        <div class="breakdown-fields-container">
                 <div class="breakdown-section">
                     <label class="breakdown-label">1. What was the task</label>
                     <textarea 
                         id="breakdown-what" 
                         class="breakdown-textarea" 
                         placeholder="Provide details on what this task is..."
+                        rows="2"
                     ></textarea>
                 </div>
 
@@ -400,15 +369,27 @@
                         id="breakdown-definition" 
                         class="breakdown-textarea" 
                         placeholder="What are the success criteria? What does done look like?"
+                        rows="2"
                     ></textarea>
                 </div>
 
                 <div class="breakdown-section">
-                    <label class="breakdown-label">3. Steps to achieve above challenges</label>
+                    <label class="breakdown-label">3. Steps to achieve</label>
                     <textarea 
                         id="breakdown-steps" 
                         class="breakdown-textarea" 
                         placeholder="Break it down into actionable steps..."
+                        rows="3"
+                    ></textarea>
+                </div>
+
+                <div class="breakdown-section">
+                    <label class="breakdown-label">4. Challenges you might face</label>
+                    <textarea 
+                        id="breakdown-challenges" 
+                        class="breakdown-textarea" 
+                        placeholder="What obstacles or blockers might you encounter?"
+                        rows="2"
                     ></textarea>
                 </div>
             </div>
@@ -590,53 +571,8 @@
     if (grid) observer.observe(grid, { childList: true, subtree: true });
 })();
 
-(function initAutoRefresh() {
-    const select = document.getElementById('auto-refresh-select');
-    const countdownLbl = document.getElementById('refresh-countdown-lbl');
-    if (!select || !countdownLbl) return;
 
-    let countdownInterval = null;
-    let secondsLeft = 0;
 
-    function startTimer(seconds) {
-        stopTimer();
-        secondsLeft = seconds;
-        countdownLbl.style.display = 'inline';
-        countdownLbl.textContent = `(${secondsLeft}s)`;
-
-        countdownInterval = setInterval(() => {
-            secondsLeft--;
-            if (secondsLeft <= 0) {
-                clearInterval(countdownInterval);
-                window.location.reload();
-            } else {
-                countdownLbl.textContent = `(${secondsLeft}s)`;
-            }
-        }, 1000);
-    }
-
-    function stopTimer() {
-        if (countdownInterval) clearInterval(countdownInterval);
-        countdownLbl.style.display = 'none';
-    }
-
-    select.addEventListener('change', () => {
-        const val = select.value;
-        localStorage.setItem('auto_refresh_interval', val);
-        if (val === 'off') {
-            stopTimer();
-        } else {
-            startTimer(parseInt(val));
-        }
-    });
-
-    // Initialize from localStorage
-    const savedInterval = localStorage.getItem('auto_refresh_interval') || 'off';
-    select.value = savedInterval;
-    if (savedInterval !== 'off') {
-        startTimer(parseInt(savedInterval));
-    }
-})();
 </script>
 
 {% endblock %}

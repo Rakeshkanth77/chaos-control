@@ -1604,7 +1604,7 @@ body {
     flex-grow: 1;
     min-height: 250px;
     height: 100%;
-    overflow: hidden;
+    overflow-y: auto;
 }
 
 .breakdown-header {
@@ -1642,7 +1642,7 @@ body {
     flex-direction: column;
     gap: 16px;
     flex-grow: 1;
-    overflow-y: auto;
+    overflow-y: visible;
     padding-right: 4px;
 }
 
@@ -1663,7 +1663,7 @@ body {
 
 .breakdown-textarea {
     width: 100%;
-    min-height: 80px;
+    min-height: 60px;
     background: rgba(255, 255, 255, 0.5);
     border: 1px solid rgba(12, 88, 85, 0.15);
     border-radius: 12px;
@@ -1673,7 +1673,9 @@ body {
     color: var(--text-primary);
     resize: none;
     outline: none;
+    overflow: hidden; /* hides scrollbar while auto-growing */
     transition: border-color 0.2s, background 0.2s;
+    box-sizing: border-box;
 }
 
 .breakdown-textarea:focus {

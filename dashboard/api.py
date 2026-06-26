@@ -873,6 +873,7 @@ def get_task_breakdown(request, todo_id):
         'what': breakdown.what,
         'definition': breakdown.definition,
         'steps': breakdown.steps,
+        'challenges': breakdown.challenges,
     })
 
 
@@ -896,7 +897,7 @@ def save_task_breakdown(request):
         breakdown, _ = TaskBreakdown.objects.get_or_create(todo=todo)
 
         updated = []
-        for field in ('what', 'definition', 'steps'):
+        for field in ('what', 'definition', 'steps', 'challenges'):
             if field in data:
                 setattr(breakdown, field, data[field])
                 updated.append(field)
