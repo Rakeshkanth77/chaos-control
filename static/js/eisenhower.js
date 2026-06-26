@@ -543,39 +543,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         eisenhowerColumn.classList.remove('has-expanded');
     }
-
-    // ========== END-OF-DAY COMPLETED TASK CLEAR ==========
-    // At 11:59 PM, fade out and remove completed tasks from all Eisenhower blocks
-    // to reclaim space. DB records are NOT touched — just visual cleanup.
-    function scheduleEODClear() {
-        const now = new Date();
-        const eod = new Date();
-        eod.setHours(23, 59, 0, 0); // 11:59:00 PM today
-
-        let msUntilEOD = eod - now;
-        // If we're already past 11:59 PM, schedule for tomorrow
-        if (msUntilEOD <= 0) {
-            msUntilEOD += 24 * 60 * 60 * 1000;
-        }
-
-        setTimeout(() => {
-            const completedItems = document.querySelectorAll('.priority-list .todo-item.completed');
-            completedItems.forEach(item => {
-                item.style.transition = 'opacity 0.7s ease, max-height 0.7s ease';
-                item.style.opacity = '0';
-                item.style.maxHeight = '0';
-                item.style.overflow = 'hidden';
-                setTimeout(() => {
-                    item.remove();
-                    updatePriorityCounts();
-                }, 750);
-            });
-
-            // Reschedule for the next day
-            scheduleEODClear();
-        }, msUntilEOD);
-    }
-
-    scheduleEODClear();
 });
+
 

@@ -246,4 +246,28 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }, 300);
     }
+
+    // ========== END-OF-DAY BREAKDOWN PANEL CLEAR ==========
+    // At 11:59 PM, clear the breakdown panel fields and close the panel.
+    // The data is already saved in the DB — this just resets the UI for the next day.
+    function scheduleBreakdownEODClear() {
+        const now = new Date();
+        const eod = new Date();
+        eod.setHours(23, 59, 0, 0); // 11:59:00 PM today
+
+        let msUntilEOD = eod - now;
+        if (msUntilEOD <= 0) {
+            msUntilEOD += 24 * 60 * 60 * 1000; // past 11:59 PM, schedule for tomorrow
+        }
+
+        setTimeout(() => {
+            // Close and clear the breakdown panel
+            closeTaskBreakdown();
+
+            // Reschedule for next day
+            scheduleBreakdownEODClear();
+        }, msUntilEOD);
+    }
+
+    scheduleBreakdownEODClear();
 });
