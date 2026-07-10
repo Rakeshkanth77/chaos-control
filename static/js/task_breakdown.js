@@ -14,12 +14,25 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentTodoTitle = null;
     let debounceTimer = null;
 
-    // Helper to get CSRF token (if needed, but apiPost handles it)
-    // apiPost is attached to window in base.html
+    // ── Mobile detection ─────────────────────────────────────────────────────
+    function isMobile() {
+        return window.innerWidth <= 768;
+    }
 
-    /**
-     * Show saving status in the indicator
-     */
+    // ── Create / get mobile backdrop ──────────────────────────────────────────
+    function getMobileBackdrop() {
+        let backdrop = document.getElementById('mobile-breakdown-backdrop');
+        if (!backdrop) {
+            backdrop = document.createElement('div');
+            backdrop.id = 'mobile-breakdown-backdrop';
+            backdrop.className = 'mobile-breakdown-backdrop';
+            document.body.appendChild(backdrop);
+            backdrop.addEventListener('click', closeTaskBreakdown);
+        }
+        return backdrop;
+    }
+
+    // ── Status helpers ────────────────────────────────────────────────────────
     function showSaving() {
         if (saveStatus) {
             saveStatus.textContent = 'Saving...';
@@ -27,9 +40,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Show saved status in the indicator
-     */
     function showSaved() {
         if (saveStatus) {
             saveStatus.textContent = 'Saved';
@@ -37,9 +47,6 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Show error status in the indicator
-     */
     function showError() {
         if (saveStatus) {
             saveStatus.textContent = 'Error saving changes';
@@ -47,19 +54,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
-    /**
-     * Auto-grow a textarea to fit its content height.
-     * Resets to auto first so shrinking also works.
-     */
+    // ── Auto-grow textarea height ─────────────────────────────────────────────
     function autoGrow(textarea) {
         if (!textarea) return;
         textarea.style.height = 'auto';
         textarea.style.height = textarea.scrollHeight + 'px';
     }
 
-    /**
-     * Open the breakdown panel for a specific task
-     */
+    // ── Open breakdown panel ──────────────────────────────────────────────────
     async function openTaskBreakdown(todoId, todoTitle, todoElement) {
         if (!todoId) return;
 
@@ -72,7 +74,6 @@ document.addEventListener('DOMContentLoaded', () => {
         if (todoElement) {
             todoElement.classList.add('active-breakdown');
         } else {
-            // Find in DOM if opened from page load
             const domEl = document.querySelector(`.todo-item[data-id="${todoId}"]`);
             if (domEl) domEl.classList.add('active-breakdown');
         }
@@ -80,24 +81,42 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTodoId = todoId;
         localStorage.setItem('active_breakdown_todo_id', todoId);
 
-        // Update Title
+        // Update title
         if (taskTitleSpan) {
             taskTitleSpan.textContent = todoTitle;
         }
 
-        // Show panel
-        if (breakdownCol) {
-            breakdownCol.style.display = 'flex';
-        }
-        if (gridContainer) {
-            gridContainer.classList.add('breakdown-open');
+        if (isMobile()) {
+            // ── Mobile: show as bottom-sheet modal ────────────────────────────
+            const backdrop = getMobileBackdrop();
+
+            if (breakdownCol) {
+                breakdownCol.style.display = 'flex';
+            }
+            // Do NOT add breakdown-open class on mobile (keeps grid at 1fr)
+            // but body gets a class to lock scrolling
+            document.body.classList.add('breakdown-open-mobile');
+
+            // Trigger backdrop fade-in on next frame
+            requestAnimationFrame(() => {
+                backdrop.classList.add('active');
+            });
+
+        } else {
+            // ── Desktop/Tablet: show as additional grid column ─────────────────
+            if (breakdownCol) {
+                breakdownCol.style.display = 'flex';
+            }
+            if (gridContainer) {
+                gridContainer.classList.add('breakdown-open');
+            }
         }
 
         // Clear textareas while loading
-        whatTextarea.value = '';
-        definitionTextarea.value = '';
-        stepsTextarea.value = '';
-        challengesTextarea.value = '';
+        if (whatTextarea) whatTextarea.value = '';
+        if (definitionTextarea) definitionTextarea.value = '';
+        if (stepsTextarea) stepsTextarea.value = '';
+        if (challengesTextarea) challengesTextarea.value = '';
 
         // Fetch task details from API
         try {
@@ -109,10 +128,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Only populate if we're still looking at the same task
                 if (currentTodoId === todoId) {
                     // Auto-populate "what" with task title if blank — saves re-typing
-                    whatTextarea.value = data.what || todoTitle;
-                    definitionTextarea.value = data.definition || '';
-                    stepsTextarea.value = data.steps || '';
-                    challengesTextarea.value = data.challenges || '';
+                    if (whatTextarea) whatTextarea.value = data.what || todoTitle;
+                    if (definitionTextarea) definitionTextarea.value = data.definition || '';
+                    if (stepsTextarea) stepsTextarea.value = data.steps || '';
+                    if (challengesTextarea) challengesTextarea.value = data.challenges || '';
 
                     // Resize all textareas after population
                     [whatTextarea, definitionTextarea, stepsTextarea, challengesTextarea].forEach(autoGrow);
@@ -124,20 +143,20 @@ document.addEventListener('DOMContentLoaded', () => {
             console.error(err);
             if (currentTodoId === todoId) {
                 // Still pre-fill "what" with the task title on error
-                whatTextarea.value = todoTitle;
-                definitionTextarea.value = '';
-                stepsTextarea.value = '';
-                challengesTextarea.value = '';
+                if (whatTextarea) whatTextarea.value = todoTitle;
+                if (definitionTextarea) definitionTextarea.value = '';
+                if (stepsTextarea) stepsTextarea.value = '';
+                if (challengesTextarea) challengesTextarea.value = '';
                 [whatTextarea, definitionTextarea, stepsTextarea, challengesTextarea].forEach(autoGrow);
-                saveStatus.textContent = 'Failed to load data';
-                saveStatus.style.opacity = '1';
+                if (saveStatus) {
+                    saveStatus.textContent = 'Failed to load data';
+                    saveStatus.style.opacity = '1';
+                }
             }
         }
     }
 
-    /**
-     * Close the task breakdown panel
-     */
+    // ── Close breakdown panel ─────────────────────────────────────────────────
     function closeTaskBreakdown() {
         currentTodoId = null;
         currentTodoTitle = null;
@@ -147,23 +166,38 @@ document.addEventListener('DOMContentLoaded', () => {
             item.classList.remove('active-breakdown');
         });
 
-        if (breakdownCol) {
-            breakdownCol.style.display = 'none';
-        }
-        if (gridContainer) {
-            gridContainer.classList.remove('breakdown-open');
+        if (isMobile()) {
+            // Mobile: hide backdrop and sheet
+            const backdrop = document.getElementById('mobile-breakdown-backdrop');
+            if (backdrop) {
+                backdrop.classList.remove('active');
+            }
+            document.body.classList.remove('breakdown-open-mobile');
+
+            // Delay hiding the sheet to allow fade animation
+            setTimeout(() => {
+                if (breakdownCol) {
+                    breakdownCol.style.display = 'none';
+                }
+            }, 300);
+        } else {
+            // Desktop/tablet: remove grid column
+            if (breakdownCol) {
+                breakdownCol.style.display = 'none';
+            }
+            if (gridContainer) {
+                gridContainer.classList.remove('breakdown-open');
+            }
         }
 
-        // Clear values to avoid quick flashes next time
-        whatTextarea.value = '';
-        definitionTextarea.value = '';
-        stepsTextarea.value = '';
-        challengesTextarea.value = '';
+        // Clear values
+        if (whatTextarea) whatTextarea.value = '';
+        if (definitionTextarea) definitionTextarea.value = '';
+        if (stepsTextarea) stepsTextarea.value = '';
+        if (challengesTextarea) challengesTextarea.value = '';
     }
 
-    /**
-     * Handle input auto-save changes (debounced)
-     */
+    // ── Auto-save on input (debounced) ────────────────────────────────────────
     function handleInput(e) {
         if (!currentTodoId) return;
 
@@ -176,14 +210,13 @@ document.addEventListener('DOMContentLoaded', () => {
         debounceTimer = setTimeout(async () => {
             const payload = {
                 id: currentTodoId,
-                what: whatTextarea.value,
-                definition: definitionTextarea.value,
-                steps: stepsTextarea.value,
-                challenges: challengesTextarea.value,
+                what: whatTextarea ? whatTextarea.value : '',
+                definition: definitionTextarea ? definitionTextarea.value : '',
+                steps: stepsTextarea ? stepsTextarea.value : '',
+                challenges: challengesTextarea ? challengesTextarea.value : '',
             };
 
             try {
-                // Utilizing window.apiPost configured globally in dashboard
                 const response = await window.apiPost('/api/todo/breakdown/save/', payload);
                 if (response.status === 'success') {
                     showSaved();
@@ -197,29 +230,44 @@ document.addEventListener('DOMContentLoaded', () => {
         }, 800);
     }
 
-    // Attach text area input event listeners
+    // Attach textarea input listeners
     [whatTextarea, definitionTextarea, stepsTextarea, challengesTextarea].forEach(textarea => {
         if (textarea) {
             textarea.addEventListener('input', handleInput);
         }
     });
 
-    // Close button click handler
+    // Close button handler
     if (closeBtn) {
         closeBtn.addEventListener('click', closeTaskBreakdown);
     }
 
-    // Global document event delegation for todo item selection
+    // ── Global delegation for "details" button clicks on todo items ───────────
     document.addEventListener('click', (e) => {
+        // Specifically handle "details" button click
+        const detailsBtn = e.target.closest('.action-btn.breakdown');
+        if (detailsBtn) {
+            e.stopPropagation();
+            const todoItem = detailsBtn.closest('.todo-item');
+            if (!todoItem) return;
+            const id = todoItem.dataset.id;
+            const titleSpan = todoItem.querySelector('.todo-text');
+            const title = titleSpan ? titleSpan.textContent.trim() : 'Task Breakdown';
+            openTaskBreakdown(id, title, todoItem);
+            return;
+        }
+
+        // Also handle clicking anywhere on a todo item (but not on action buttons)
         const todoItem = e.target.closest('.todo-item');
         if (!todoItem) return;
 
-        // Skip interactive input elements inside the todo item so they don't open the breakdown
+        // Skip interactive input elements inside the todo item
         if (e.target.closest('.todo-checkbox') ||
             e.target.closest('.todo-edit-input') ||
             e.target.closest('.action-btn.edit') ||
             e.target.closest('.action-btn.delete') ||
-            e.target.closest('.todo-inline-edit-wrapper')) {
+            e.target.closest('.todo-inline-edit-wrapper') ||
+            e.target.closest('.action-btn')) {
             return;
         }
 
@@ -230,10 +278,53 @@ document.addEventListener('DOMContentLoaded', () => {
         openTaskBreakdown(id, title, todoItem);
     });
 
-    // Check if there was an active breakdown open previously and restore it
+    // ── Handle resize between mobile and desktop ──────────────────────────────
+    // If user rotates device, clean up the layout
+    let resizeTimer = null;
+    window.addEventListener('resize', () => {
+        clearTimeout(resizeTimer);
+        resizeTimer = setTimeout(() => {
+            // If a breakdown is open, re-open in the correct mode
+            if (currentTodoId) {
+                const todoEl = document.querySelector(`.todo-item[data-id="${currentTodoId}"]`);
+                const title = currentTodoTitle || 'Task Breakdown';
+
+                // Close silently then reopen in the new mode
+                const savedId = currentTodoId;
+                const savedTitle = title;
+
+                // Clean up without clearing the currentTodoId
+                if (isMobile()) {
+                    // Was desktop mode, switch to mobile
+                    if (gridContainer) gridContainer.classList.remove('breakdown-open');
+                    if (breakdownCol) {
+                        breakdownCol.style.display = 'flex';
+                    }
+                    const backdrop = getMobileBackdrop();
+                    backdrop.classList.add('active');
+                    document.body.classList.add('breakdown-open-mobile');
+                } else {
+                    // Was mobile mode, switch to desktop
+                    const backdrop = document.getElementById('mobile-breakdown-backdrop');
+                    if (backdrop) backdrop.classList.remove('active');
+                    document.body.classList.remove('breakdown-open-mobile');
+                    if (breakdownCol) breakdownCol.style.display = 'flex';
+                    if (gridContainer) gridContainer.classList.add('breakdown-open');
+                }
+            }
+        }, 200);
+    });
+
+    // ── Escape key to close ───────────────────────────────────────────────────
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape' && currentTodoId) {
+            closeTaskBreakdown();
+        }
+    });
+
+    // ── Restore last active breakdown on page load ────────────────────────────
     const lastActiveTodoId = localStorage.getItem('active_breakdown_todo_id');
     if (lastActiveTodoId) {
-        // Run after a tiny delay so other scripts have loaded / initialized
         setTimeout(() => {
             const targetTodo = document.querySelector(`.todo-item[data-id="${lastActiveTodoId}"]`);
             if (targetTodo) {
@@ -241,30 +332,24 @@ document.addEventListener('DOMContentLoaded', () => {
                 const title = titleSpan ? titleSpan.textContent.trim() : 'Task Breakdown';
                 openTaskBreakdown(lastActiveTodoId, title, targetTodo);
             } else {
-                // If todo was completed/deleted in the meantime, clean localStorage
                 localStorage.removeItem('active_breakdown_todo_id');
             }
         }, 300);
     }
 
-    // ========== END-OF-DAY BREAKDOWN PANEL CLEAR ==========
-    // At 11:59 PM, clear the breakdown panel fields and close the panel.
-    // The data is already saved in the DB — this just resets the UI for the next day.
+    // ── End-of-day auto-clear ─────────────────────────────────────────────────
     function scheduleBreakdownEODClear() {
         const now = new Date();
         const eod = new Date();
-        eod.setHours(23, 59, 0, 0); // 11:59:00 PM today
+        eod.setHours(23, 59, 0, 0);
 
         let msUntilEOD = eod - now;
         if (msUntilEOD <= 0) {
-            msUntilEOD += 24 * 60 * 60 * 1000; // past 11:59 PM, schedule for tomorrow
+            msUntilEOD += 24 * 60 * 60 * 1000;
         }
 
         setTimeout(() => {
-            // Close and clear the breakdown panel
             closeTaskBreakdown();
-
-            // Reschedule for next day
             scheduleBreakdownEODClear();
         }, msUntilEOD);
     }

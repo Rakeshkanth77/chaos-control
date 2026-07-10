@@ -1332,9 +1332,18 @@ body {
     .priority-block { flex: none !important; height: auto !important; min-height: 80px !important; }
     .priority-list { max-height: 150px !important; overflow-y: auto; }
 
-    .reflection-card { flex: none !important; min-height: 200px; }
-    .reflection-textarea { min-height: 120px !important; }
+    .reflection-card { flex: none !important; min-height: 200px; display: flex !important; flex-direction: column !important; }
+    .reflection-textarea { min-height: 120px !important; flex: 1 !important; }
     .reflection-results-stack { max-height: 250px !important; }
+
+    /* Always show todo actions on mobile (touch devices have no :hover) */
+    .todo-actions { opacity: 1 !important; }
+
+    /* Ensure grid column that holds Notes is never hidden */
+    .dashboard-grid .grid-column:last-child {
+        display: flex !important;
+        flex-direction: column !important;
+    }
 
 
     .glass-panel { padding: 16px !important; }
@@ -1510,30 +1519,39 @@ body {
 
 
 /* ── Task Breakdown Column & Panel Styles ── */
-.dashboard-grid.breakdown-open {
-    grid-template-columns: repeat(4, 1fr) !important;
-}
 
-@media (min-width: 769px) {
+/* Desktop: expand grid to 4 columns */
+@media (min-width: 1025px) {
+    .dashboard-grid.breakdown-open {
+        grid-template-columns: repeat(4, 1fr) !important;
+    }
     .dashboard-page .dashboard-grid.breakdown-open {
         grid-template-columns: repeat(4, 1fr) !important;
     }
 }
 
+/* Tablet (769–1024px): breakdown appears as 3rd column, 2-col then wraps */
 @media (min-width: 769px) and (max-width: 1024px) {
     .dashboard-grid.breakdown-open {
         grid-template-columns: 1fr 1fr !important;
         height: auto !important;
         overflow: visible !important;
     }
+    /* On tablet, breakdown col flows below as normal grid cell */
+    .task-breakdown-column {
+        grid-column: span 2;
+    }
 }
 
-.task-breakdown-column {
-    display: flex;
-    flex-direction: column;
-    height: 100%;
-    overflow: hidden;
-    animation: slideInFromRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+/* Desktop slide-in column animation */
+@media (min-width: 1025px) {
+    .task-breakdown-column {
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+        animation: slideInFromRight 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
 }
 
 @keyframes slideInFromRight {
@@ -1544,6 +1562,108 @@ body {
     to {
         opacity: 1;
         transform: translateX(0);
+    }
+}
+
+/* ── Mobile Bottom-Sheet for Breakdown Panel ── */
+@media (max-width: 768px) {
+    /* Mobile: breakdown column is a BOTTOM SHEET, not a grid child */
+    .task-breakdown-column {
+        position: fixed !important;
+        bottom: 0 !important;
+        left: 0 !important;
+        right: 0 !important;
+        top: auto !important;
+        width: 100% !important;
+        height: auto !important;
+        max-height: 88vh !important;
+        z-index: 9000 !important;
+        border-radius: 24px 24px 0 0 !important;
+        overflow: hidden !important;
+        display: none; /* JS controls this */
+        flex-direction: column !important;
+        background: rgba(240, 247, 246, 0.98) !important;
+        backdrop-filter: blur(20px) !important;
+        -webkit-backdrop-filter: blur(20px) !important;
+        border-top: 1px solid rgba(255,255,255,0.6) !important;
+        box-shadow: 0 -8px 40px rgba(12, 88, 85, 0.18) !important;
+        /* Slide in from bottom animation */
+        animation: slideUpFromBottom 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Bottom-sheet handle bar */
+    .task-breakdown-column::before {
+        content: '';
+        display: block;
+        width: 40px;
+        height: 4px;
+        background: rgba(12, 88, 85, 0.2);
+        border-radius: 2px;
+        margin: 12px auto 4px;
+        flex-shrink: 0;
+    }
+
+    /* Keep grid at 1 column even when breakdown is open */
+    .dashboard-grid.breakdown-open {
+        grid-template-columns: 1fr !important;
+    }
+
+    /* Backdrop for bottom sheet */
+    .mobile-breakdown-backdrop {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.35);
+        z-index: 8999;
+        backdrop-filter: blur(2px);
+        -webkit-backdrop-filter: blur(2px);
+        opacity: 0;
+        transition: opacity 0.3s ease;
+        pointer-events: none;
+    }
+    .mobile-breakdown-backdrop.active {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    /* Bottom sheet card styling */
+    .breakdown-card {
+        border-radius: 0 !important;
+        min-height: 0 !important;
+        height: auto !important;
+        flex-shrink: 0;
+        overflow-y: auto !important;
+        max-height: calc(88vh - 28px) !important;
+        padding: 16px !important;
+    }
+
+    /* Fields container scrolls inside the sheet */
+    .breakdown-fields-container {
+        max-height: 55vh !important;
+        overflow-y: auto !important;
+        padding-right: 2px;
+    }
+
+    /* Make breakdown textareas comfortable on mobile */
+    .breakdown-textarea {
+        font-size: 0.95rem !important;
+        min-height: 70px !important;
+        padding: 12px !important;
+    }
+
+    /* Lock body scroll when sheet is open */
+    body.breakdown-open-mobile {
+        overflow: hidden !important;
+    }
+}
+
+@keyframes slideUpFromBottom {
+    from {
+        opacity: 0;
+        transform: translateY(60px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
     }
 }
 
