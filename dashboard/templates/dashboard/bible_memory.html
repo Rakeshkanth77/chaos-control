@@ -1086,7 +1086,6 @@
         <!-- Resume Session Banner -->
         <div id="resume-session-banner" class="glass-panel" style="display: none; background: rgba(12, 88, 85, 0.05); border: 1px solid rgba(12, 88, 85, 0.2); padding: 12px 16px; margin-bottom: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-radius: 12px; width: 100%;">
             <div style="display: flex; align-items: center; gap: 8px;">
-                <span style="font-size: 1.2rem;">⏱️</span>
                 <span id="resume-banner-text" style="font-size: 0.88rem; font-weight: 500; color: var(--text-primary);">You have an unfinished practice session.</span>
             </div>
             <div style="display: flex; gap: 8px;">
@@ -1102,7 +1101,7 @@
                 <span class="bm-big-count" id="mastered-count-display">0</span>
                 <span style="font-size: 1.5rem; font-weight: 600; color: var(--text-secondary); margin: 0 4px;">/</span>
                 <span class="bm-goal-label" id="goal-label-display" title="Click to change goal">
-                    <span id="goal-count-display">1</span> <span style="font-size: 0.75rem;">⚙️</span>
+                    <span id="goal-count-display">1</span> <span style="display: inline-flex; align-items: center; opacity: 0.7; margin-left: 2px; vertical-align: middle;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
                 </span>
             </div>
             <p id="hero-mastered-label-lbl" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: var(--text-secondary); margin-top: 2px;">Verses Mastered</p>
@@ -1185,7 +1184,7 @@
                 <div class="glass-panel" id="vocab-inbox-panel" style="display: none; padding: 20px;">
                     <h3 class="panel-title">Vocabulary Discovery Inbox</h3>
                     <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">Discover advanced vocabulary words curated daily. Keep what fits your learning queue and drop what doesn't.</p>
-                    <button type="button" class="btn btn-secondary w-100" id="fetch-vocab-btn" onclick="fetchDailyVocabBatch()">Search/Fetch Daily Words 🔍</button>
+                    <button type="button" class="btn btn-secondary w-100" id="fetch-vocab-btn" onclick="fetchDailyVocabBatch()">Search/Fetch Daily Words</button>
                     
                     <div id="vocab-inbox-list" style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto; padding-right: 4px;">
                         <!-- Fetched words will load here as cards -->
@@ -1202,7 +1201,9 @@
                     <h3 class="bm-modes-title">Memory Training Modes</h3>
                     <div class="bm-modes-grid">
                         <div class="bm-mode-card" onclick="startSession('learn')">
-                            <span class="bm-mode-icon" id="mode-learn-icon">📖</span>
+                            <span class="bm-mode-icon" id="mode-learn-icon" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                            </span>
                             <div>
                                 <div class="bm-mode-name" id="mode-learn-name">Learn New Verse</div>
                                 <div class="bm-mode-desc" id="mode-learn-desc">Step-by-step training: Read → Blanks → Type.</div>
@@ -1210,7 +1211,9 @@
                             </div>
                         </div>
                         <div class="bm-mode-card" onclick="startSession('review')">
-                            <span class="bm-mode-icon">🔁</span>
+                            <span class="bm-mode-icon" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
+                            </span>
                             <div>
                                 <div class="bm-mode-name">Review Due</div>
                                 <div class="bm-mode-desc" id="mode-review-desc">Review verses due today based on spaced repetition.</div>
@@ -1218,7 +1221,9 @@
                             </div>
                         </div>
                         <div class="bm-mode-card" onclick="startSession('type')">
-                            <span class="bm-mode-icon">⌨️</span>
+                            <span class="bm-mode-icon" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6" y2="8"></line><line x1="10" y1="8" x2="10" y2="8"></line><line x1="14" y1="8" x2="14" y2="8"></line><line x1="18" y1="8" x2="18" y2="8"></line><line x1="6" y1="12" x2="6" y2="12"></line><line x1="10" y1="12" x2="10" y2="12"></line><line x1="14" y1="12" x2="14" y2="12"></line><line x1="18" y1="12" x2="18" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>
+                            </span>
                             <div>
                                 <div class="bm-mode-name">Type It Cold</div>
                                 <div class="bm-mode-desc" id="mode-type-desc">See the reference only. Type the full verse from memory.</div>
@@ -1349,14 +1354,14 @@
             <p class="bm-cloze-status" id="cloze-status-lbl">Fill in the blanks</p>
 
             <div class="btn-row">
-                <button class="btn btn-secondary w-25" onclick="clozeHint()">💡 Hint</button>
+                <button class="btn btn-secondary w-25" onclick="clozeHint()">Hint</button>
                 <button class="btn w-75" id="cloze-next-btn" onclick="gotoClozeNext()" disabled>Check & Continue →</button>
             </div>
         </div>
 
         <!-- TYPE PHASE (Step 3) -->
         <div id="phase-type" class="bm-phase-box text-center">
-            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 3: Type from Memory ⌨️</div>
+            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 3: Type from Memory</div>
             <p id="type-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Type the entire verse from memory. No looking!</p>
 
             <div class="bm-ref-preview">
@@ -1381,7 +1386,7 @@
 
         <!-- COMPARE PHASE -->
         <div id="phase-compare" class="bm-phase-box text-center">
-            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 4: Check & Rate your Recall ⭐️</div>
+            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 4: Check & Rate your Recall</div>
             <p id="compare-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Compare your typed attempt with the actual Bible verse text below.</p>
             <div class="bm-compare-card" id="compare-results-card"></div>
             
@@ -1391,19 +1396,19 @@
             
             <div class="bm-rate-row">
                 <button class="bm-rate-btn bm-rate-red" onclick="rateVerse(1)">
-                    😰 Blank
+                    Blank
                     <span class="bm-rate-btn-sub">Repeat now</span>
                 </button>
                 <button class="bm-rate-btn bm-rate-yellow" onclick="rateVerse(2)">
-                    😅 Partial
+                    Partial
                     <span class="bm-rate-btn-sub">Soon</span>
                 </button>
                 <button class="bm-rate-btn bm-rate-blue" onclick="rateVerse(3)">
-                    🙂 Almost
+                    Almost
                     <span class="bm-rate-btn-sub">Later</span>
                 </button>
                 <button class="bm-rate-btn bm-rate-green" onclick="rateVerse(4)">
-                    ✅ Got it!
+                    Got it!
                     <span class="bm-rate-btn-sub">Mastered</span>
                 </button>
             </div>
@@ -1413,13 +1418,13 @@
         <div id="phase-quick" class="bm-phase-box text-center">
             <!-- Step 1 display -->
             <div id="quick-step1-header">
-                <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 1: Recite Out Loud 🗣️</div>
+                <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 1: Recite Out Loud</div>
                 <p id="quick-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Say the verse out loud from memory, then click Reveal to check your text.</p>
             </div>
             
             <!-- Step 2 display (shown after reveal) -->
             <div id="quick-step2-header" style="display:none;">
-                <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 2: Self-Rate your Accuracy ⭐️</div>
+                <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 2: Self-Rate your Accuracy</div>
                 <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">How accurately did you say it? Rate yourself honestly below.</p>
             </div>
             <div class="bm-ref-preview">

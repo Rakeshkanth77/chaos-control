@@ -72,6 +72,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 // We'll calculate simple counts from datasets
                 const sumReviewed = res.flashcards_reviewed.reduce((a, b) => a + b, 0);
                 totalFlashcardsDisplay.textContent = sumReviewed; // displays total reviewed in last 7 days for simplicity
+                
+                // Render GitHub-Style Contribution Calendar
+                renderContributionGrid(res.contribution_grid || []);
 
                 // Render Todo Line Chart (Created vs Completed)
                 const ctxTodo = document.getElementById('todo-chart').getContext('2d');
@@ -200,6 +203,65 @@ document.addEventListener('DOMContentLoaded', () => {
     if (tipContainer) {
         const randomTip = tips[Math.floor(Math.random() * tips.length)];
         tipContainer.textContent = `"${randomTip}"`;
+    }
+
+    function renderContributionGrid(contributionData) {
+        const gridContainer = document.getElementById('contribution-grid');
+        if (!gridContainer) return;
+        
+        gridContainer.innerHTML = '';
+        
+        const today = new Date();
+        const startDate = new Date();
+        startDate.setDate(today.getDate() - 364); 
+        
+        const contributions = {};
+        contributionData.forEach(item => {
+            contributions[item.date] = item.count;
+        });
+        
+        const startDayOfWeek = startDate.getDay();
+        
+        let currentDate = new Date(startDate);
+        let weekCol = document.createElement('div');
+        weekCol.className = 'contrib-week';
+        gridContainer.appendChild(weekCol);
+        
+        for (let i = 0; i < startDayOfWeek; i++) {
+            const spacer = document.createElement('div');
+            spacer.className = 'contrib-cell spacer';
+            weekCol.appendChild(spacer);
+        }
+        
+        while (currentDate <= today) {
+            if (currentDate.getDay() === 0 && currentDate > startDate) {
+                weekCol = document.createElement('div');
+                weekCol.className = 'contrib-week';
+                gridContainer.appendChild(weekCol);
+            }
+            
+            const year = currentDate.getFullYear();
+            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
+            const day = String(currentDate.getDate()).padStart(2, '0');
+            const dateStr = `${year}-${month}-${day}`;
+            
+            const count = contributions[dateStr] || 0;
+            
+            const cell = document.createElement('div');
+            cell.className = `contrib-cell level-${getCellLevel(count)}`;
+            cell.title = `${count} task${count !== 1 ? 's' : ''} completed on ${currentDate.toLocaleDateString()}`;
+            
+            weekCol.appendChild(cell);
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+    }
+
+    function getCellLevel(count) {
+        if (count === 0) return 0;
+        if (count <= 2) return 1;
+        if (count <= 4) return 2;
+        if (count <= 6) return 3;
+        return 4;
     }
 
     loadAnalytics();

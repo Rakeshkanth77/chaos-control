@@ -95,6 +95,36 @@ def profile_view(request):
         'total_pomodoros': total_pomodoros,
         'plans': UserProfile.PLAN_CHOICES,
     }
+    
+    # Retrieve system stats for SaaS corporate metrics if user is staff
+    if request.user.is_staff:
+        total_users = User.objects.count()
+        system_total_todos = Todo.objects.count()
+        system_completed_todos = Todo.objects.filter(is_completed=True).count()
+        system_completed_pomodoros = PomodoroSession.objects.filter(completed=True).count()
+        
+        free_plans = UserProfile.objects.filter(plan='free').count()
+        pro_plans = UserProfile.objects.filter(plan='pro').count()
+        ultimate_plans = UserProfile.objects.filter(plan='ultimate').count()
+        
+        search_query = request.GET.get('q', '')
+        if search_query:
+            users_list = User.objects.filter(username__icontains=search_query) | User.objects.filter(email__icontains=search_query)
+        else:
+            users_list = User.objects.all().order_by('-date_joined')[:50]
+            
+        context.update({
+            'total_users': total_users,
+            'system_total_todos': system_total_todos,
+            'system_completed_todos': system_completed_todos,
+            'system_completed_pomodoros': system_completed_pomodoros,
+            'free_plans': free_plans,
+            'pro_plans': pro_plans,
+            'ultimate_plans': ultimate_plans,
+            'users_list': users_list,
+            'search_query': search_query,
+        })
+        
     return render(request, 'dashboard/profile.html', context)
 
 
@@ -118,35 +148,9 @@ def bible_memory_view(request):
 
 @user_passes_test(lambda u: u.is_staff, login_url='/')
 def ops_dashboard(request):
-    # Retrieve system stats for SaaS corporate metrics
-    total_users = User.objects.count()
-    total_todos = Todo.objects.count()
-    completed_todos = Todo.objects.filter(is_completed=True).count()
-    completed_pomodoros = PomodoroSession.objects.filter(completed=True).count()
-    
-    # Calculate plan breakdown
-    free_plans = UserProfile.objects.filter(plan='free').count()
-    pro_plans = UserProfile.objects.filter(plan='pro').count()
-    ultimate_plans = UserProfile.objects.filter(plan='ultimate').count()
-    
-    # Simple user search and list
-    search_query = request.GET.get('q', '')
-    if search_query:
-        users_list = User.objects.filter(username__icontains=search_query) | User.objects.filter(email__icontains=search_query)
-    else:
-        users_list = User.objects.all().order_by('-date_joined')[:50]
-        
-    context = {
-        'total_users': total_users,
-        'total_todos': total_todos,
-        'completed_todos': completed_todos,
-        'completed_pomodoros': completed_pomodoros,
-        'free_plans': free_plans,
-        'pro_plans': pro_plans,
-        'ultimate_plans': ultimate_plans,
-        'users_list': users_list,
-        'search_query': search_query,
-    }
-    return render(request, 'dashboard/ops_dashboard.html', context)
-
-
+    # Redirect to the integrated ops tab on profile, passing forward search params
+    query = request.GET.urlencode()
+    url = '/profile/?tab=ops'
+    if query:
+        url += '&' + query
+    return redirect(url)

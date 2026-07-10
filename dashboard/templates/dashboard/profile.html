@@ -1,20 +1,74 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Profile | to-do made by researcher{% endblock %}
+{% block title %}Profile Hub | to-do made by researcher{% endblock %}
 
 {% block extra_css %}
 <style>
-    .profile-grid {
+    /* ── Tabbed Navigation ── */
+    .profile-tabs-nav {
         display: flex;
         justify-content: center;
+        gap: 12px;
+        margin: 0 auto 30px;
+        width: 100%;
+        max-width: 650px;
+        flex-wrap: wrap;
+    }
+    .profile-tab-btn {
+        background: rgba(255, 255, 255, 0.55);
+        border: 1px solid rgba(255, 255, 255, 0.6);
+        border-radius: 14px;
+        padding: 10px 22px;
+        font-family: 'Outfit', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--text-secondary);
+        cursor: pointer;
+        transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        box-shadow: 0 4px 12px rgba(12, 88, 85, 0.02);
+    }
+    .profile-tab-btn:hover {
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--text-primary);
+        transform: translateY(-1px);
+    }
+    .profile-tab-btn.active {
+        background: var(--accent-color);
+        color: #fff;
+        border-color: var(--accent-color);
+        box-shadow: 0 8px 20px rgba(12, 88, 85, 0.16);
+    }
+
+    /* ── Tab Layout & Panels ── */
+    .profile-tab-content {
+        display: none;
+        width: 100%;
+    }
+    .profile-tab-content.active {
+        display: block;
+        animation: fadeInTab 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    @keyframes fadeInTab {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── Settings Tab (Re-centered and optimized for mobile) ── */
+    .profile-grid {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
         width: 100%;
         max-width: 500px;
         margin: 0 auto;
         padding-bottom: 60px;
     }
 
-    /* Left Card: User Card & Stats */
     .user-card {
         display: flex;
         flex-direction: column;
@@ -45,71 +99,26 @@
         font-weight: 700;
         transition: transform 0.2s, box-shadow 0.2s;
     }
-
     .avatar-wrapper:hover {
         transform: scale(1.03);
         box-shadow: 0 10px 24px rgba(0,0,0,0.15);
     }
-
     .avatar-upload-overlay {
         position: absolute;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
+        top: 0; left: 0;
+        width: 100%; height: 100%;
         background: rgba(0, 0, 0, 0.4);
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        color: #fff;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        opacity: 0;
-        transition: opacity 0.2s;
+        display: flex; align-items: center; justify-content: center;
+        color: #fff; font-size: 0.75rem; font-weight: 600;
+        text-transform: uppercase; letter-spacing: 0.5px;
+        opacity: 0; transition: opacity 0.2s;
     }
+    .avatar-wrapper:hover .avatar-upload-overlay { opacity: 1; }
+    .avatar-wrapper img { width: 100%; height: 100%; object-fit: cover; }
 
-    .avatar-wrapper:hover .avatar-upload-overlay {
-        opacity: 1;
-    }
-
-    .avatar-wrapper img {
-        width: 100%;
-        height: 100%;
-        object-fit: cover;
-    }
-
-    .user-info-text {
-        display: flex;
-        flex-direction: column;
-        gap: 6px;
-    }
-
-    .user-name {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.5rem;
-        font-weight: 700;
-        color: var(--text-primary);
-    }
-
-    .user-email {
-        font-size: 0.88rem;
-        color: var(--text-secondary);
-    }
-
-    .user-plan-badge {
-        display: inline-block;
-        padding: 4px 12px;
-        background: var(--accent-color);
-        color: #fff;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-top: 4px;
-    }
+    .user-info-text { display: flex; flex-direction: column; gap: 6px; }
+    .user-name { font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); }
+    .user-email { font-size: 0.88rem; color: var(--text-secondary); }
 
     .user-stats-list {
         width: 100%;
@@ -120,119 +129,251 @@
         border-top: 1px solid rgba(0, 0, 0, 0.06);
         padding-top: 16px;
     }
+    .stat-row { display: flex; justify-content: space-between; font-size: 0.88rem; color: var(--text-secondary); }
+    .stat-value { font-weight: 600; color: var(--text-primary); }
 
-    .stat-row {
+    /* ── Analytics Tab Styles ── */
+    .analytics-section {
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: 60px;
+    }
+    .analytics-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+    .streak-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 24px;
+        min-height: 160px;
+    }
+    .streak-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 6px;
+    }
+    .streak-number {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+    .totals-card {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        min-height: 160px;
+    }
+    .total-stat-item {
         display: flex;
         justify-content: space-between;
+        align-items: center;
+    }
+    .total-stat-value {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.5rem;
+        font-weight: 800;
+        color: var(--text-primary);
+    }
+    .total-stat-label {
         font-size: 0.88rem;
         color: var(--text-secondary);
     }
-
-    .stat-value {
-        font-weight: 600;
-        color: var(--text-primary);
-    }
-
-    /* Right Card: Settings & Subscription Management */
-    .settings-panel {
+    .analytics-chart-panel {
+        padding: 20px;
+        height: 320px;
         display: flex;
         flex-direction: column;
-        gap: 32px;
+    }
+    .chart-wrapper {
+        position: relative;
+        flex-grow: 1;
+        width: 100%;
+        height: 100%;
+        min-height: 0;
     }
 
-    .settings-section-title {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.25rem;
-        font-weight: 700;
-        margin-bottom: 16px;
-        color: var(--text-primary);
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-    }
-
-    .plans-flex {
+    /* ── Task Completion Contribution Grid Styles ── */
+    .contrib-grid-container {
         display: flex;
         flex-direction: column;
-        gap: 16px;
-    }
-
-    .plan-select-card {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
+        gap: 12px;
         padding: 24px;
-        border-radius: 16px;
-        background: rgba(255, 255, 255, 0.3);
-        border: 1px solid rgba(255, 255, 255, 0.4);
-        cursor: pointer;
-        transition: all 0.2s;
+        background: var(--card-bg);
+        border: var(--card-border);
+        border-radius: var(--card-radius);
+        margin-bottom: 24px;
+        width: 100%;
     }
-
-    .plan-select-card:hover {
-        background: rgba(255, 255, 255, 0.45);
-        border-color: rgba(12, 88, 85, 0.25);
-    }
-
-    .plan-select-card.active {
-        background: rgba(12, 88, 85, 0.04);
-        border-color: var(--accent-color);
-        box-shadow: 0 4px 15px rgba(12, 88, 85, 0.03);
-    }
-
-    .plan-info-left {
+    .contrib-header {
         display: flex;
-        gap: 16px;
+        justify-content: space-between;
         align-items: center;
+        flex-wrap: wrap;
+        gap: 8px;
     }
-
-    .plan-radio-circle {
-        width: 20px;
-        height: 20px;
-        border-radius: 50%;
-        border: 2px solid rgba(0, 0, 0, 0.15);
+    .contrib-title {
+        font-family: 'Outfit', sans-serif;
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: var(--text-primary);
+    }
+    .contrib-grid-wrapper {
+        width: 100%;
+        overflow-x: auto;
+        padding-bottom: 8px;
+    }
+    .contrib-grid {
         display: flex;
-        align-items: center;
-        justify-content: center;
-        transition: border-color 0.2s;
+        gap: 3px;
+        min-width: max-content;
     }
-
-    .plan-select-card.active .plan-radio-circle {
-        border-color: var(--accent-color);
+    .contrib-week {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
     }
-
-    .plan-select-card.active .plan-radio-circle::after {
-        content: "";
+    .contrib-cell {
         width: 10px;
         height: 10px;
-        border-radius: 50%;
-        background: var(--accent-color);
+        border-radius: 2px;
+        background: rgba(12, 88, 85, 0.05);
+        transition: background-color 0.2s;
+    }
+    .contrib-cell.spacer {
+        background: transparent;
+    }
+    .contrib-cell.level-0 { background: rgba(12, 88, 85, 0.05); }
+    .contrib-cell.level-1 { background: rgba(45, 212, 191, 0.25); }
+    .contrib-cell.level-2 { background: rgba(45, 212, 191, 0.5); }
+    .contrib-cell.level-3 { background: rgba(12, 88, 85, 0.65); }
+    .contrib-cell.level-4 { background: rgba(12, 88, 85, 0.95); }
+
+    .contrib-legend {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        font-size: 0.72rem;
+        color: var(--text-secondary);
+        justify-content: flex-end;
     }
 
-    .plan-details {
+    /* ── Operations Control Tab Styles ── */
+    .ops-container {
         display: flex;
         flex-direction: column;
-        gap: 4px;
+        gap: 24px;
+        width: 100%;
+        max-width: 1200px;
+        margin: 0 auto;
+        padding-bottom: 60px;
     }
-
-    .plan-title-text {
+    .ops-title-bar {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .ops-title-bar h2 {
         font-family: 'Outfit', sans-serif;
-        font-weight: 600;
-        font-size: 1rem;
+        font-size: 1.6rem;
+        font-weight: 800;
+        letter-spacing: -0.5px;
         color: var(--text-primary);
+        text-transform: uppercase;
     }
-
-    .plan-features-desc {
-        font-size: 0.82rem;
-        color: var(--text-secondary);
+    .ops-title-bar h2 span { color: var(--accent-color); }
+    
+    .metrics-row {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+        gap: 20px;
     }
-
-    .plan-price-right {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.25rem;
+    .metric-box { display: flex; flex-direction: column; gap: 6px; padding: 24px; }
+    .metric-label {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.75rem;
         font-weight: 700;
-        color: var(--text-primary);
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 1px;
     }
+    .metric-number {
+        font-family: 'Outfit', sans-serif;
+        font-size: 2.2rem;
+        font-weight: 800;
+        color: var(--text-primary);
+        line-height: 1;
+    }
+    .metric-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+
+    .charts-grid {
+        display: grid;
+        grid-template-columns: 1.5fr 1fr;
+        gap: 20px;
+    }
+    @media (max-width: 768px) {
+        .charts-grid { grid-template-columns: 1fr; }
+    }
+    .chart-panel { display: flex; flex-direction: column; gap: 16px; padding: 24px; height: 350px; }
+    .chart-container-el { position: relative; flex-grow: 1; width: 100%; height: 100%; min-height: 0; }
+
+    .user-table-panel { display: flex; flex-direction: column; gap: 16px; padding: 24px; }
+    .table-header-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+        flex-wrap: wrap;
+        gap: 8px;
+    }
+    .search-form { display: flex; gap: 8px; flex-wrap: wrap; }
+    .search-input {
+        background: rgba(255, 255, 255, 0.25);
+        border: var(--card-border);
+        border-radius: 10px;
+        padding: 6px 14px;
+        font-size: 0.85rem;
+        color: var(--text-primary);
+        outline: none;
+        width: 200px;
+        transition: width 0.2s;
+    }
+    .search-input:focus { width: 250px; background: rgba(255, 255, 255, 0.45); }
+
+    .ops-table-container { width: 100%; overflow-x: auto; }
+    .ops-table { width: 100%; border-collapse: collapse; text-align: left; }
+    .ops-table th {
+        font-family: 'JetBrains Mono', monospace;
+        font-size: 0.72rem;
+        font-weight: 700;
+        color: var(--text-secondary);
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+        padding: 12px 16px;
+        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
+    }
+    .ops-table td { padding: 12px 16px; font-size: 0.88rem; color: var(--text-primary); border-bottom: 1px solid rgba(0, 0, 0, 0.04); }
+    .ops-table tr:hover { background: rgba(255, 255, 255, 0.2); }
+
+    .plan-pill { display: inline-block; padding: 2px 8px; font-size: 0.72rem; font-weight: 600; border-radius: 8px; text-transform: uppercase; }
+    .plan-pill.free { background: rgba(90, 90, 117, 0.1); color: var(--text-secondary); }
+    .plan-pill.pro { background: rgba(12, 88, 85, 0.15); color: var(--accent-color); }
+    .plan-pill.ultimate { background: rgba(245, 158, 11, 0.15); color: #b45309; }
 
     #status-toast {
         position: fixed;
@@ -248,87 +389,358 @@
         opacity: 0;
         transform: translateY(10px);
         transition: opacity 0.3s, transform 0.3s;
-        z-index: 1000;
+        z-index: 10002;
     }
-    #status-toast.show {
-        opacity: 1;
-        transform: translateY(0);
-    }
+    #status-toast.show { opacity: 1; transform: translateY(0); }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="profile-grid">
-    
-    <!-- Left Profile Summary Card -->
-    <div class="glass-panel user-card">
-        <div class="avatar-wrapper" id="avatar-container" onclick="document.getElementById('avatar-input').click();">
-            {% if profile.avatar or profile.avatar_url %}
-                <img src="{{ profile.get_avatar_url }}" alt="Avatar" id="profile-avatar-img">
-            {% else %}
-                <span id="profile-avatar-initial">{{ request.user.email|slice:":1"|upper }}</span>
-            {% endif %}
-            <div class="avatar-upload-overlay">Update</div>
-        </div>
-        <!-- Hidden input for file selection -->
-        <input type="file" id="avatar-input" style="display: none;" accept="image/*">
-        
-        <div class="user-info-text">
-            <h3 class="user-name">{% firstof request.user.first_name request.user.username %}</h3>
-            <span class="user-email">{{ request.user.email }}</span>
-        </div>
-
-        <div class="user-stats-list">
-            <div class="stat-row">
-                <span>Focus Streak</span>
-                <span class="stat-value" id="user-streak-val">{{ streak }} days</span>
-            </div>
-            <div class="stat-row">
-                <span>Tasks Secured</span>
-                <span class="stat-value">{{ total_todos }}</span>
-            </div>
-            <div class="stat-row">
-                <span>Focus Cycles (Pomodoro)</span>
-                <span class="stat-value">{{ total_pomodoros }}</span>
-            </div>
-            <div class="stat-row">
-                <span>Clearance Level</span>
-                <span class="stat-value">{% if request.user.is_staff %}Staff Officer{% else %}Operator{% endif %}</span>
-            </div>
-        </div>
-    </div>
-
-    <!-- ── Pro Upgrade Card ── -->
-    <div class="glass-panel" style="margin-top: 20px; padding: 28px 24px; width: 100%; max-width: 500px; margin: 20px auto 0;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
-            <div>
-                <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 4px;">⚡ Pro Plan</div>
-                <div style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: var(--text-primary);">£3.99 <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-secondary);">/ month</span></div>
-            </div>
-            <div style="background: rgba(12,88,85,0.06); border: 1px solid rgba(12,88,85,0.12); border-radius: 12px; padding: 8px 14px; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">Currently: Free</div>
-        </div>
-        <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-            <li style="font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent-color); font-weight: 700;">✓</span> Unlimited AI Reflection Diagnostics</li>
-            <li style="font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent-color); font-weight: 700;">✓</span> Full analytics — trends, heatmaps, streaks</li>
-            <li style="font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent-color); font-weight: 700;">✓</span> Unlimited project boards</li>
-            <li style="font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent-color); font-weight: 700;">✓</span> Data export (CSV / JSON) &amp; priority support</li>
-        </ul>
-        <button onclick="alert('Stripe integration coming soon. You\'ll be charged £3.99/month.')" style="width: 100%; background: linear-gradient(135deg, #0c5855, #2dd4bf); border: none; border-radius: 14px; padding: 14px; font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 600; color: #fff; cursor: pointer; box-shadow: 0 8px 20px rgba(12,88,85,0.25); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 28px rgba(12,88,85,0.35)';" onmouseout="this.style.transform='';this.style.boxShadow='0 8px 20px rgba(12,88,85,0.25)';">
-            Upgrade to Pro
-        </button>
-        <p style="font-size: 0.75rem; text-align: center; color: var(--text-secondary); opacity: 0.6; margin-top: 10px;">Cancel anytime · Stripe checkout coming soon</p>
-    </div>
-
+<!-- top Hub Tab Navigation Buttons -->
+<div class="profile-tabs-nav">
+    <button class="profile-tab-btn active" data-profile-tab="settings">Profile & Settings</button>
+    <button class="profile-tab-btn" data-profile-tab="analytics">Productivity Analytics</button>
+    {% if request.user.is_staff %}
+        <button class="profile-tab-btn" data-profile-tab="ops">Operations Control</button>
+    {% endif %}
 </div>
 
-<!-- Toast status notifications -->
+<!-- TAB 1: PROFILE & SETTINGS -->
+<div class="profile-tab-content active" id="profile-tab-settings">
+    <div class="profile-grid">
+        <!-- Left Profile Summary Card -->
+        <div class="glass-panel user-card">
+            <div class="avatar-wrapper" id="avatar-container" onclick="document.getElementById('avatar-input').click();" title="Click to upload custom picture">
+                {% if profile.avatar or profile.avatar_url %}
+                    <img src="{{ profile.get_avatar_url }}" alt="Avatar" id="profile-avatar-img">
+                {% else %}
+                    <span id="profile-avatar-initial">{{ request.user.email|slice:":1"|upper }}</span>
+                {% endif %}
+                <div class="avatar-upload-overlay">Update</div>
+            </div>
+            <!-- Hidden input for file selection -->
+            <input type="file" id="avatar-input" style="display: none;" accept="image/*">
+            
+            <div class="user-info-text">
+                <h3 class="user-name">{% firstof request.user.first_name request.user.username %}</h3>
+                <span class="user-email">{{ request.user.email }}</span>
+            </div>
+
+            <div class="user-stats-list">
+                <div class="stat-row">
+                    <span>Focus Streak</span>
+                    <span class="stat-value" id="user-streak-val">{{ streak }} days</span>
+                </div>
+                <div class="stat-row">
+                    <span>Tasks Secured</span>
+                    <span class="stat-value">{{ total_todos }}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Focus Cycles (Pomodoro)</span>
+                    <span class="stat-value">{{ total_pomodoros }}</span>
+                </div>
+                <div class="stat-row">
+                    <span>Clearance Level</span>
+                    <span class="stat-value">{% if request.user.is_staff %}Staff Officer{% else %}Operator{% endif %}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- SaaS Plan Upgrade Card -->
+        <div class="glass-panel" style="padding: 28px 24px; width: 100%;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px;">
+                <div>
+                    <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.68rem; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; color: var(--accent-color); margin-bottom: 4px;">⚡ Pro Plan</div>
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 800; letter-spacing: -1px; color: var(--text-primary);">£3.99 <span style="font-size: 0.9rem; font-weight: 400; color: var(--text-secondary);">/ month</span></div>
+                </div>
+                <div style="background: rgba(12,88,85,0.06); border: 1px solid rgba(12,88,85,0.12); border-radius: 12px; padding: 8px 14px; font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);">Currently: Free</div>
+            </div>
+            <ul style="list-style: none; display: flex; flex-direction: column; gap: 8px; margin-bottom: 20px; padding-left: 0;">
+                <li style="font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent-color); font-weight: 700;">✓</span> Unlimited AI Reflection Diagnostics</li>
+                <li style="font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent-color); font-weight: 700;">✓</span> Full analytics — trends, heatmaps, streaks</li>
+                <li style="font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent-color); font-weight: 700;">✓</span> Unlimited project boards</li>
+                <li style="font-size: 0.88rem; color: var(--text-secondary); display: flex; align-items: center; gap: 8px;"><span style="color: var(--accent-color); font-weight: 700;">✓</span> Data export (CSV / JSON) &amp; priority support</li>
+            </ul>
+            <button onclick="alert('Stripe integration coming soon. You\'ll be charged £3.99/month.')" style="width: 100%; background: linear-gradient(135deg, #0c5855, #2dd4bf); border: none; border-radius: 14px; padding: 14px; font-family: 'Outfit', sans-serif; font-size: 1rem; font-weight: 600; color: #fff; cursor: pointer; box-shadow: 0 8px 20px rgba(12,88,85,0.25); transition: all 0.2s;" onmouseover="this.style.transform='translateY(-2px)';this.style.boxShadow='0 12px 28px rgba(12,88,85,0.35)';" onmouseout="this.style.transform='';this.style.boxShadow='0 8px 20px rgba(12,88,85,0.25)';">
+                Upgrade to Pro
+            </button>
+            <p style="font-size: 0.75rem; text-align: center; color: var(--text-secondary); opacity: 0.6; margin-top: 10px; margin-bottom: 0;">Cancel anytime · Stripe checkout coming soon</p>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 2: PRODUCTIVITY ANALYTICS -->
+<div class="profile-tab-content" id="profile-tab-analytics">
+    <div class="analytics-section">
+        
+        <!-- GitHub-Style Contribution Calendar -->
+        <div class="contrib-grid-container">
+            <div class="contrib-header">
+                <span class="contrib-title">Task Completion History (Last Year)</span>
+                <div class="contrib-legend">
+                    <span>Less</span>
+                    <div class="contrib-cell level-0" title="0 tasks"></div>
+                    <div class="contrib-cell level-1" title="1-2 tasks"></div>
+                    <div class="contrib-cell level-2" title="3-4 tasks"></div>
+                    <div class="contrib-cell level-3" title="5-6 tasks"></div>
+                    <div class="contrib-cell level-4" title="7+ tasks"></div>
+                    <span>More</span>
+                </div>
+            </div>
+            <div class="contrib-grid-wrapper">
+                <div class="contrib-grid" id="contribution-grid">
+                    <!-- Javascript populates cells here -->
+                </div>
+            </div>
+        </div>
+
+        <!-- Streak and Metrics Summary Bar -->
+        <div class="analytics-grid">
+            <!-- Streak Card -->
+            <div class="glass-panel streak-card">
+                <div class="streak-label">Current Streak</div>
+                <div class="streak-number" id="streak-value">--</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">Consecutive days of action</div>
+            </div>
+
+            <!-- Completed Totals Card -->
+            <div class="glass-panel totals-card">
+                <div class="total-stat-item">
+                    <span class="total-stat-label">Total Tasks Secured</span>
+                    <span class="total-stat-value" id="total-todos-completed">--</span>
+                </div>
+                <div class="total-stat-item" style="border-top: 1px solid rgba(0,0,0,0.04); padding-top: 10px; margin-top: 10px;">
+                    <span class="total-stat-label">Total Pomodoro Sessions</span>
+                    <span class="total-stat-value" id="total-pomodoros">--</span>
+                </div>
+            </div>
+
+            <!-- Spaced Repetition Info Card -->
+            <div class="glass-panel totals-card">
+                <div class="total-stat-item">
+                    <span class="total-stat-label">Total Flashcards Created</span>
+                    <span class="total-stat-value" id="fc-total">--</span>
+                </div>
+                <div class="total-stat-item" style="border-top: 1px solid rgba(0,0,0,0.04); padding-top: 10px; margin-top: 10px;">
+                    <span class="total-stat-label">Reviewed Today</span>
+                    <span class="total-stat-value" id="fc-reviewed-today">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Charts Grid -->
+        <div class="analytics-grid">
+            <!-- Chart 1: Todo Trends -->
+            <div class="glass-panel analytics-chart-panel">
+                <h3 class="panel-title">Operational Achievement Rate (Last 7 Days)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="todo-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 2: Pomodoros Completed -->
+            <div class="glass-panel analytics-chart-panel">
+                <h3 class="panel-title">Pomodoro Sessions</h3>
+                <div class="chart-wrapper">
+                    <canvas id="pomodoro-chart"></canvas>
+                </div>
+            </div>
+
+            <!-- Chart 3: Eisenhower Priority Distribution -->
+            <div class="glass-panel analytics-chart-panel">
+                <h3 class="panel-title">Active Priorities</h3>
+                <div class="chart-wrapper">
+                    <canvas id="eisenhower-chart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Row for Flashcards & Tips -->
+        <div class="analytics-grid" style="margin-top: 20px;">
+            <div class="glass-panel analytics-chart-panel" style="height: 250px;">
+                <h3 class="panel-title">Vocabulary Practice Progress</h3>
+                <div class="chart-wrapper">
+                    <canvas id="vocabulary-chart"></canvas>
+                </div>
+            </div>
+            
+            <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; height: 250px; padding: 20px;">
+                <h3 class="panel-title" style="margin-bottom: 8px; justify-content: center;">Productivity Tip</h3>
+                <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); max-width: 280px; margin: 0 auto;" id="random-tip">
+                    "The secret of getting ahead is getting started."
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- TAB 3: SAAS OPERATIONS CONTROL -->
+{% if request.user.is_staff %}
+<div class="profile-tab-content" id="profile-tab-ops">
+    <div class="ops-container">
+        
+        <!-- Title Bar -->
+        <div class="ops-title-bar">
+            <h2>SaaS Operations <span>Command Panel</span></h2>
+            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary);">
+                STATUS: ACTIVE // ALL SYSTEM METRICS NOMINAL
+            </div>
+        </div>
+
+        <!-- Core Metrics Cards -->
+        <div class="metrics-row">
+            <div class="glass-panel metric-box">
+                <span class="metric-label">TOTAL_USERS</span>
+                <span class="metric-number">{{ total_users }}</span>
+                <span class="metric-sub">Registered command accounts</span>
+            </div>
+            <div class="glass-panel metric-box">
+                <span class="metric-label">TOTAL_TASKS</span>
+                <span class="metric-number">{{ system_total_todos }}</span>
+                <span class="metric-sub">Objectives parsed in operations</span>
+            </div>
+            <div class="glass-panel metric-box">
+                <span class="metric-label">SECURED_TASKS</span>
+                <span class="metric-number">{{ system_completed_todos }}</span>
+                <span class="metric-sub">Structured goals achieved</span>
+            </div>
+            <div class="glass-panel metric-box">
+                <span class="metric-label">FOCUS_SPRINTS</span>
+                <span class="metric-number">{{ system_completed_pomodoros }}</span>
+                <span class="metric-sub">Completed Pomodoro focus blocks</span>
+            </div>
+        </div>
+
+        <!-- System Charts -->
+        <div class="charts-grid">
+            <div class="glass-panel chart-panel">
+                <span class="metric-label">SYSTEM_ACTIVITY_DIAGNOSTICS</span>
+                <div class="chart-container-el">
+                    <canvas id="activityChart"></canvas>
+                </div>
+            </div>
+            <div class="glass-panel chart-panel">
+                <span class="metric-label">PLAN_CLEARANCE_DISTRIBUTION</span>
+                <div class="chart-container-el">
+                    <canvas id="planChart"></canvas>
+                </div>
+            </div>
+        </div>
+
+        <!-- Operators Table panel -->
+        <div class="glass-panel user-table-panel">
+            <div class="table-header-row">
+                <span class="metric-label">REGISTERED_OPERATORS</span>
+                <form method="GET" class="search-form" action="/profile/">
+                    <!-- Make sure search parameter stays in the tab=ops context -->
+                    <input type="hidden" name="tab" value="ops">
+                    <input 
+                        type="text" 
+                        name="q" 
+                        class="search-input" 
+                        placeholder="Search by name/email..." 
+                        value="{{ search_query }}"
+                    >
+                    <button type="submit" class="btn">Search</button>
+                    {% if search_query %}
+                        <a href="/profile/?tab=ops" class="btn btn-secondary">Clear</a>
+                    {% endif %}
+                </form>
+            </div>
+
+            <div class="ops-table-container">
+                <table class="ops-table">
+                    <thead>
+                        <tr>
+                            <th>Operator</th>
+                            <th>Email</th>
+                            <th>Plan Clearance</th>
+                            <th>Joined Date</th>
+                            <th>Clearance Level</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in users_list %}
+                            <tr>
+                                <td style="font-weight: 600;">{% firstof user.first_name user.username %}</td>
+                                <td style="color: var(--text-secondary);">{{ user.email }}</td>
+                                <td>
+                                    <span class="plan-pill {{ user.profile.plan }}">
+                                        {{ user.profile.get_plan_display }}
+                                    </span>
+                                </td>
+                                <td>{{ user.date_joined|date:"Y-m-d" }}</td>
+                                <td style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
+                                    {% if user.is_staff %}STAFF_OFFICER{% else %}OPERATOR{% endif %}
+                                </td>
+                            </tr>
+                        {% empty %}
+                            <tr>
+                                <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 30px;">
+                                    No operators matching query.
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+{% endif %}
+
+<!-- status notifications toast -->
 <div id="status-toast">Saved updates successfully</div>
 
 {% endblock %}
 
 {% block extra_js %}
+<!-- Import analytics charts logic -->
+<script src="{% static 'js/analytics.js' %}"></script>
+
 <script>
-    // Show toast helper
+    // ── Tab Switching Mechanics ──
+    const tabButtons = document.querySelectorAll('.profile-tab-btn');
+    const tabContents = document.querySelectorAll('.profile-tab-content');
+
+    function switchTab(tabId) {
+        if (!tabId) return;
+
+        tabButtons.forEach(btn => {
+            if (btn.dataset.profileTab === tabId) {
+                btn.classList.add('active');
+            } else {
+                btn.classList.remove('active');
+            }
+        });
+
+        tabContents.forEach(content => {
+            if (content.id === `profile-tab-${tabId}`) {
+                content.classList.add('active');
+            } else {
+                content.classList.remove('active');
+            }
+        });
+
+        // Update URL state without page reload
+        const newUrl = new URL(window.location);
+        newUrl.searchParams.set('tab', tabId);
+        window.history.replaceState({}, '', newUrl);
+    }
+
+    tabButtons.forEach(btn => {
+        btn.addEventListener('click', () => {
+            switchTab(btn.dataset.profileTab);
+        });
+    });
+
+    // Initialize active tab from URL query param, default to 'settings'
+    const urlParams = new URLSearchParams(window.location.search);
+    const activeTab = urlParams.get('tab') || 'settings';
+    switchTab(activeTab);
+
+    // ── Toast Helper ──
     function showToast(message) {
         const toast = document.getElementById('status-toast');
         toast.textContent = message;
@@ -338,68 +750,143 @@
         }, 3000);
     }
 
+    // ── Avatar Upload handler ──
+    const avatarInput = document.getElementById('avatar-input');
+    if (avatarInput) {
+        avatarInput.addEventListener('change', function() {
+            const file = this.files[0];
+            if (!file) return;
 
+            const formData = new FormData();
+            formData.append('avatar', file);
 
-    // 2. Avatar Image Uploads
-    document.getElementById('avatar-input').addEventListener('change', function() {
-        const file = this.files[0];
-        if (!file) return;
+            showToast('Uploading custom profile picture...');
 
-        const formData = new FormData();
-        formData.append('avatar', file);
-
-        showToast('Uploading custom profile picture...');
-
-        fetch('/api/profile/update-avatar/', {
-            method: 'POST',
-            headers: {
-                'X-CSRFToken': window.CSRF_TOKEN
-            },
-            body: formData
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.status === 'success') {
-                // Remove initials if they exist, add image element or update image source
-                const container = document.getElementById('avatar-container');
-                let img = document.getElementById('profile-avatar-img');
-                
-                if (!img) {
-                    // Remove initial element
-                    const initial = document.getElementById('profile-avatar-initial');
-                    if (initial) initial.remove();
+            fetch('/api/profile/update-avatar/', {
+                method: 'POST',
+                headers: {
+                    'X-CSRFToken': window.CSRF_TOKEN
+                },
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                if (data.status === 'success') {
+                    const container = document.getElementById('avatar-container');
+                    let img = document.getElementById('profile-avatar-img');
                     
-                    // Create img
-                    img = document.createElement('img');
-                    img.id = 'profile-avatar-img';
-                    container.insertBefore(img, container.firstChild);
-                }
-                
-                img.src = data.avatar_url;
-                
-                // Update navigation/header avatar if it exists
-                const navAvatar = document.querySelector('.user-profile-badge .avatar-img');
-                if (navAvatar) {
-                    if (navAvatar.tagName.toLowerCase() === 'img') {
+                    if (!img) {
+                        const initial = document.getElementById('profile-avatar-initial');
+                        if (initial) initial.remove();
+                        
+                        img = document.createElement('img');
+                        img.id = 'profile-avatar-img';
+                        container.insertBefore(img, container.firstChild);
+                    }
+                    
+                    img.src = data.avatar_url;
+                    
+                    const navAvatar = document.querySelector('.user-profile-badge img.avatar-img');
+                    if (navAvatar) {
                         navAvatar.src = data.avatar_url;
-                    } else {
-                        // Replace the div placeholder with an img tag
-                        const newNavImg = document.createElement('img');
-                        newNavImg.className = 'avatar-img';
-                        newNavImg.src = data.avatar_url;
-                        navAvatar.replaceWith(newNavImg);
+                    }
+                    
+                    showToast('Tactical profile avatar updated.');
+                } else {
+                    showToast(`Upload failed: ${data.message}`);
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                showToast('Failed to upload custom avatar.');
+            });
+        });
+    }
+
+    // ── Ops Panel Charts (render only if staff and tab is active) ──
+    {% if request.user.is_staff %}
+    document.addEventListener('DOMContentLoaded', () => {
+        const activityCanvas = document.getElementById('activityChart');
+        const planCanvas = document.getElementById('planChart');
+        if (!activityCanvas || !planCanvas) return;
+
+        // Plan Clearance Doughnut Chart
+        const ctxPlan = planCanvas.getContext('2d');
+        new Chart(ctxPlan, {
+            type: 'doughnut',
+            data: {
+                labels: ['Free Protocol', 'Pro Protocol', 'Ultimate Protocol'],
+                datasets: [{
+                    data: [{{ free_plans }}, {{ pro_plans }}, {{ ultimate_plans }}],
+                    backgroundColor: [
+                        'rgba(90, 90, 117, 0.45)',
+                        'rgba(12, 88, 85, 0.65)',
+                        'rgba(245, 158, 11, 0.65)'
+                    ],
+                    borderColor: [
+                        'rgba(255, 255, 255, 0.8)',
+                        'rgba(255, 255, 255, 0.8)',
+                        'rgba(255, 255, 255, 0.8)'
+                    ],
+                    borderWidth: 1
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            color: '#4a6b6a',
+                            font: { family: 'Inter', size: 11 }
+                        }
                     }
                 }
-                
-                showToast('Tactical profile avatar updated.');
-            } else {
-                showToast(`Upload failed: ${data.message}`);
             }
-        })
-        .catch(err => {
-            console.error(err);
-            showToast('Failed to upload custom avatar.');
+        });
+
+        // Aggregate Accomplishments Bar Chart
+        const ctxActivity = activityCanvas.getContext('2d');
+        new Chart(ctxActivity, {
+            type: 'bar',
+            data: {
+                labels: ['Tasks Intercepted', 'Objectives Secured', 'Focus Sprints'],
+                datasets: [{
+                    label: 'System Achievements',
+                    data: [{{ system_total_todos }}, {{ system_completed_todos }}, {{ system_completed_pomodoros }}],
+                    backgroundColor: [
+                        'rgba(12, 88, 85, 0.55)',
+                        'rgba(16, 185, 129, 0.55)',
+                        'rgba(239, 68, 68, 0.55)'
+                    ],
+                    borderColor: [
+                        'rgba(12, 88, 85, 0.85)',
+                        'rgba(16, 185, 129, 0.85)',
+                        'rgba(239, 68, 68, 0.85)'
+                    ],
+                    borderWidth: 1,
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(0,0,0,0.03)' },
+                        ticks: { color: '#4a6b6a' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#4a6b6a' }
+                    }
+                },
+                plugins: { legend: { display: false } }
+            }
         });
     });
+    {% endif %}
 </script>
 {% endblock %}

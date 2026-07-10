@@ -126,6 +126,25 @@ def get_summary_stats(request):
         total_todos_completed = Todo.objects.filter(is_completed=True, user=request.user).count()
         total_pomodoros = PomodoroSession.objects.filter(completed=True, user=request.user).count()
 
+        # Query completions for the last 365 days for the contribution grid
+        year_ago = today - timedelta(days=365)
+        grid_data = Todo.objects.filter(
+            date__gte=year_ago,
+            date__lte=today,
+            is_completed=True,
+            user=request.user
+        ).values('date').annotate(count=Count('id'))
+        
+        grid_list = []
+        for item in grid_data:
+            d = item['date']
+            if isinstance(d, datetime):
+                d = d.date()
+            grid_list.append({
+                'date': d.strftime('%Y-%m-%d'),
+                'count': item['count']
+            })
+
         return JsonResponse({
             'status': 'success',
             'labels': date_labels,
@@ -138,7 +157,8 @@ def get_summary_stats(request):
             'totals': {
                 'todos_completed': total_todos_completed,
                 'pomodoros_completed': total_pomodoros,
-            }
+            },
+            'contribution_grid': grid_list
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
