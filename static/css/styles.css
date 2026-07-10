@@ -487,9 +487,12 @@ body {
     padding-bottom: 6px;
     border-bottom: 1px solid rgba(0, 0, 0, 0.03);
     display: flex;
+    align-items: center;
     justify-content: space-between;
     cursor: default;
     user-select: none;
+    min-width: 0;
+    gap: 6px;
 }
 
 .priority-count {

@@ -259,8 +259,11 @@
             <!-- Red: Urgent & Important -->
             <div class="priority-block urgent_important">
                 <div class="priority-header">
-                    <span><span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #ef4444; margin-right: 8px; vertical-align: middle;"></span>Urgent & Important</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;" title="Urgent &amp; Important">
+                        <span style="display: inline-block; flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: #ef4444;"></span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem;">Urgent &amp; Important</span>
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                         <span class="priority-count" id="count-urgent_important">0</span>
                         <button class="add-priority-task-btn" data-priority="urgent_important" title="Add task to this category">+</button>
                     </div>
@@ -292,8 +295,11 @@
             <!-- Orange: Important & Not Urgent -->
             <div class="priority-block important_not_urgent">
                 <div class="priority-header">
-                    <span><span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #f59e0b; margin-right: 8px; vertical-align: middle;"></span>Important & Not Urgent</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;" title="Important &amp; Not Urgent">
+                        <span style="display: inline-block; flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b;"></span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem;">Important &amp; Not Urgent</span>
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                         <span class="priority-count" id="count-important_not_urgent">0</span>
                         <button class="add-priority-task-btn" data-priority="important_not_urgent" title="Add task to this category">+</button>
                     </div>
@@ -325,8 +331,11 @@
             <!-- Yellow: Urgent & Not Important -->
             <div class="priority-block urgent_not_important">
                 <div class="priority-header">
-                    <span><span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #3b82f6; margin-right: 8px; vertical-align: middle;"></span>Urgent & Not Important</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;" title="Urgent &amp; Not Important">
+                        <span style="display: inline-block; flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6;"></span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem;">Urgent &amp; Not Important</span>
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                         <span class="priority-count" id="count-urgent_not_important">0</span>
                         <button class="add-priority-task-btn" data-priority="urgent_not_important" title="Add task to this category">+</button>
                     </div>
@@ -358,8 +367,11 @@
             <!-- Green: Neither -->
             <div class="priority-block neither">
                 <div class="priority-header">
-                    <span><span style="display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: #10b981; margin-right: 8px; vertical-align: middle;"></span>Neither</span>
-                    <div style="display: flex; align-items: center; gap: 8px;">
+                    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;" title="Neither">
+                        <span style="display: inline-block; flex-shrink: 0; width: 10px; height: 10px; border-radius: 50%; background: #10b981;"></span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.8rem;">Neither</span>
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                         <span class="priority-count" id="count-neither">0</span>
                         <button class="add-priority-task-btn" data-priority="neither" title="Add task to this category">+</button>
                     </div>
