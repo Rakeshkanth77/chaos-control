@@ -177,27 +177,38 @@
 
         /* ── Responsive header ── */
         @media (max-width: 768px) {
+            /* 2-row clean header:
+               Row 1 = [Logo]  [Hamburger]
+               Row 2 = [← date →] centered */
             .app-header {
                 padding: 10px 14px !important;
                 display: flex !important;
                 flex-direction: row !important;
-                justify-content: flex-start !important;
+                flex-wrap: wrap !important;
                 align-items: center !important;
-                flex-wrap: nowrap !important;
-                gap: 0 !important;
+                row-gap: 8px !important;
+                column-gap: 0 !important;
             }
+            /* Logo: row 1, takes available space */
             .header-logo {
-                flex-shrink: 0;
-                margin-right: auto; /* push everything else to the right */
+                order: 1;
+                flex: 1 1 auto;
+                min-width: 0;
             }
+            /* Hamburger: row 1, far right */
             .hamburger-btn {
                 display: flex !important;
+                order: 1;
                 flex-shrink: 0;
-                margin-left: 8px !important;
             }
             /* Hide the desktop nav on mobile */
             .app-nav.desktop-nav { display: none !important; }
-            /* Date navigator: handled by styles.css — do NOT hide here */
+            /* Date navigator: row 2, full-width, centered (styles.css handles display+styling) */
+            .date-navigator {
+                order: 2;
+                width: 100%;
+                justify-content: center;
+            }
             .app-container { padding: 12px !important; }
         }
 
