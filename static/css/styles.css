@@ -2148,6 +2148,23 @@ body {
     text-shadow: 0 0 1px rgba(45, 212, 191, 0.2);
 }
 
+/* ── Mobile: priority select → colored dot ── */
+@media (max-width: 768px) {
+    .todo-priority-select:not(.is-unassigned) {
+        color: transparent !important;
+        font-size: 0 !important;
+        width: 16px !important;
+        height: 16px !important;
+        min-width: 16px !important;
+        min-height: 16px !important;
+        margin-left: 4px !important;
+    }
+    .todo-priority-select[data-priority="urgent_important"]     { background-color: #ef4444 !important; }
+    .todo-priority-select[data-priority="important_not_urgent"] { background-color: #f59e0b !important; }
+    .todo-priority-select[data-priority="urgent_not_important"] { background-color: #3b82f6 !important; }
+    .todo-priority-select[data-priority="neither"]              { background-color: #10b981 !important; }
+}
+
 /* Category-specific task creator button */
 .add-priority-task-btn {
     background: rgba(12, 88, 85, 0.08);

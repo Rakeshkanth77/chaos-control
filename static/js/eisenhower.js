@@ -30,6 +30,8 @@ document.addEventListener('DOMContentLoaded', () => {
     // Helper to toggle is-unassigned class on priority select elements
     function syncSelectClasses() {
         document.querySelectorAll('.todo-priority-select').forEach(select => {
+            // Set data-priority attribute for mobile dot color styling
+            select.dataset.priority = select.value;
             if (select.value === 'unassigned') {
                 select.classList.add('is-unassigned');
             } else {
