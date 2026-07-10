@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Handle auto-switch flag
         if (localStorage.getItem('auto_switch_to_tasks_tab') === 'true') {
             localStorage.removeItem('auto_switch_to_tasks_tab');
-            localStorage.setItem('active_mobile_tab_id', '2'); // Switch to 'Your to-do list' (tab 2)
+            localStorage.setItem('active_mobile_tab_id', '1'); // Keep on combined Thoughts & Tasks (tab 1)
         }
 
         if (isMobile()) {
