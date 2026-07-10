@@ -1995,8 +1995,8 @@ body {
 
 /* ── Todo Item Slide Out Animation for Triage ── */
 .todo-item.moving-priority {
-    transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), 
-                opacity 0.3s ease !important;
+    transition: transform 0.6s cubic-bezier(0.16, 1, 0.3, 1), 
+                opacity 0.5s ease !important;
     transform: translateX(110%) !important;
     opacity: 0 !important;
 }
@@ -2090,4 +2090,52 @@ body {
     color: #1a2a2a;
     font-size: 0.9rem;
 }
+
+
+/* ── Priority Legend Info Box ── */
+.todo-legend-box {
+    background: rgba(12, 88, 85, 0.03);
+    border: 1px solid rgba(12, 88, 85, 0.08);
+    border-radius: 12px;
+    padding: 10px 14px;
+    margin: 4px 0 16px 0;
+}
+
+.todo-legend-box .legend-title {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.76rem;
+    font-weight: 700;
+    color: var(--accent-color);
+    display: block;
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.todo-legend-box .legend-items {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 6px 12px;
+}
+
+.todo-legend-box .legend-tag {
+    font-size: 0.74rem;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-weight: 500;
+}
+
+.todo-legend-box .legend-tag .emoji {
+    font-size: 0.85rem;
+}
+
+@media (max-width: 480px) {
+    .todo-legend-box .legend-items {
+        grid-template-columns: 1fr;
+        gap: 6px;
+    }
+}
+
 

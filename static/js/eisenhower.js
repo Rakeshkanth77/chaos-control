@@ -497,7 +497,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Trigger slide out animation in the list!
                     todoItem.classList.add('moving-priority');
 
-                    // Wait for 350ms transition
+                    // Wait for 600ms transition
                     setTimeout(() => {
                         // Identify target list in DOM
                         const targetListId = newPriority === 'unassigned' ? 'unassigned-todo-list' : `list-${newPriority}`;
@@ -524,7 +524,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
                         // Remove animation class so it fades back in smoothly
                         todoItem.classList.remove('moving-priority');
-                    }, 350);
+                    }, 600);
 
                     if (window.showToast) {
                         const linkHtml = newPriority !== 'unassigned'

@@ -218,6 +218,17 @@
                 <button type="submit" class="btn">+</button>
             </form>
 
+            <!-- Priority Legend Box -->
+            <div class="todo-legend-box">
+                <span class="legend-title">💡 Tap a color dot to prioritize:</span>
+                <div class="legend-items">
+                    <span class="legend-tag"><span class="emoji">🔴</span> Urgent &amp; Important</span>
+                    <span class="legend-tag"><span class="emoji">🟠</span> Important &amp; Not Urgent</span>
+                    <span class="legend-tag"><span class="emoji">🟡</span> Urgent &amp; Not Important</span>
+                    <span class="legend-tag"><span class="emoji">🟢</span> Neither</span>
+                </div>
+            </div>
+
             <div class="todo-list-container">
                 <div id="unassigned-todo-list" class="priority-list" data-priority="unassigned">
                     {% for todo in todos_by_priority.unassigned %}
