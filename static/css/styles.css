@@ -2059,16 +2059,15 @@ body {
 }
 
 
-/* Inline Todo Priority Dropdown Selector */
 .todo-priority-select {
     appearance: none;
     -webkit-appearance: none;
     background: transparent;
     border: none;
-    font-size: 1rem;
+    font-size: 0.95rem;
     cursor: pointer;
     padding: 0;
-    margin: 0 0 0 6px;
+    margin: 0 0 0 8px;
     width: 24px;
     height: 24px;
     display: inline-flex;
@@ -2076,9 +2075,11 @@ body {
     justify-content: center;
     border-radius: 50%;
     outline: none;
-    transition: background-color 0.2s ease;
+    transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
     flex-shrink: 0;
     text-align: center;
+    white-space: nowrap;
+    overflow: hidden;
 }
 
 .todo-priority-select:hover {
@@ -2091,51 +2092,41 @@ body {
     font-size: 0.9rem;
 }
 
-
-/* ── Priority Legend Info Box ── */
-.todo-legend-box {
-    background: rgba(12, 88, 85, 0.03);
-    border: 1px solid rgba(12, 88, 85, 0.08);
-    border-radius: 12px;
-    padding: 10px 14px;
-    margin: 4px 0 16px 0;
-}
-
-.todo-legend-box .legend-title {
-    font-family: 'Outfit', sans-serif;
-    font-size: 0.76rem;
-    font-weight: 700;
-    color: var(--accent-color);
-    display: block;
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-.todo-legend-box .legend-items {
-    display: grid;
-    grid-template-columns: repeat(2, 1fr);
-    gap: 6px 12px;
-}
-
-.todo-legend-box .legend-tag {
-    font-size: 0.74rem;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-weight: 500;
-}
-
-.todo-legend-box .legend-tag .emoji {
-    font-size: 0.85rem;
-}
-
-@media (max-width: 480px) {
-    .todo-legend-box .legend-items {
-        grid-template-columns: 1fr;
-        gap: 6px;
+/* ── "Manly Glow" Animation for Unassigned Priority Dropdown ── */
+@keyframes manlyGlow {
+    0% {
+        box-shadow: 0 0 4px rgba(45, 212, 191, 0.15);
+        border-color: rgba(45, 212, 191, 0.3);
+        background: rgba(45, 212, 191, 0.04);
+    }
+    50% {
+        box-shadow: 0 0 14px rgba(45, 212, 191, 0.65), inset 0 0 4px rgba(45, 212, 191, 0.2);
+        border-color: rgba(45, 212, 191, 0.7);
+        background: rgba(45, 212, 191, 0.15);
+    }
+    100% {
+        box-shadow: 0 0 4px rgba(45, 212, 191, 0.15);
+        border-color: rgba(45, 212, 191, 0.3);
+        background: rgba(45, 212, 191, 0.04);
     }
 }
+
+.todo-priority-select.is-unassigned {
+    width: auto !important;
+    max-width: 130px !important;
+    padding: 2px 10px 2px 8px !important;
+    border: 1px solid rgba(45, 212, 191, 0.35) !important;
+    border-radius: 20px !important;
+    animation: manlyGlow 2.2s infinite ease-in-out !important;
+    font-family: 'Outfit', sans-serif !important;
+    font-size: 0.78rem !important;
+    font-weight: 700 !important;
+    color: var(--accent-color) !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 4px !important;
+    text-shadow: 0 0 1px rgba(45, 212, 191, 0.2);
+}
+
 
 

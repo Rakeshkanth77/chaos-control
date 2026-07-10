@@ -293,6 +293,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 selectEl.value = newPriority;
                             }
 
+                            if (window.syncSelectClasses) {
+                                window.syncSelectClasses();
+                            }
+
                             // Trigger counts update
                             if (window.updatePriorityCounts) {
                                 window.updatePriorityCounts();

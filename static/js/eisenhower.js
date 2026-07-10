@@ -27,9 +27,22 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
+    // Helper to toggle is-unassigned class on priority select elements
+    function syncSelectClasses() {
+        document.querySelectorAll('.todo-priority-select').forEach(select => {
+            if (select.value === 'unassigned') {
+                select.classList.add('is-unassigned');
+            } else {
+                select.classList.remove('is-unassigned');
+            }
+        });
+    }
+
     // Initialize counts on load
     updatePriorityCounts();
+    syncSelectClasses();
     window.updatePriorityCounts = updatePriorityCounts;
+    window.syncSelectClasses = syncSelectClasses;
 
     // Set up drag events on existing todo items
     function initDragEvents(todoItem) {
@@ -295,10 +308,16 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox">
                                 <span class="todo-text">${todo.title}</span>
+                                <select class="todo-priority-select" data-id="${todo.id}" title="Change priority">
+                                    <option value="unassigned" selected>⚪ Prioritize</option>
+                                    <option value="urgent_important">🔴 Urgent &amp; Important</option>
+                                    <option value="important_not_urgent">🟠 Important &amp; Not Urgent</option>
+                                    <option value="urgent_not_important">🟡 Urgent &amp; Not Important</option>
+                                    <option value="neither">🟢 Neither</option>
+                                </select>
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
-                                <button class="action-btn breakdown">details</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
                         </div>
@@ -316,6 +335,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const newEl = listContainer.lastElementChild;
                     initDragEvents(newEl);
                     initTouchDrag(newEl);
+                    
+                    // Sync select styling class
+                    syncSelectClasses();
                     
                     // Clear input
                     newTodoInput.value = '';
@@ -513,6 +535,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                             // Ensure count badges update
                             updatePriorityCounts();
+
+                            // Sync select styling class
+                            syncSelectClasses();
 
                             // Sync priority selector value inside the detail sheet if it's open for this todo
                             const detailPanelSelect = document.querySelector(`.breakdown-priority-selector .p-btn[data-priority-val="${newPriority}"]`);
