@@ -81,6 +81,20 @@ document.addEventListener('DOMContentLoaded', () => {
         currentTodoId = todoId;
         localStorage.setItem('active_breakdown_todo_id', todoId);
 
+        // Highlight the current priority badge based on DOM position
+        const activeTodoEl = todoElement || document.querySelector(`.todo-item[data-id="${todoId}"]`);
+        if (activeTodoEl) {
+            const listParent = activeTodoEl.closest('.priority-list');
+            const currentPriority = listParent ? (listParent.dataset.priority || 'unassigned') : 'unassigned';
+            document.querySelectorAll('.breakdown-priority-selector .p-btn').forEach(btn => {
+                if (btn.dataset.priorityVal === currentPriority) {
+                    btn.classList.add('active');
+                } else {
+                    btn.classList.remove('active');
+                }
+            });
+        }
+
         // Update title
         if (taskTitleSpan) {
             taskTitleSpan.textContent = todoTitle;
@@ -241,6 +255,56 @@ document.addEventListener('DOMContentLoaded', () => {
     if (closeBtn) {
         closeBtn.addEventListener('click', closeTaskBreakdown);
     }
+
+    // ── Priority Selector Button Click Handler ─────────────────────────────────
+    document.querySelectorAll('.breakdown-priority-selector .p-btn').forEach(btn => {
+        btn.addEventListener('click', async () => {
+            const newPriority = btn.dataset.priorityVal;
+            if (!currentTodoId) return;
+
+            // Optimistically update active button class
+            document.querySelectorAll('.breakdown-priority-selector .p-btn').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            try {
+                // Call Django update priority API
+                const response = await window.apiPost('/api/todo/update-priority/', {
+                    id: currentTodoId,
+                    priority: newPriority
+                });
+
+                if (response.status === 'success') {
+                    // Find the todo element and move it to the corresponding list
+                    const todoElement = document.querySelector(`.todo-item[data-id="${currentTodoId}"]`);
+                    if (todoElement) {
+                        const targetListId = newPriority === 'unassigned' ? 'unassigned-todo-list' : `list-${newPriority}`;
+                        const targetList = document.getElementById(targetListId);
+                        if (targetList) {
+                            // Clean up empty state message
+                            const emptyMsg = targetList.querySelector('.empty-state-message');
+                            if (emptyMsg) emptyMsg.remove();
+
+                            // Move item
+                            targetList.appendChild(todoElement);
+
+                            // Trigger counts update
+                            if (window.updatePriorityCounts) {
+                                window.updatePriorityCounts();
+                            }
+                        }
+                    }
+                    if (window.showToast) {
+                        window.showToast('✨ Priority successfully updated!');
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to update priority:', err);
+                if (window.showToast) {
+                    window.showToast('❌ Error updating priority');
+                }
+            }
+        });
+    });
 
     // ── Global delegation for "details" button clicks on todo items ───────────
     document.addEventListener('click', (e) => {

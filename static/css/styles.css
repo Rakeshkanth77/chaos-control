@@ -1962,4 +1962,89 @@ body {
 }
 
 
+/* ── Global Toast Notification ── */
+.toast-notification {
+    position: fixed;
+    top: 24px;
+    left: 50%;
+    transform: translateX(-50%) translateY(-20px);
+    background: rgba(12, 62, 60, 0.95);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    color: #fff;
+    padding: 10px 22px;
+    border-radius: 12px;
+    font-size: 0.88rem;
+    font-weight: 500;
+    box-shadow: 0 10px 30px rgba(12, 88, 85, 0.22);
+    z-index: 10500;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s cubic-bezier(0.16, 1, 0.3, 1), 
+                transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
 
+.toast-notification.show {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+}
+
+
+/* ── Priority Selector inside Details Panel ── */
+.breakdown-priority-selector {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 12px;
+    background: rgba(12, 88, 85, 0.04);
+    border: 1px solid rgba(12, 88, 85, 0.08);
+    border-radius: 12px;
+    margin-bottom: 16px;
+}
+
+.breakdown-priority-selector .priority-label {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.78rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    color: var(--text-secondary);
+}
+
+.breakdown-priority-selector .priority-buttons {
+    display: flex;
+    gap: 8px;
+}
+
+.breakdown-priority-selector .p-btn {
+    background: rgba(255, 255, 255, 0.45);
+    border: 1px solid rgba(12, 88, 85, 0.12);
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.95rem;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    outline: none;
+    padding: 0;
+}
+
+.breakdown-priority-selector .p-btn:hover {
+    transform: scale(1.1);
+    background: rgba(255, 255, 255, 0.9);
+    border-color: var(--accent-color);
+}
+
+.breakdown-priority-selector .p-btn.active {
+    background: #ffffff !important;
+    border: 2px solid var(--accent-color) !important;
+    box-shadow: 0 4px 12px rgba(12, 88, 85, 0.18);
+    transform: scale(1.15);
+}

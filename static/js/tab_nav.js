@@ -66,6 +66,13 @@ document.addEventListener('DOMContentLoaded', () => {
      */
     function initTabs() {
         console.log('Initializing Tab Navigation. isMobile =', isMobile());
+        
+        // Handle auto-switch flag
+        if (localStorage.getItem('auto_switch_to_tasks_tab') === 'true') {
+            localStorage.removeItem('auto_switch_to_tasks_tab');
+            localStorage.setItem('active_mobile_tab_id', '2'); // Switch to 'Your to-do list' (tab 2)
+        }
+
         if (isMobile()) {
             // Restore last active tab, or default to 1 (What's on your mind? / thoughts)
             const lastActiveTab = localStorage.getItem('active_mobile_tab_id') || '1';
@@ -80,6 +87,17 @@ document.addEventListener('DOMContentLoaded', () => {
             document.querySelectorAll('.grid-column').forEach(col => {
                 col.style.removeProperty('display');
             });
+        }
+
+        // Show toast if flag is set
+        if (localStorage.getItem('show_extraction_toast') === 'true') {
+            localStorage.removeItem('show_extraction_toast');
+            // Allow a small delay for page load completion before rendering the toast
+            setTimeout(() => {
+                if (window.showToast) {
+                    window.showToast('✨ Tasks successfully extracted to your list!');
+                }
+            }, 500);
         }
     }
 

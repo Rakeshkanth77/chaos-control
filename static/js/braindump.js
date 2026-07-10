@@ -61,9 +61,10 @@ document.addEventListener('DOMContentLoaded', () => {
             try {
                 const res = await apiPost('/api/braindump/generate-todos/');
                 if (res.status === 'success') {
-                    // Refresh current page or inject items dynamically
-                    // It is safer to reload or dynamically append to keep state in sync
-                    // Reloading is simple, clean, and ensures Eisenhower priority columns update correctly
+                    // Set flags to trigger auto-switch and toast on reload
+                    localStorage.setItem('auto_switch_to_tasks_tab', 'true');
+                    localStorage.setItem('show_extraction_toast', 'true');
+                    
                     window.location.reload();
                 }
             } catch (e) {

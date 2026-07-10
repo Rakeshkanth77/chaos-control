@@ -29,6 +29,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Initialize counts on load
     updatePriorityCounts();
+    window.updatePriorityCounts = updatePriorityCounts;
 
     // Set up drag events on existing todo items
     function initDragEvents(todoItem) {
