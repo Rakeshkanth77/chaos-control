@@ -287,6 +287,12 @@ document.addEventListener('DOMContentLoaded', () => {
                             // Move item
                             targetList.appendChild(todoElement);
 
+                            // Sync dropdown selector value
+                            const selectEl = todoElement.querySelector('.todo-priority-select');
+                            if (selectEl) {
+                                selectEl.value = newPriority;
+                            }
+
                             // Trigger counts update
                             if (window.updatePriorityCounts) {
                                 window.updatePriorityCounts();

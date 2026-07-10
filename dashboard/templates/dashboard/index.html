@@ -227,6 +227,13 @@
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
                                 <span class="todo-text">{{ todo.title }}</span>
+                                <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
+                                    <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>⚪</option>
+                                    <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>🔴</option>
+                                    <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>🟠</option>
+                                    <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>🟡</option>
+                                    <option value="neither" {% if todo.priority == 'neither' %}selected{% endif %}>🟢</option>
+                                </select>
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
@@ -263,6 +270,13 @@
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
                                 <span class="todo-text">{{ todo.title }}</span>
+                                <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
+                                    <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>⚪</option>
+                                    <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>🔴</option>
+                                    <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>🟠</option>
+                                    <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>🟡</option>
+                                    <option value="neither" {% if todo.priority == 'neither' %}selected{% endif %}>🟢</option>
+                                </select>
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
@@ -286,6 +300,13 @@
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
                                 <span class="todo-text">{{ todo.title }}</span>
+                                <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
+                                    <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>⚪</option>
+                                    <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>🔴</option>
+                                    <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>🟠</option>
+                                    <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>🟡</option>
+                                    <option value="neither" {% if todo.priority == 'neither' %}selected{% endif %}>🟢</option>
+                                </select>
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
@@ -309,6 +330,13 @@
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
                                 <span class="todo-text">{{ todo.title }}</span>
+                                <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
+                                    <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>⚪</option>
+                                    <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>🔴</option>
+                                    <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>🟠</option>
+                                    <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>🟡</option>
+                                    <option value="neither" {% if todo.priority == 'neither' %}selected{% endif %}>🟢</option>
+                                </select>
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
@@ -332,6 +360,13 @@
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
                                 <span class="todo-text">{{ todo.title }}</span>
+                                <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
+                                    <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>⚪</option>
+                                    <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>🔴</option>
+                                    <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>🟠</option>
+                                    <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>🟡</option>
+                                    <option value="neither" {% if todo.priority == 'neither' %}selected{% endif %}>🟢</option>
+                                </select>
                             </div>
                             <div class="todo-actions">
                                 <button class="action-btn edit">edit</button>
@@ -455,11 +490,11 @@
 
 {% block extra_js %}
 <!-- Import script logic for each part of the app -->
-<script src="{% static 'js/braindump.js' %}"></script>
-<script src="{% static 'js/eisenhower.js' %}"></script>
-<script src="{% static 'js/reflection.js' %}"></script>
-<script src="{% static 'js/task_breakdown.js' %}"></script>
-<script src="{% static 'js/tab_nav.js' %}"></script>
+<script src="{% static 'js/braindump.js' %}?v=2"></script>
+<script src="{% static 'js/eisenhower.js' %}?v=2"></script>
+<script src="{% static 'js/reflection.js' %}?v=2"></script>
+<script src="{% static 'js/task_breakdown.js' %}?v=2"></script>
+<script src="{% static 'js/tab_nav.js' %}?v=2"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════

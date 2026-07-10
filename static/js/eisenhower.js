@@ -476,6 +476,59 @@ document.addEventListener('DOMContentLoaded', () => {
     // Apply touch drag to all existing todo items
     document.querySelectorAll('.todo-item').forEach(initTouchDrag);
 
+    // ── Handle Priority Change via Native Dropdown Selector ──
+    document.addEventListener('change', async (e) => {
+        if (e.target.classList.contains('todo-priority-select')) {
+            const select = e.target;
+            const todoId = select.dataset.id;
+            const newPriority = select.value;
+            const todoItem = select.closest('.todo-item');
+
+            if (!todoItem) return;
+
+            try {
+                // Call Django update-priority API
+                const response = await window.apiPost('/api/todo/update-priority/', {
+                    id: todoId,
+                    priority: newPriority
+                });
+
+                if (response.status === 'success') {
+                    // Identify target list in DOM
+                    const targetListId = newPriority === 'unassigned' ? 'unassigned-todo-list' : `list-${newPriority}`;
+                    const targetList = document.getElementById(targetListId);
+                    
+                    if (targetList) {
+                        // Remove empty state message
+                        const emptyMsg = targetList.querySelector('.empty-state-message');
+                        if (emptyMsg) emptyMsg.remove();
+
+                        // Move the todo item card to the new list
+                        targetList.appendChild(todoItem);
+
+                        // Ensure count badges update
+                        updatePriorityCounts();
+
+                        // Sync priority selector value inside the detail sheet if it's open for this todo
+                        const detailPanelSelect = document.querySelector(`.breakdown-priority-selector .p-btn[data-priority-val="${newPriority}"]`);
+                        if (detailPanelSelect && window.currentTodoId === todoId) {
+                            document.querySelectorAll('.breakdown-priority-selector .p-btn').forEach(b => b.classList.remove('active'));
+                            detailPanelSelect.classList.add('active');
+                        }
+                    }
+
+                    if (window.showToast) {
+                        window.showToast('✨ Priority successfully updated!');
+                    }
+                }
+            } catch (err) {
+                console.error('Failed to update priority via select:', err);
+                window.location.reload();
+            }
+        }
+    });
+
 });
+
 
 
