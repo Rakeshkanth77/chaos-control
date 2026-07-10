@@ -331,6 +331,11 @@ document.addEventListener('DOMContentLoaded', () => {
         const todoItem = e.target.closest('.todo-item');
         if (!todoItem) return;
 
+        // Skip details sheet for unassigned inbox tasks
+        if (todoItem.closest('#unassigned-todo-list')) {
+            return;
+        }
+
         // Skip interactive input elements inside the todo item
         if (e.target.closest('.todo-checkbox') ||
             e.target.closest('.todo-edit-input') ||
