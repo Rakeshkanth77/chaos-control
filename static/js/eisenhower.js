@@ -227,11 +227,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <input type="checkbox" class="todo-checkbox">
                                 <span class="todo-text">${todo.title}</span>
                                 <select class="todo-priority-select" data-id="${todo.id}" title="Change priority">
-                                    <option value="unassigned" selected>⚪ Prioritize</option>
-                                    <option value="urgent_important">🔴 Urgent &amp; Important</option>
-                                    <option value="important_not_urgent">🟠 Important &amp; Not Urgent</option>
-                                    <option value="urgent_not_important">🟡 Urgent &amp; Not Important</option>
-                                    <option value="neither">🟢 Neither</option>
+                                    <option value="unassigned" selected>Prioritize</option>
+                                    <option value="urgent_important">Urgent &amp; Important</option>
+                                    <option value="important_not_urgent">Important &amp; Not Urgent</option>
+                                    <option value="urgent_not_important">Urgent &amp; Not Important</option>
+                                    <option value="neither">Neither</option>
                                 </select>
                             </div>
                             <div class="todo-actions">
@@ -319,9 +319,9 @@ document.addEventListener('DOMContentLoaded', () => {
 
                     if (window.showToast) {
                         const linkHtml = newPriority !== 'unassigned'
-                            ? ` <a href="#" onclick="event.preventDefault(); window.switchMobileTab('3');" style="color: #2dd4bf; text-decoration: underline; margin-left: 6px; font-weight: 600;">Go to Focus 🎯</a>`
-                            : ` <a href="#" onclick="event.preventDefault(); window.switchMobileTab('2');" style="color: #2dd4bf; text-decoration: underline; margin-left: 6px; font-weight: 600;">Go to Tasks 📝</a>`;
-                        window.showToast(`✨ Priority successfully updated!${linkHtml}`);
+                            ? ` <a href="#" onclick="event.preventDefault(); window.switchMobileTab('2');" style="color: #2dd4bf; text-decoration: underline; margin-left: 6px; font-weight: 600;">Go to Focus</a>`
+                            : ` <a href="#" onclick="event.preventDefault(); window.switchMobileTab('1');" style="color: #2dd4bf; text-decoration: underline; margin-left: 6px; font-weight: 600;">Go to Tasks</a>`;
+                        window.showToast(`Priority updated.${linkHtml}`);
                     }
                 }
             } catch (err) {
@@ -389,11 +389,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <input type="checkbox" class="todo-checkbox">
                                 <span class="todo-text">${todo.title}</span>
                                 <select class="todo-priority-select" data-id="${todo.id}" title="Change priority">
-                                    <option value="unassigned" ${todo.priority === 'unassigned' ? 'selected' : ''}>⚪ Prioritize</option>
-                                    <option value="urgent_important" ${todo.priority === 'urgent_important' ? 'selected' : ''}>🔴 Urgent &amp; Important</option>
-                                    <option value="important_not_urgent" ${todo.priority === 'important_not_urgent' ? 'selected' : ''}>🟠 Important &amp; Not Urgent</option>
-                                    <option value="urgent_not_important" ${todo.priority === 'urgent_not_important' ? 'selected' : ''}>🟡 Urgent &amp; Not Important</option>
-                                    <option value="neither" ${todo.priority === 'neither' ? 'selected' : ''}>🟢 Neither</option>
+                                    <option value="unassigned" ${todo.priority === 'unassigned' ? 'selected' : ''}>Prioritize</option>
+                                    <option value="urgent_important" ${todo.priority === 'urgent_important' ? 'selected' : ''}>Urgent &amp; Important</option>
+                                    <option value="important_not_urgent" ${todo.priority === 'important_not_urgent' ? 'selected' : ''}>Important &amp; Not Urgent</option>
+                                    <option value="urgent_not_important" ${todo.priority === 'urgent_not_important' ? 'selected' : ''}>Urgent &amp; Not Important</option>
+                                    <option value="neither" ${todo.priority === 'neither' ? 'selected' : ''}>Neither</option>
                                 </select>
                             </div>
                             <div class="todo-actions">
