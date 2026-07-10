@@ -44,88 +44,6 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updatePriorityCounts = updatePriorityCounts;
     window.syncSelectClasses = syncSelectClasses;
 
-    // Set up drag events on existing todo items
-    function initDragEvents(todoItem) {
-        todoItem.addEventListener('dragstart', (e) => {
-            todoItem.classList.add('dragging');
-            e.dataTransfer.setData('text/plain', todoItem.dataset.id);
-        });
-
-        todoItem.addEventListener('dragend', () => {
-            todoItem.classList.remove('dragging');
-            todoLists.forEach(list => list.classList.remove('drag-over'));
-        });
-    }
-
-    // Apply drag to loaded items
-    document.querySelectorAll('.todo-item').forEach(initDragEvents);
-
-    // List event listeners for dragover/drop
-    todoLists.forEach(list => {
-        list.addEventListener('dragover', (e) => {
-            e.preventDefault();
-            list.classList.add('drag-over');
-            
-            // Reordering insertion check
-            const draggingItem = document.querySelector('.todo-item.dragging');
-            const afterElement = getDragAfterElement(list, e.clientY);
-            if (afterElement == null) {
-                list.appendChild(draggingItem);
-            } else {
-                list.insertBefore(draggingItem, afterElement);
-            }
-        });
-
-        list.addEventListener('dragleave', () => {
-            list.classList.remove('drag-over');
-        });
-
-        list.addEventListener('drop', async (e) => {
-            e.preventDefault();
-            list.classList.remove('drag-over');
-            
-            const todoId = e.dataTransfer.getData('text/plain');
-            const priority = list.dataset.priority;
-            
-            // Gather all todo IDs in this list in their current order
-            const orderedIds = Array.from(list.querySelectorAll('.todo-item')).map(item => item.dataset.id);
-
-            try {
-                await window.apiPost('/api/todo/update-priority/', {
-                    id: todoId,
-                    priority: priority,
-                    ordered_ids: orderedIds
-                });
-                
-                // If it dropped in empty state list, remove empty state message
-                const emptyMsg = list.querySelector('.empty-state-message');
-                if (emptyMsg) {
-                    emptyMsg.remove();
-                }
-                
-                updatePriorityCounts();
-            } catch (err) {
-                // If failed, reload to revert visual UI state
-                window.location.reload();
-            }
-        });
-    });
-
-    // Helper to determine sorting position during drag
-    function getDragAfterElement(container, y) {
-        const draggableElements = [...container.querySelectorAll('.todo-item:not(.dragging)')];
-
-        return draggableElements.reduce((closest, child) => {
-            const box = child.getBoundingClientRect();
-            const offset = y - box.top - box.height / 2;
-            if (offset < 0 && offset > closest.offset) {
-                return { offset: offset, element: child };
-            } else {
-                return closest;
-            }
-        }, { offset: Number.NEGATIVE_INFINITY }).element;
-    }
-
     // Toggle todo complete handler (using delegation)
     document.addEventListener('change', async (e) => {
         if (e.target.classList.contains('todo-checkbox')) {
@@ -304,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Append item dynamically
                     const todo = response.todo;
                     const itemHtml = `
-                        <div class="todo-item" draggable="true" data-id="${todo.id}">
+                        <div class="todo-item" data-id="${todo.id}">
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox">
                                 <span class="todo-text">${todo.title}</span>
@@ -331,11 +249,6 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     listContainer.insertAdjacentHTML('beforeend', itemHtml);
                     
-                    // Initialize drag events on new element
-                    const newEl = listContainer.lastElementChild;
-                    initDragEvents(newEl);
-                    initTouchDrag(newEl);
-                    
                     // Sync select styling class
                     syncSelectClasses();
                     
@@ -349,154 +262,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // ========== MOBILE TOUCH DRAG-AND-DROP ==========
-    let touchDragItem = null;
-    let touchClone = null;
-    let touchStartX = 0;
-    let touchStartY = 0;
-    let touchCurrentList = null;
 
-    function initTouchDrag(todoItem) {
-        todoItem.addEventListener('touchstart', handleTouchStart, { passive: false });
-        todoItem.addEventListener('touchmove', handleTouchMove, { passive: false });
-        todoItem.addEventListener('touchend', handleTouchEnd, { passive: false });
-    }
-
-    function handleTouchStart(e) {
-        // Only handle single-finger touches
-        if (e.touches.length !== 1) return;
-        
-        // Ignore if touching checkbox or action buttons
-        const target = e.target;
-        if (target.classList.contains('todo-checkbox') || 
-            target.classList.contains('action-btn') ||
-            target.closest('.todo-actions')) return;
-        
-        const touch = e.touches[0];
-        touchDragItem = e.currentTarget;
-        touchStartX = touch.clientX;
-        touchStartY = touch.clientY;
-
-        // Delay to differentiate scroll from drag
-        touchDragItem._touchTimeout = setTimeout(() => {
-            touchDragItem.classList.add('dragging');
-            
-            // Create a visual clone for dragging feedback
-            touchClone = touchDragItem.cloneNode(true);
-            touchClone.classList.add('touch-drag-clone');
-            touchClone.style.position = 'fixed';
-            touchClone.style.width = touchDragItem.offsetWidth + 'px';
-            touchClone.style.left = touch.clientX - touchDragItem.offsetWidth / 2 + 'px';
-            touchClone.style.top = touch.clientY - 20 + 'px';
-            touchClone.style.zIndex = '9999';
-            touchClone.style.opacity = '0.85';
-            touchClone.style.pointerEvents = 'none';
-            touchClone.style.transform = 'scale(1.03)';
-            touchClone.style.boxShadow = '0 8px 25px rgba(0,0,0,0.15)';
-            document.body.appendChild(touchClone);
-            
-            touchDragItem.style.opacity = '0.3';
-        }, 200);
-    }
-
-    function handleTouchMove(e) {
-        if (!touchDragItem) return;
-        
-        const touch = e.touches[0];
-        const dx = Math.abs(touch.clientX - touchStartX);
-        const dy = Math.abs(touch.clientY - touchStartY);
-        
-        // If dragging hasn't been initiated yet and movement is mostly horizontal or significant
-        if (!touchDragItem.classList.contains('dragging')) {
-            if (dy > 10 && dx < 10) {
-                // User is scrolling vertically, cancel drag
-                clearTimeout(touchDragItem._touchTimeout);
-                touchDragItem = null;
-                return;
-            }
-            if (dx < 5 && dy < 5) return; // Not enough movement yet
-        }
-        
-        e.preventDefault(); // Prevent scroll while dragging
-        
-        if (!touchClone) return;
-        
-        // Move clone with finger
-        touchClone.style.left = touch.clientX - touchClone.offsetWidth / 2 + 'px';
-        touchClone.style.top = touch.clientY - 20 + 'px';
-        
-        // Find which priority list is under the finger
-        // Temporarily hide clone to find element underneath
-        touchClone.style.display = 'none';
-        const elementBelow = document.elementFromPoint(touch.clientX, touch.clientY);
-        touchClone.style.display = '';
-        
-        // Clear all drag-over highlights
-        todoLists.forEach(list => list.classList.remove('drag-over'));
-        touchCurrentList = null;
-        
-        if (elementBelow) {
-            const targetList = elementBelow.closest('.priority-list');
-            if (targetList) {
-                targetList.classList.add('drag-over');
-                touchCurrentList = targetList;
-                
-                // Reorder: find insertion position
-                const afterElement = getDragAfterElement(targetList, touch.clientY);
-                if (afterElement == null) {
-                    targetList.appendChild(touchDragItem);
-                } else {
-                    targetList.insertBefore(touchDragItem, afterElement);
-                }
-            }
-        }
-    }
-
-    async function handleTouchEnd(e) {
-        clearTimeout(touchDragItem?._touchTimeout);
-        
-        if (!touchDragItem) return;
-        
-        const wasDragging = touchDragItem.classList.contains('dragging');
-        touchDragItem.classList.remove('dragging');
-        touchDragItem.style.opacity = '';
-        
-        if (touchClone) {
-            touchClone.remove();
-            touchClone = null;
-        }
-        
-        // Clear all drag-over highlights
-        todoLists.forEach(list => list.classList.remove('drag-over'));
-        
-        if (wasDragging && touchCurrentList) {
-            const todoId = touchDragItem.dataset.id;
-            const priority = touchCurrentList.dataset.priority;
-            const orderedIds = Array.from(touchCurrentList.querySelectorAll('.todo-item')).map(item => item.dataset.id);
-            
-            try {
-                await window.apiPost('/api/todo/update-priority/', {
-                    id: todoId,
-                    priority: priority,
-                    ordered_ids: orderedIds
-                });
-                
-                // Remove empty state message if present
-                const emptyMsg = touchCurrentList.querySelector('.empty-state-message');
-                if (emptyMsg) emptyMsg.remove();
-                
-                updatePriorityCounts();
-            } catch (err) {
-                window.location.reload();
-            }
-        }
-        
-        touchDragItem = null;
-        touchCurrentList = null;
-    }
-
-    // Apply touch drag to all existing todo items
-    document.querySelectorAll('.todo-item').forEach(initTouchDrag);
 
     // ── Handle Priority Change via Native Dropdown Selector ──
     document.addEventListener('change', async (e) => {

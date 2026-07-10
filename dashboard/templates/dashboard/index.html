@@ -222,7 +222,6 @@
                 <div id="unassigned-todo-list" class="priority-list" data-priority="unassigned">
                     {% for todo in todos_by_priority.unassigned %}
                         <div class="todo-item {% if todo.is_completed %}completed{% endif %}" 
-                             draggable="true" 
                              data-id="{{ todo.id }}">
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
@@ -265,7 +264,7 @@
                 </div>
                 <div id="list-urgent_important" class="priority-list" data-priority="urgent_important">
                     {% for todo in todos_by_priority.urgent_important %}
-                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" draggable="true" data-id="{{ todo.id }}">
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" data-id="{{ todo.id }}">
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
                                 <span class="todo-text">{{ todo.title }}</span>
@@ -295,7 +294,7 @@
                 </div>
                 <div id="list-important_not_urgent" class="priority-list" data-priority="important_not_urgent">
                     {% for todo in todos_by_priority.important_not_urgent %}
-                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" draggable="true" data-id="{{ todo.id }}">
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" data-id="{{ todo.id }}">
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
                                 <span class="todo-text">{{ todo.title }}</span>
@@ -325,7 +324,7 @@
                 </div>
                 <div id="list-urgent_not_important" class="priority-list" data-priority="urgent_not_important">
                     {% for todo in todos_by_priority.urgent_not_important %}
-                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" draggable="true" data-id="{{ todo.id }}">
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" data-id="{{ todo.id }}">
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
                                 <span class="todo-text">{{ todo.title }}</span>
@@ -355,7 +354,7 @@
                 </div>
                 <div id="list-neither" class="priority-list" data-priority="neither">
                     {% for todo in todos_by_priority.neither %}
-                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" draggable="true" data-id="{{ todo.id }}">
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" data-id="{{ todo.id }}">
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
                                 <span class="todo-text">{{ todo.title }}</span>
