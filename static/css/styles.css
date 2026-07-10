@@ -1884,3 +1884,82 @@ body {
 }
 
 
+/* ===== MOBILE BOTTOM TAB NAVIGATION ===== */
+.mobile-tab-bar {
+    display: none;
+}
+
+@media (max-width: 768px) {
+    .mobile-tab-bar {
+        display: flex;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        height: 62px;
+        background: rgba(10, 30, 30, 0.96);
+        backdrop-filter: blur(20px);
+        -webkit-backdrop-filter: blur(20px);
+        border-top: 1px solid rgba(45, 212, 191, 0.2);
+        box-shadow: 0 -4px 30px rgba(0, 0, 0, 0.4);
+        z-index: 9999;
+        justify-content: space-around;
+        align-items: center;
+        padding: 0 8px;
+    }
+
+    .mobile-tab-bar .tab-btn {
+        background: none;
+        border: none;
+        color: var(--text-secondary);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        flex: 1;
+        height: 100%;
+        font-family: inherit;
+        cursor: pointer;
+        padding: 6px 0;
+        transition: color 0.2s ease, transform 0.1s ease;
+    }
+
+    .mobile-tab-bar .tab-btn .tab-icon {
+        font-size: 1.25rem;
+        margin-bottom: 2px;
+        transition: transform 0.2s ease;
+    }
+
+    .mobile-tab-bar .tab-btn .tab-label {
+        font-size: 0.65rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .mobile-tab-bar .tab-btn.active {
+        color: #2dd4bf;
+    }
+
+    .mobile-tab-bar .tab-btn.active .tab-icon {
+        transform: translateY(-2px) scale(1.1);
+    }
+
+    /* Hide inactive content on mobile */
+    .glass-panel[data-mobile-tab] {
+        display: none !important;
+    }
+
+    /* Show only active tab content */
+    .glass-panel[data-mobile-tab].active-tab-content {
+        display: flex !important;
+    }
+
+    /* Ensure space at the bottom for the fixed tab bar */
+    .app-container {
+        padding-bottom: 84px !important;
+    }
+}
+
+
+

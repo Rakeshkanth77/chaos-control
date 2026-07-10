@@ -178,9 +178,9 @@
     <!-- COLUMN 1: Brain Dump & Auto-Generated Todos -->
     <div class="grid-column">
         <!-- Brain Dump Section -->
-        <div class="glass-panel braindump-card">
+        <div class="glass-panel braindump-card" data-mobile-tab="1">
             <h2 class="panel-title">
-                Brain Dump
+                What's on your mind?
                 <span class="panel-subtitle" id="dump-save-status">All changes saved</span>
             </h2>
             <textarea 
@@ -207,8 +207,10 @@
         </div>
 
         <!-- Auto-Generated Todos Section -->
-        <div class="glass-panel autotodos-card">
-            <h2 class="panel-title">Operational Tasks</h2>
+        <div class="glass-panel autotodos-card" data-mobile-tab="2">
+            <h2 class="panel-title">
+                Your to-do list
+            </h2>
             
             <!-- Mini Quick Add Form -->
             <form id="quick-add-todo" class="add-todo-inline">
@@ -244,8 +246,10 @@
 
     <!-- COLUMN 2: Eisenhower Matrix (Scrollable 1x4 Priority Stack) -->
     <div class="grid-column">
-        <div class="glass-panel eisenhower-column">
-            <h2 class="panel-title">Eisenhower Priorities</h2>
+        <div class="glass-panel eisenhower-column" data-mobile-tab="3">
+            <h2 class="panel-title">
+                What matters most?
+            </h2>
             
             <!-- Red: Urgent & Important -->
             <div class="priority-block urgent_important">
@@ -400,9 +404,9 @@
 
     <!-- COLUMN 4: Daily Reflection Notes & AI Suggestions -->
     <div class="grid-column">
-        <div class="glass-panel reflection-card">
+        <div class="glass-panel reflection-card" data-mobile-tab="4">
             <h2 class="panel-title">
-                Day Notes & Reflection
+                How was your day?
                 <span class="panel-subtitle" id="reflection-save-status">Saved</span>
             </h2>
             <textarea 
@@ -414,9 +418,27 @@
         </div>
     </div>
 
+</div><!-- end .dashboard-grid -->
 
-
-</div>
+<!-- ── Mobile Bottom Tab Navigation (hidden on desktop) ── -->
+<nav class="mobile-tab-bar" id="mobileTabBar" role="tablist" aria-label="Dashboard sections">
+    <button class="tab-btn active" data-mobile-tab="1" role="tab" aria-selected="true">
+        <span class="tab-icon" aria-hidden="true">💭</span>
+        <span class="tab-label">Thoughts</span>
+    </button>
+    <button class="tab-btn" data-mobile-tab="2" role="tab" aria-selected="false">
+        <span class="tab-icon" aria-hidden="true">📝</span>
+        <span class="tab-label">Tasks</span>
+    </button>
+    <button class="tab-btn" data-mobile-tab="3" role="tab" aria-selected="false">
+        <span class="tab-icon" aria-hidden="true">🎯</span>
+        <span class="tab-label">Focus</span>
+    </button>
+    <button class="tab-btn" data-mobile-tab="4" role="tab" aria-selected="false">
+        <span class="tab-icon" aria-hidden="true">📒</span>
+        <span class="tab-label">Notes</span>
+    </button>
+</nav>
 {% endblock %}
 
 {% block extra_js %}
@@ -425,6 +447,7 @@
 <script src="{% static 'js/eisenhower.js' %}"></script>
 <script src="{% static 'js/reflection.js' %}"></script>
 <script src="{% static 'js/task_breakdown.js' %}"></script>
+<script src="{% static 'js/tab_nav.js' %}"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════
