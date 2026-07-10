@@ -536,6 +536,23 @@ body {
     color: var(--neither-text);
 }
 
+/* Priority color dots — explicit classes to guarantee rendering on mobile */
+.priority-dot {
+    display: inline-block !important;
+    flex-shrink: 0 !important;
+    width: 10px !important;
+    height: 10px !important;
+    min-width: 10px !important;
+    min-height: 10px !important;
+    border-radius: 50% !important;
+    margin-right: 2px;
+}
+.priority-dot.dot-red    { background-color: #ef4444 !important; }
+.priority-dot.dot-amber  { background-color: #f59e0b !important; }
+.priority-dot.dot-blue   { background-color: #3b82f6 !important; }
+.priority-dot.dot-green  { background-color: #10b981 !important; }
+.priority-dot.dot-grey   { background-color: #9ca3af !important; }
+
 .priority-list {
     flex-grow: 1;
     overflow-y: visible;
