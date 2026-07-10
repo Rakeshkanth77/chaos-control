@@ -331,6 +331,120 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
 
+    // Handle inline creation of tasks in specific priority groups
+    document.addEventListener('click', (e) => {
+        const addBtn = e.target.closest('.add-priority-task-btn');
+        if (!addBtn) return;
+        
+        const priority = addBtn.dataset.priority;
+        const listId = priority === 'unassigned' ? 'unassigned-todo-list' : `list-${priority}`;
+        const targetList = document.getElementById(listId);
+        if (!targetList) return;
+        
+        // If there's already an active inline input wrapper in this list, focus it and do nothing else
+        const existingInputWrapper = targetList.querySelector('.inline-add-input-wrapper');
+        if (existingInputWrapper) {
+            existingInputWrapper.querySelector('input').focus();
+            return;
+        }
+        
+        // Otherwise, create the input element
+        const wrapper = document.createElement('div');
+        wrapper.className = 'inline-add-input-wrapper';
+        
+        const input = document.createElement('input');
+        input.type = 'text';
+        input.className = 'inline-add-input';
+        input.placeholder = 'Add task to this category...';
+        input.autocomplete = 'off';
+        
+        wrapper.appendChild(input);
+        
+        // Prepend it to the target list (before existing todo items)
+        targetList.insertBefore(wrapper, targetList.firstChild);
+        input.focus();
+        
+        // Handle saving or cancelling on keydown / blur
+        let isSaving = false;
+        const submitTask = async () => {
+            if (isSaving) return;
+            isSaving = true;
+            const title = input.value.trim();
+            if (!title) {
+                wrapper.remove();
+                return;
+            }
+            
+            try {
+                // Disable input during request to prevent double submit
+                input.disabled = true;
+                const response = await window.apiPost('/api/todo/add/', { title, priority: priority });
+                if (response.status === 'success') {
+                    const todo = response.todo;
+                    
+                    // Generate new todo element HTML matching standard focus column items
+                    const itemHtml = `
+                        <div class="todo-item" data-id="${todo.id}">
+                            <div class="todo-content-wrapper">
+                                <input type="checkbox" class="todo-checkbox">
+                                <span class="todo-text">${todo.title}</span>
+                                <select class="todo-priority-select" data-id="${todo.id}" title="Change priority">
+                                    <option value="unassigned" ${todo.priority === 'unassigned' ? 'selected' : ''}>⚪ Prioritize</option>
+                                    <option value="urgent_important" ${todo.priority === 'urgent_important' ? 'selected' : ''}>🔴 Urgent &amp; Important</option>
+                                    <option value="important_not_urgent" ${todo.priority === 'important_not_urgent' ? 'selected' : ''}>🟠 Important &amp; Not Urgent</option>
+                                    <option value="urgent_not_important" ${todo.priority === 'urgent_not_important' ? 'selected' : ''}>🟡 Urgent &amp; Not Important</option>
+                                    <option value="neither" ${todo.priority === 'neither' ? 'selected' : ''}>🟢 Neither</option>
+                                </select>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="action-btn edit">edit</button>
+                                <button class="action-btn breakdown">details</button>
+                                <button class="action-btn delete">delete</button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    // Remove empty message if any
+                    const emptyMsg = targetList.querySelector('.empty-state-message');
+                    if (emptyMsg) emptyMsg.remove();
+                    
+                    // Insert the new todo item right after the wrapper
+                    wrapper.insertAdjacentHTML('afterend', itemHtml);
+                    
+                    // Sync select styling class and update counts
+                    syncSelectClasses();
+                    updatePriorityCounts();
+                    
+                    // Show a toast
+                    if (window.showToast) {
+                        window.showToast('✨ Task added directly to this category!');
+                    }
+                }
+            } catch (err) {
+                console.error('Error adding direct task:', err);
+            } finally {
+                wrapper.remove();
+            }
+        };
+        
+        input.addEventListener('keydown', (evt) => {
+            if (evt.key === 'Enter') {
+                submitTask();
+            } else if (evt.key === 'Escape') {
+                wrapper.remove();
+            }
+        });
+        
+        input.addEventListener('blur', () => {
+            // Wait slightly in case user cancels or clicks away
+            setTimeout(() => {
+                if (document.body.contains(wrapper)) {
+                    submitTask();
+                }
+            }, 150);
+        });
+    });
+
 });
 
 

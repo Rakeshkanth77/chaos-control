@@ -260,7 +260,10 @@
             <div class="priority-block urgent_important">
                 <div class="priority-header">
                     <span>🔴 Urgent & Important</span>
-                    <span class="priority-count" id="count-urgent_important">0</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="priority-count" id="count-urgent_important">0</span>
+                        <button class="add-priority-task-btn" data-priority="urgent_important" title="Add task to this category">+</button>
+                    </div>
                 </div>
                 <div id="list-urgent_important" class="priority-list" data-priority="urgent_important">
                     {% for todo in todos_by_priority.urgent_important %}
@@ -290,7 +293,10 @@
             <div class="priority-block important_not_urgent">
                 <div class="priority-header">
                     <span>🟠 Important & Not Urgent</span>
-                    <span class="priority-count" id="count-important_not_urgent">0</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="priority-count" id="count-important_not_urgent">0</span>
+                        <button class="add-priority-task-btn" data-priority="important_not_urgent" title="Add task to this category">+</button>
+                    </div>
                 </div>
                 <div id="list-important_not_urgent" class="priority-list" data-priority="important_not_urgent">
                     {% for todo in todos_by_priority.important_not_urgent %}
@@ -320,7 +326,10 @@
             <div class="priority-block urgent_not_important">
                 <div class="priority-header">
                     <span>🟡 Urgent & Not Important</span>
-                    <span class="priority-count" id="count-urgent_not_important">0</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="priority-count" id="count-urgent_not_important">0</span>
+                        <button class="add-priority-task-btn" data-priority="urgent_not_important" title="Add task to this category">+</button>
+                    </div>
                 </div>
                 <div id="list-urgent_not_important" class="priority-list" data-priority="urgent_not_important">
                     {% for todo in todos_by_priority.urgent_not_important %}
@@ -350,7 +359,10 @@
             <div class="priority-block neither">
                 <div class="priority-header">
                     <span>🟢 Neither</span>
-                    <span class="priority-count" id="count-neither">0</span>
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span class="priority-count" id="count-neither">0</span>
+                        <button class="add-priority-task-btn" data-priority="neither" title="Add task to this category">+</button>
+                    </div>
                 </div>
                 <div id="list-neither" class="priority-list" data-priority="neither">
                     {% for todo in todos_by_priority.neither %}
