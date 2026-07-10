@@ -411,7 +411,7 @@
             });
         };
 
-        window.showToast = function(message, duration = 3000) {
+        window.showToast = function(message, duration = 4000) {
             let toast = document.getElementById('global-toast');
             if (!toast) {
                 toast = document.createElement('div');
@@ -419,7 +419,7 @@
                 toast.className = 'toast-notification';
                 document.body.appendChild(toast);
             }
-            toast.textContent = message;
+            toast.innerHTML = message;
             toast.classList.add('show');
             
             clearTimeout(window.toastTimer);

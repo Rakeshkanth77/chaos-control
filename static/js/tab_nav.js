@@ -51,6 +51,7 @@ document.addEventListener('DOMContentLoaded', () => {
         // Persist to local storage
         localStorage.setItem('active_mobile_tab_id', tabId);
     }
+    window.switchMobileTab = switchTab;
 
     // Attach click listeners to all tab buttons
     tabButtons.forEach(btn => {

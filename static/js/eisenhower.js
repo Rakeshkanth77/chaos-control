@@ -494,31 +494,43 @@ document.addEventListener('DOMContentLoaded', () => {
                 });
 
                 if (response.status === 'success') {
-                    // Identify target list in DOM
-                    const targetListId = newPriority === 'unassigned' ? 'unassigned-todo-list' : `list-${newPriority}`;
-                    const targetList = document.getElementById(targetListId);
-                    
-                    if (targetList) {
-                        // Remove empty state message
-                        const emptyMsg = targetList.querySelector('.empty-state-message');
-                        if (emptyMsg) emptyMsg.remove();
+                    // Trigger slide out animation in the list!
+                    todoItem.classList.add('moving-priority');
 
-                        // Move the todo item card to the new list
-                        targetList.appendChild(todoItem);
+                    // Wait for 350ms transition
+                    setTimeout(() => {
+                        // Identify target list in DOM
+                        const targetListId = newPriority === 'unassigned' ? 'unassigned-todo-list' : `list-${newPriority}`;
+                        const targetList = document.getElementById(targetListId);
+                        
+                        if (targetList) {
+                            // Remove empty state message
+                            const emptyMsg = targetList.querySelector('.empty-state-message');
+                            if (emptyMsg) emptyMsg.remove();
 
-                        // Ensure count badges update
-                        updatePriorityCounts();
+                            // Move the todo item card to the new list
+                            targetList.appendChild(todoItem);
 
-                        // Sync priority selector value inside the detail sheet if it's open for this todo
-                        const detailPanelSelect = document.querySelector(`.breakdown-priority-selector .p-btn[data-priority-val="${newPriority}"]`);
-                        if (detailPanelSelect && window.currentTodoId === todoId) {
-                            document.querySelectorAll('.breakdown-priority-selector .p-btn').forEach(b => b.classList.remove('active'));
-                            detailPanelSelect.classList.add('active');
+                            // Ensure count badges update
+                            updatePriorityCounts();
+
+                            // Sync priority selector value inside the detail sheet if it's open for this todo
+                            const detailPanelSelect = document.querySelector(`.breakdown-priority-selector .p-btn[data-priority-val="${newPriority}"]`);
+                            if (detailPanelSelect && window.currentTodoId === todoId) {
+                                document.querySelectorAll('.breakdown-priority-selector .p-btn').forEach(b => b.classList.remove('active'));
+                                detailPanelSelect.classList.add('active');
+                            }
                         }
-                    }
+
+                        // Remove animation class so it fades back in smoothly
+                        todoItem.classList.remove('moving-priority');
+                    }, 350);
 
                     if (window.showToast) {
-                        window.showToast('✨ Priority successfully updated!');
+                        const linkHtml = newPriority !== 'unassigned'
+                            ? ` <a href="#" onclick="event.preventDefault(); window.switchMobileTab('3');" style="color: #2dd4bf; text-decoration: underline; margin-left: 6px; font-weight: 600;">Go to Focus 🎯</a>`
+                            : ` <a href="#" onclick="event.preventDefault(); window.switchMobileTab('2');" style="color: #2dd4bf; text-decoration: underline; margin-left: 6px; font-weight: 600;">Go to Tasks 📝</a>`;
+                        window.showToast(`✨ Priority successfully updated!${linkHtml}`);
                     }
                 }
             } catch (err) {

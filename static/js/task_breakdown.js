@@ -300,7 +300,10 @@ document.addEventListener('DOMContentLoaded', () => {
                         }
                     }
                     if (window.showToast) {
-                        window.showToast('✨ Priority successfully updated!');
+                        const linkHtml = newPriority !== 'unassigned'
+                            ? ` <a href="#" onclick="event.preventDefault(); window.switchMobileTab('3');" style="color: #2dd4bf; text-decoration: underline; margin-left: 6px; font-weight: 600;">Go to Focus 🎯</a>`
+                            : ` <a href="#" onclick="event.preventDefault(); window.switchMobileTab('2');" style="color: #2dd4bf; text-decoration: underline; margin-left: 6px; font-weight: 600;">Go to Tasks 📝</a>`;
+                        window.showToast(`✨ Priority successfully updated!${linkHtml}`);
                     }
                 }
             } catch (err) {
