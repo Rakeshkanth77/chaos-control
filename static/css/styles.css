@@ -932,13 +932,16 @@ body {
     body {
         overflow-x: hidden;
     }
+    /* App header: logo LEFT, hamburger RIGHT — stay in a row on all mobile sizes */
     .app-header {
-        flex-direction: column;
-        gap: 14px;
-        align-items: stretch;
-        text-align: center;
-        padding: 16px;
+        flex-direction: row !important;
+        align-items: center !important;
+        flex-wrap: nowrap !important;
+        gap: 0 !important;
+        text-align: left !important;
+        padding: 10px 14px !important;
     }
+    .header-logo { flex-shrink: 0; margin-right: auto; }
     .date-navigator {
         justify-content: center;
     }
@@ -1302,7 +1305,27 @@ body {
         flex-wrap: nowrap !important;
     }
 
-    .date-navigator { display: none !important; }
+    /* Date navigator: show compact on mobile */
+    .date-navigator {
+        display: flex !important;
+        gap: 4px !important;
+        align-items: center !important;
+        flex-shrink: 1 !important;
+    }
+    .date-navigator .nav-btn {
+        width: 24px !important;
+        height: 24px !important;
+        font-size: 0.75rem !important;
+        flex-shrink: 0;
+    }
+    .current-date-display {
+        font-size: 0.72rem !important;
+        min-width: 60px !important;
+        white-space: nowrap;
+    }
+    .today-badge {
+        display: none !important; /* hide 'Go to Today' pill — saves space */
+    }
 
     .main-content {
         overflow: visible !important;
@@ -1349,11 +1372,21 @@ body {
     .glass-panel { padding: 16px !important; }
     .btn { padding: 10px 16px !important; font-size: 0.9rem !important; }
 
+    /* Command banner: show compact stats on mobile */
     .command-banner { min-height: 56px !important; border-radius: 14px !important; }
-    .command-banner-content { padding: 12px 16px !important; }
-    .banner-stat { display: none !important; }
+    .command-banner-content { padding: 10px 14px !important; gap: 8px !important; }
+    .banner-stat {
+        display: inline-flex !important;
+        padding: 4px 8px !important;
+        flex-direction: column !important;
+    }
+    .banner-stat-num { font-size: 1rem !important; line-height: 1.1; }
+    .banner-stat-label { font-size: 0.55rem !important; letter-spacing: 0.8px; }
     .banner-subtitle { display: none !important; }
-    .banner-title { font-size: 0.68rem !important; letter-spacing: 1.5px !important; }
+    .banner-title { font-size: 0.65rem !important; letter-spacing: 1.5px !important; white-space: nowrap; }
+    /* Stack banner left content tighter on mobile */
+    .banner-left { gap: 8px !important; min-width: 0; flex-shrink: 1; }
+    .banner-right { gap: 6px !important; flex-shrink: 0; }
 
     .hero-title { font-size: 2.2rem !important; letter-spacing: -1px !important; }
     .hero-tagline { font-size: 1rem !important; }
