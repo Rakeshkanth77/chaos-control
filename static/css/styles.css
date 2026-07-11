@@ -1916,7 +1916,7 @@ body {
         bottom: 0;
         left: 0;
         right: 0;
-        height: 62px;
+        height: 72px;
         background: rgba(10, 30, 30, 0.96);
         backdrop-filter: blur(20px);
         -webkit-backdrop-filter: blur(20px);
@@ -1940,18 +1940,23 @@ body {
         height: 100%;
         font-family: inherit;
         cursor: pointer;
-        padding: 6px 0;
+        padding: 8px 0;
         transition: color 0.2s ease, transform 0.1s ease;
     }
 
     .mobile-tab-bar .tab-btn .tab-icon {
-        font-size: 1.25rem;
-        margin-bottom: 2px;
+        font-size: 1.45rem;
+        margin-bottom: 4px;
         transition: transform 0.2s ease;
     }
 
+    .mobile-tab-bar .tab-btn .tab-icon svg {
+        width: 23px !important;
+        height: 23px !important;
+    }
+
     .mobile-tab-bar .tab-btn .tab-label {
-        font-size: 0.65rem;
+        font-size: 0.74rem;
         font-weight: 600;
         text-transform: uppercase;
         letter-spacing: 0.5px;
@@ -1977,7 +1982,7 @@ body {
 
     /* Ensure space at the bottom for the fixed tab bar */
     .app-container {
-        padding-bottom: 84px !important;
+        padding-bottom: 94px !important;
     }
 }
 

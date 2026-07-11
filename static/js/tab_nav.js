@@ -34,6 +34,11 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Hide parent grid-columns on mobile if they have no active children
         document.querySelectorAll('.grid-column').forEach(col => {
+            // Skip the breakdown column entirely as its display is handled by task_breakdown.js
+            if (col.classList.contains('task-breakdown-column')) {
+                return;
+            }
+
             // Check if column has any active tab content child
             const hasActiveChild = col.querySelector('.active-tab-content');
             
@@ -86,7 +91,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 content.classList.remove('active-tab-content');
             });
             document.querySelectorAll('.grid-column').forEach(col => {
-                col.style.removeProperty('display');
+                if (!col.classList.contains('task-breakdown-column')) {
+                    col.style.removeProperty('display');
+                }
             });
         }
 
