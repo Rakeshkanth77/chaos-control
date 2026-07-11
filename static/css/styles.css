@@ -2153,38 +2153,37 @@ body {
     text-shadow: 0 0 1px rgba(45, 212, 191, 0.2);
 }
 
-/* ── Mobile: priority select → colored dot via wrapper ── */
-@media (max-width: 768px) {
-    .priority-dot-wrapper {
-        position: relative;
-        width: 18px;
-        height: 18px;
-        min-width: 18px;
-        border-radius: 50%;
-        flex-shrink: 0;
-        display: inline-block;
-        vertical-align: middle;
-        cursor: pointer;
-    }
-    /* Colored backgrounds per priority */
-    .priority-dot-wrapper[data-priority="urgent_important"]     { background: #ef4444; }
-    .priority-dot-wrapper[data-priority="important_not_urgent"] { background: #f59e0b; }
-    .priority-dot-wrapper[data-priority="urgent_not_important"] { background: #3b82f6; }
-    .priority-dot-wrapper[data-priority="neither"]              { background: #10b981; }
-    /* Select is invisible but covers the dot to receive tap events */
-    .priority-dot-wrapper .todo-priority-select {
-        position: absolute !important;
-        inset: 0 !important;
-        width: 100% !important;
-        height: 100% !important;
-        opacity: 0 !important;
-        margin: 0 !important;
-        padding: 0 !important;
-        cursor: pointer !important;
-        font-size: 1rem !important;
-        border: none !important;
-        animation: none !important;
-    }
+/* ── Priority select → colored dot via wrapper (global) ── */
+.priority-dot-wrapper {
+    position: relative;
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    display: inline-block;
+    vertical-align: middle;
+    cursor: pointer;
+    margin-left: 8px;
+}
+/* Colored backgrounds per priority */
+.priority-dot-wrapper[data-priority="urgent_important"]     { background: #ef4444; }
+.priority-dot-wrapper[data-priority="important_not_urgent"] { background: #f59e0b; }
+.priority-dot-wrapper[data-priority="urgent_not_important"] { background: #3b82f6; }
+.priority-dot-wrapper[data-priority="neither"]              { background: #10b981; }
+/* Select is invisible but covers the dot to receive tap/click events */
+.priority-dot-wrapper .todo-priority-select {
+    position: absolute !important;
+    inset: 0 !important;
+    width: 100% !important;
+    height: 100% !important;
+    opacity: 0 !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    cursor: pointer !important;
+    font-size: 1rem !important;
+    border: none !important;
+    animation: none !important;
 }
 
 /* Category-specific task creator button */

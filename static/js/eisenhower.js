@@ -27,9 +27,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Helper to toggle is-unassigned class and apply mobile dot wrappers
+    // Helper to toggle is-unassigned class and apply dot wrappers (global)
     function syncSelectClasses() {
-        const isMobile = window.innerWidth <= 768;
         document.querySelectorAll('.todo-priority-select').forEach(select => {
             // Set data-priority attribute for reference
             select.dataset.priority = select.value;
@@ -43,25 +42,17 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             } else {
                 select.classList.remove('is-unassigned');
-                if (isMobile) {
-                    // Wrap in colored dot span if not already wrapped
-                    const wrapper = select.parentElement;
-                    if (wrapper && wrapper.classList.contains('priority-dot-wrapper')) {
-                        // Already wrapped — just update color
-                        wrapper.dataset.priority = select.value;
-                    } else {
-                        const dot = document.createElement('span');
-                        dot.className = 'priority-dot-wrapper';
-                        dot.dataset.priority = select.value;
-                        select.parentNode.insertBefore(dot, select);
-                        dot.appendChild(select);
-                    }
+                // Wrap in colored dot span if not already wrapped
+                const wrapper = select.parentElement;
+                if (wrapper && wrapper.classList.contains('priority-dot-wrapper')) {
+                    // Already wrapped — just update color
+                    wrapper.dataset.priority = select.value;
                 } else {
-                    // Desktop: unwrap if it was wrapped
-                    const wrapper = select.parentElement;
-                    if (wrapper && wrapper.classList.contains('priority-dot-wrapper')) {
-                        wrapper.replaceWith(select);
-                    }
+                    const dot = document.createElement('span');
+                    dot.className = 'priority-dot-wrapper';
+                    dot.dataset.priority = select.value;
+                    select.parentNode.insertBefore(dot, select);
+                    dot.appendChild(select);
                 }
             }
         });
