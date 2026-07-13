@@ -74,6 +74,7 @@ def index(request):
         'total_flashcards': total_flashcards,
         'due_flashcards': due_flashcards,
         'profile': profile,
+        'projects': Project.objects.filter(user=request.user),
     }
     
     return render(request, 'dashboard/index.html', context)

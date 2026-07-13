@@ -195,10 +195,13 @@
                 flex: 1 1 auto;
                 min-width: 0;
             }
+            #mobile-toggle-projects-btn {
+                order: 1 !important;
+            }
             /* Hamburger: row 1, far right */
             .hamburger-btn {
                 display: flex !important;
-                order: 1;
+                order: 1 !important;
                 flex-shrink: 0;
             }
             /* Hide the desktop nav on mobile */
@@ -235,7 +238,6 @@
         </div>
         {% if request.user.is_authenticated %}
             <a href="/" class="mobile-nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
-            <a href="/projects/" class="mobile-nav-link {% if '/projects/' in request.path %}active{% endif %}">Projects</a>
             <a href="/bible-memory/" class="mobile-nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">Practice Portal</a>
             <div class="mobile-nav-divider"></div>
             <a href="/profile/" class="mobile-nav-link {% if request.path == '/profile/' %}active{% endif %}">
@@ -280,7 +282,9 @@
                 <!-- Desktop Nav -->
                 <nav class="app-nav desktop-nav" style="display: flex; align-items: center; gap: 12px;">
                     <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
-                    <a href="/projects/" class="nav-link {% if '/projects/' in request.path %}active{% endif %}">Projects</a>
+                    <button id="toggle-projects-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px;" title="Current Projects">
+                        📁 Projects
+                    </button>
                     <a href="/bible-memory/" class="nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">Practice Portal</a>
                     <a href="/profile/" class="user-profile-badge {% if request.path == '/profile/' %}active{% endif %}">
                         {% if request.user.profile.avatar or request.user.profile.avatar_url %}
@@ -292,6 +296,11 @@
                     </a>
                     <a href="/accounts/logout/" class="nav-link btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;">Logout</a>
                 </nav>
+
+                <!-- Mobile projects shortcut button -->
+                <button id="mobile-toggle-projects-btn" class="nav-btn" style="display: none; width: 34px; height: 34px; margin-right: 8px; font-size: 1rem; border-radius: 10px;" title="Current Projects">
+                    📁
+                </button>
 
                 <!-- Mobile hamburger -->
                 <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="Open menu">

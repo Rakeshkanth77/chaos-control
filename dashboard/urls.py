@@ -34,6 +34,7 @@ urlpatterns = [
     path('api/project/add/', api.add_project, name='api_add_project'),
     path('api/project/update/', api.update_project, name='api_update_project'),
     path('api/project/delete/', api.delete_project, name='api_delete_project'),
+    path('api/project/reorder/', api.reorder_projects, name='api_reorder_projects'),
     
     # Bible Memory API endpoints
     path('api/bible-memory/get-verses/', api.get_bible_verses, name='api_get_bible_verses'),

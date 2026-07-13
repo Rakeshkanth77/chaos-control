@@ -2,10 +2,16 @@ document.addEventListener('DOMContentLoaded', () => {
     const addForm = document.getElementById('add-project-form');
     const nameInput = document.getElementById('project-name');
     const urlInput = document.getElementById('project-url');
-    const descInput = document.getElementById('project-description');
     const projectList = document.getElementById('project-list');
+    
+    // Sidebar Elements
+    const toggleBtn = document.getElementById('toggle-projects-btn');
+    const mobileToggleBtn = document.getElementById('mobile-toggle-projects-btn');
+    const closeBtn = document.getElementById('close-projects-sidebar');
+    const sidebar = document.getElementById('projectsSidebar');
+    const overlay = document.getElementById('projectsSidebarOverlay');
 
-    // Helper: POST request (reuse the global apiPost if available, else define locally)
+    // Helper: POST request
     async function projectApiPost(url, body = {}) {
         const response = await fetch(url, {
             method: 'POST',
@@ -22,6 +28,113 @@ document.addEventListener('DOMContentLoaded', () => {
         return await response.json();
     }
 
+    // Sidebar Toggles
+    function openSidebar() {
+        if (sidebar && overlay) {
+            sidebar.classList.add('open');
+            overlay.classList.add('open');
+            document.body.style.overflow = 'hidden'; // lock background scroll
+        }
+    }
+
+    function closeSidebar() {
+        if (sidebar && overlay) {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+            document.body.style.overflow = ''; // restore background scroll
+        }
+    }
+
+    if (toggleBtn) toggleBtn.addEventListener('click', openSidebar);
+    if (mobileToggleBtn) mobileToggleBtn.addEventListener('click', openSidebar);
+    if (closeBtn) closeBtn.addEventListener('click', closeSidebar);
+    if (overlay) overlay.addEventListener('click', closeSidebar);
+
+    // Initialize drag events for an item
+    function initDragEvents(item) {
+        item.addEventListener('dragstart', (e) => {
+            item.classList.add('dragging');
+        });
+
+        item.addEventListener('dragend', () => {
+            item.classList.remove('dragging');
+            saveNewOrder();
+        });
+    }
+
+    // Set up drag and drop list container
+    if (projectList) {
+        // Init loaded items
+        projectList.querySelectorAll('.project-item').forEach(initDragEvents);
+
+        projectList.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            const draggingItem = document.querySelector('.project-item.dragging');
+            if (!draggingItem) return;
+            const afterElement = getDragAfterElement(projectList, e.clientY);
+            if (afterElement == null) {
+                projectList.appendChild(draggingItem);
+            } else {
+                projectList.insertBefore(draggingItem, afterElement);
+            }
+        });
+    }
+
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.project-item:not(.dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    // Save Reordered Projects Order
+    async function saveNewOrder() {
+        if (!projectList) return;
+        const items = [...projectList.querySelectorAll('.project-item')];
+        const projectIds = items.map(item => item.dataset.id);
+        
+        try {
+            const res = await projectApiPost('/api/project/reorder/', { project_ids: projectIds });
+            if (res.status === 'success' && window.showToast) {
+                window.showToast('Projects reordered successfully.');
+            }
+        } catch (err) {
+            console.error('Failed to save project order:', err);
+            if (window.showToast) {
+                window.showToast('Error saving project order: ' + err.message);
+            }
+        }
+    }
+
+    // Handle Up / Down arrow moves
+    document.addEventListener('click', async (e) => {
+        const moveUpBtn = e.target.closest('.project-move-up');
+        const moveDownBtn = e.target.closest('.project-move-down');
+        
+        if (moveUpBtn) {
+            e.preventDefault();
+            const item = moveUpBtn.closest('.project-item');
+            if (item && item.previousElementSibling && item.previousElementSibling.classList.contains('project-item')) {
+                projectList.insertBefore(item, item.previousElementSibling);
+                await saveNewOrder();
+            }
+        } else if (moveDownBtn) {
+            e.preventDefault();
+            const item = moveDownBtn.closest('.project-item');
+            if (item && item.nextElementSibling && item.nextElementSibling.classList.contains('project-item')) {
+                // To insert after nextElement, we insert before nextElement's next sibling
+                projectList.insertBefore(item, item.nextElementSibling.nextElementSibling);
+                await saveNewOrder();
+            }
+        }
+    });
+
     // Add Project
     if (addForm) {
         addForm.addEventListener('submit', async (e) => {
@@ -29,7 +142,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
             const name = nameInput.value.trim();
             const url = urlInput.value.trim();
-            const description = descInput.value.trim();
 
             if (!name || !url) {
                 alert('Project name and URL are required.');
@@ -37,7 +149,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
 
             try {
-                const res = await projectApiPost('/api/project/add/', { name, url, description });
+                const res = await projectApiPost('/api/project/add/', { name, url, description: '' });
 
                 if (res.status === 'success') {
                     const project = res.project;
@@ -46,33 +158,41 @@ document.addEventListener('DOMContentLoaded', () => {
                     const emptyState = document.getElementById('project-empty-state');
                     if (emptyState) emptyState.remove();
 
-                    // Build new project card
-                    const cardHtml = `
-                        <div class="glass-panel project-card" data-id="${project.id}">
-                            <div class="project-info">
-                                <div class="project-name">
+                    // Build new project item HTML matching index.html structure
+                    const itemHtml = `
+                        <div class="project-item" data-id="${project.id}" draggable="true">
+                            <div class="project-drag-handle">☰</div>
+                            <div class="project-content-wrapper">
+                                <span class="project-name-text">
                                     <a href="${escapeHtml(project.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(project.name)} ↗</a>
-                                </div>
-                                ${project.description ? `<div class="project-description">${escapeHtml(project.description)}</div>` : ''}
-                                <div class="project-url-display">${escapeHtml(project.url.length > 60 ? project.url.substring(0, 57) + '...' : project.url)}</div>
+                                </span>
                             </div>
                             <div class="project-actions">
-                                <button class="btn btn-secondary project-edit-btn" style="padding: 4px 12px; font-size: 0.8rem;">Edit</button>
-                                <button class="btn btn-secondary project-delete-btn" style="padding: 4px 12px; font-size: 0.8rem; color: #ef4444;">Delete</button>
+                                <button class="project-sort-btn project-move-up" title="Move Up">▲</button>
+                                <button class="project-sort-btn project-move-down" title="Move Down">▼</button>
+                                <button class="action-btn project-edit-btn">edit</button>
+                                <button class="action-btn project-delete-btn" style="color: #ef4444;">delete</button>
                             </div>
                         </div>
                     `;
 
-                    projectList.insertAdjacentHTML('beforeend', cardHtml);
+                    projectList.insertAdjacentHTML('beforeend', itemHtml);
+                    
+                    // Bind drag events to new item
+                    const newEl = projectList.querySelector(`.project-item[data-id="${project.id}"]`);
+                    if (newEl) initDragEvents(newEl);
 
-                    // Clear form
+                    // Clear form inputs
                     nameInput.value = '';
                     urlInput.value = '';
-                    descInput.value = '';
+                    
+                    if (window.showToast) {
+                        window.showToast('Project added successfully!');
+                    }
                 }
             } catch (err) {
                 console.error(err);
-                alert(`Error: ${err.message}`);
+                alert(`Error adding project: ${err.message}`);
             }
         });
     }
@@ -83,13 +203,12 @@ document.addEventListener('DOMContentLoaded', () => {
         if (editBtn) {
             e.preventDefault();
             e.stopPropagation();
-            const card = editBtn.closest('.project-card');
+            const card = editBtn.closest('.project-item');
             if (!card) return;
 
             const id = card.dataset.id;
-            const nameEl = card.querySelector('.project-name a');
-            const descEl = card.querySelector('.project-description');
-            const urlEl = card.querySelector('.project-url-display');
+            const nameEl = card.querySelector('.project-name-text a');
+            const descEl = card.querySelector('.project-desc-text');
 
             const currentName = nameEl ? nameEl.textContent.replace(' ↗', '') : '';
             const currentUrl = nameEl ? nameEl.getAttribute('href') : '';
@@ -114,26 +233,28 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 if (res.status === 'success') {
                     const p = res.project;
-                    nameEl.textContent = p.name + ' ↗';
-                    nameEl.setAttribute('href', p.url);
+                    if (nameEl) {
+                        nameEl.textContent = p.name + ' ↗';
+                        nameEl.setAttribute('href', p.url);
+                    }
                     
                     if (descEl) {
                         descEl.textContent = p.description;
                         descEl.style.display = p.description ? '' : 'none';
                     } else if (p.description) {
-                        const newDescEl = document.createElement('div');
-                        newDescEl.className = 'project-description';
+                        const newDescEl = document.createElement('span');
+                        newDescEl.className = 'project-desc-text';
                         newDescEl.textContent = p.description;
-                        card.querySelector('.project-name').after(newDescEl);
+                        card.querySelector('.project-content-wrapper').appendChild(newDescEl);
                     }
                     
-                    if (urlEl) {
-                        urlEl.textContent = p.url.length > 60 ? p.url.substring(0, 57) + '...' : p.url;
+                    if (window.showToast) {
+                        window.showToast('Project updated successfully.');
                     }
                 }
             } catch (err) {
                 console.error(err);
-                alert(`Error: ${err.message}`);
+                alert(`Error updating project: ${err.message}`);
             }
         }
     });
@@ -144,7 +265,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (deleteBtn) {
             e.preventDefault();
             e.stopPropagation();
-            const card = deleteBtn.closest('.project-card');
+            const card = deleteBtn.closest('.project-item');
             if (!card) return;
 
             const id = card.dataset.id;
@@ -167,19 +288,22 @@ document.addEventListener('DOMContentLoaded', () => {
                         setTimeout(() => {
                             card.remove();
                             // Show empty state if no projects left
-                            if (!projectList.querySelector('.project-card')) {
+                            if (!projectList.querySelector('.project-item')) {
                                 projectList.innerHTML = `
-                                    <div class="glass-panel project-empty" id="project-empty-state">
-                                        <div style="font-size: 2rem; margin-bottom: 12px;">📁</div>
-                                        <div>No projects yet. Add your first project above to start tracking your work.</div>
+                                    <div class="empty-state-message" id="project-empty-state" style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 12px 0;">
+                                        No projects tracked.
                                     </div>
                                 `;
                             }
                         }, 300);
+                        
+                        if (window.showToast) {
+                            window.showToast('Project deleted successfully.');
+                        }
                     }
                 } catch (err) {
                     console.error(err);
-                    alert(`Error: ${err.message}`);
+                    alert(`Error deleting project: ${err.message}`);
                 }
             }
         }

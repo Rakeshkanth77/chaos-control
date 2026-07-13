@@ -910,3 +910,18 @@ def save_task_breakdown(request):
         return JsonResponse({'status': 'error', 'message': 'Task not found'}, status=404)
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@csrf_exempt
+@require_POST
+@api_login_required
+def reorder_projects(request):
+    try:
+        data = json.loads(request.body)
+        project_ids = data.get('project_ids', [])
+        for index, pid in enumerate(project_ids):
+            Project.objects.filter(id=pid, user=request.user).update(order=index)
+        return JsonResponse({'status': 'success'})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+

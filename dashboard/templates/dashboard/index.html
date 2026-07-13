@@ -483,7 +483,6 @@
                 class="reflection-textarea" 
                 placeholder="How was your day? Write down your activities, feelings, successes, or details on mistakes you made..."
             >{% if reflection %}{{ reflection.notes }}{% endif %}</textarea>
-
         </div>
     </div>
 
@@ -531,6 +530,7 @@
 <script src="{% static 'js/reflection.js' %}?v=2"></script>
 <script src="{% static 'js/task_breakdown.js' %}?v=2"></script>
 <script src="{% static 'js/tab_nav.js' %}?v=2"></script>
+<script src="{% static 'js/projects.js' %}?v=3"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════
@@ -680,5 +680,51 @@
 
 
 </script>
+
+<!-- Slide-out Current Projects Sidebar Panel -->
+<div class="projects-sidebar-overlay" id="projectsSidebarOverlay"></div>
+<div class="glass-panel projects-sidebar" id="projectsSidebar">
+    <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(12, 88, 85, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
+        <h2 class="panel-title" style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.25rem;">
+            Current Projects
+        </h2>
+        <button id="close-projects-sidebar" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-primary); outline: none;">✕</button>
+    </div>
+    
+    <!-- Quick Add Form -->
+    <form id="add-project-form" class="project-add-inline" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; background: rgba(12, 88, 85, 0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(12, 88, 85, 0.08);">
+        <label style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--accent-color);">Add New Project</label>
+        <input type="text" id="project-name" class="inline-input" placeholder="Project name..." required autocomplete="off" style="padding: 8px 12px; font-size: 0.85rem;">
+        <input type="url" id="project-url" class="inline-input" placeholder="URL (https://...)" required autocomplete="off" style="padding: 8px 12px; font-size: 0.85rem;">
+        <button type="submit" class="btn" style="width: 100%; padding: 8px;">+ Add Project</button>
+    </form>
+
+    <!-- Project List -->
+    <div class="project-list-container" id="project-list" style="flex-grow: 1; overflow-y: auto;">
+        {% for project in projects %}
+            <div class="project-item" data-id="{{ project.id }}" draggable="true">
+                <div class="project-drag-handle">☰</div>
+                <div class="project-content-wrapper">
+                    <span class="project-name-text">
+                        <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">{{ project.name }} ↗</a>
+                    </span>
+                    {% if project.description %}
+                        <span class="project-desc-text">{{ project.description }}</span>
+                    {% endif %}
+                </div>
+                <div class="project-actions">
+                    <button class="project-sort-btn project-move-up" title="Move Up">▲</button>
+                    <button class="project-sort-btn project-move-down" title="Move Down">▼</button>
+                    <button class="action-btn project-edit-btn">edit</button>
+                    <button class="action-btn project-delete-btn" style="color: #ef4444;">delete</button>
+                </div>
+            </div>
+        {% empty %}
+            <div class="empty-state-message" id="project-empty-state" style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 12px 0;">
+                No projects tracked.
+            </div>
+        {% endfor %}
+    </div>
+</div>
 
 {% endblock %}
