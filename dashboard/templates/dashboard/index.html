@@ -375,6 +375,14 @@
             </div>
         </div>
         <div class="banner-right">
+            <div class="banner-stat">
+                <div class="banner-stat-num" id="banner-total-tasks">—</div>
+                <div class="banner-stat-label">Tasks Today</div>
+            </div>
+            <div class="banner-stat">
+                <div class="banner-stat-num" id="banner-done-tasks">—</div>
+                <div class="banner-stat-label">Done</div>
+            </div>
             <div class="banner-stat pending-dropdown-container">
                 <button class="banner-stat-btn" id="pending-toggle-btn" aria-haspopup="true" aria-expanded="false">
                     <div class="banner-stat-num" id="banner-pending-count">{{ pending_todos|length }}</div>
@@ -414,14 +422,6 @@
                         {% endfor %}
                     </div>
                 </div>
-            </div>
-            <div class="banner-stat">
-                <div class="banner-stat-num" id="banner-total-tasks">—</div>
-                <div class="banner-stat-label">Tasks Today</div>
-            </div>
-            <div class="banner-stat">
-                <div class="banner-stat-num" id="banner-done-tasks">—</div>
-                <div class="banner-stat-label">Done</div>
             </div>
         </div>
     </div>
