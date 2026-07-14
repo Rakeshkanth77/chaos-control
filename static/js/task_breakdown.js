@@ -338,8 +338,8 @@ document.addEventListener('DOMContentLoaded', () => {
         const todoItem = e.target.closest('.todo-item');
         if (!todoItem) return;
 
-        // Skip details sheet for unassigned inbox tasks
-        if (todoItem.closest('#unassigned-todo-list')) {
+        // Skip details sheet for unassigned inbox tasks or pending dropdown tasks
+        if (todoItem.closest('#unassigned-todo-list') || todoItem.closest('.pending-dropdown-list')) {
             return;
         }
 

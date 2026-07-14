@@ -251,7 +251,7 @@
 /* Missed tasks inside dropdown styling overrides */
 .pending-dropdown-list .pending-todo-item {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     background: transparent;
     border: none;
     border-radius: 0;
@@ -287,14 +287,14 @@
 .pending-dropdown-list .todo-text {
     font-size: 0.85rem;
     color: #fff;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
     font-weight: 500;
+    white-space: normal;
+    word-break: break-word;
 }
 
 .pending-dropdown-list .todo-checkbox {
     border: 1.5px solid rgba(45, 212, 191, 0.4);
+    flex-shrink: 0;
 }
 
 .pending-dropdown-list .todo-checkbox:checked {
@@ -444,6 +444,7 @@
                         <span class="mic-icon">🎤</span> <span class="btn-text">Voice</span>
                     </button>
                     <button id="clear-braindump-btn" class="btn btn-secondary">Clear</button>
+                    <button id="undo-braindump-btn" class="btn btn-secondary" style="display: none; align-items: center; gap: 4px;">↩️ Undo</button>
                 </div>
                 <button id="generate-todos-btn" class="btn">Extract Tasks</button>
             </div>
@@ -768,12 +769,12 @@
 
 {% block extra_js %}
 <!-- Import script logic for each part of the app -->
-<script src="{% static 'js/braindump.js' %}?v=2"></script>
-<script src="{% static 'js/eisenhower.js' %}?v=2"></script>
-<script src="{% static 'js/reflection.js' %}?v=2"></script>
-<script src="{% static 'js/task_breakdown.js' %}?v=2"></script>
-<script src="{% static 'js/tab_nav.js' %}?v=2"></script>
-<script src="{% static 'js/projects.js' %}?v=3"></script>
+<script src="{% static 'js/braindump.js' %}?v=3"></script>
+<script src="{% static 'js/eisenhower.js' %}?v=3"></script>
+<script src="{% static 'js/reflection.js' %}?v=3"></script>
+<script src="{% static 'js/task_breakdown.js' %}?v=3"></script>
+<script src="{% static 'js/tab_nav.js' %}?v=3"></script>
+<script src="{% static 'js/projects.js' %}?v=4"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════

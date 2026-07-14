@@ -374,6 +374,7 @@ body {
     display: flex;
     align-items: center;
     justify-content: center;
+    flex-shrink: 0;
     transition: background-color 0.2s, border-color 0.2s;
 }
 
@@ -432,6 +433,28 @@ body {
 .action-btn.delete:hover {
     color: #ef4444;
     background: rgba(239, 68, 68, 0.1);
+}
+
+.action-btn.breakdown {
+    background: rgba(12, 88, 85, 0.05);
+    border: 1px solid rgba(45, 212, 191, 0.3) !important;
+    color: var(--accent-color);
+    font-weight: 600;
+    box-shadow: 0 0 4px rgba(45, 212, 191, 0.15);
+    animation: breakdownGlow 2s infinite ease-in-out;
+}
+
+@keyframes breakdownGlow {
+    0%, 100% {
+        box-shadow: 0 0 4px rgba(45, 212, 191, 0.15), inset 0 0 2px rgba(45, 212, 191, 0.1);
+        border-color: rgba(45, 212, 191, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 10px rgba(45, 212, 191, 0.55), inset 0 0 4px rgba(45, 212, 191, 0.2);
+        border-color: rgba(45, 212, 191, 0.75);
+        background: rgba(45, 212, 191, 0.1);
+        color: #0c5855;
+    }
 }
 
 /* Add Todo Mini Form */

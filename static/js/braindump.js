@@ -31,6 +31,35 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
+    // Undo stack for Brain Dump
+    const contentHistory = [];
+    const undoBtn = document.getElementById('undo-braindump-btn');
+
+    // Initialize history with initial value
+    if (dumpInput && dumpInput.value) {
+        contentHistory.push(dumpInput.value);
+    }
+
+    function pushHistory(val) {
+        // Prevent duplicate consecutive entries in history
+        if (contentHistory.length === 0 || contentHistory[contentHistory.length - 1] !== val) {
+            contentHistory.push(val);
+            if (contentHistory.length > 50) {
+                contentHistory.shift();
+            }
+            updateUndoBtnVisibility();
+        }
+    }
+
+    function updateUndoBtnVisibility() {
+        if (!undoBtn) return;
+        if (contentHistory.length > 1) {
+            undoBtn.style.display = 'inline-flex';
+        } else {
+            undoBtn.style.display = 'none';
+        }
+    }
+
     // Auto-save debouncing
     if (dumpInput) {
         dumpInput.addEventListener('input', () => {
@@ -40,9 +69,11 @@ document.addEventListener('DOMContentLoaded', () => {
             clearTimeout(debounceTimer);
             debounceTimer = setTimeout(async () => {
                 try {
-                    await apiPost('/api/braindump/save/', { content: dumpInput.value });
+                    const currentContent = dumpInput.value;
+                    await apiPost('/api/braindump/save/', { content: currentContent });
                     saveStatus.textContent = 'All changes saved';
                     saveStatus.style.opacity = '0.5';
+                    pushHistory(currentContent);
                 } catch (e) {
                     saveStatus.textContent = 'Error saving';
                     saveStatus.style.opacity = '1';
@@ -88,7 +119,9 @@ document.addEventListener('DOMContentLoaded', () => {
             });
 
             if (confirmed) {
+                pushHistory(dumpInput.value); // Store old value
                 dumpInput.value = '';
+                pushHistory(''); // Store cleared value
                 saveStatus.textContent = 'Saving...';
                 saveStatus.style.opacity = '0.7';
 
@@ -101,6 +134,34 @@ document.addEventListener('DOMContentLoaded', () => {
                     saveStatus.style.opacity = '1';
                 }
             }
+        });
+    }
+
+    // Undo button click handler
+    if (undoBtn && dumpInput) {
+        undoBtn.addEventListener('click', async (e) => {
+            e.preventDefault();
+            if (contentHistory.length <= 1) return;
+
+            // Pop current state
+            contentHistory.pop();
+            // Get previous state
+            const prevState = contentHistory[contentHistory.length - 1];
+
+            dumpInput.value = prevState;
+            saveStatus.textContent = 'Saving...';
+            saveStatus.style.opacity = '0.7';
+
+            try {
+                await apiPost('/api/braindump/save/', { content: prevState });
+                saveStatus.textContent = 'All changes saved';
+                saveStatus.style.opacity = '0.5';
+            } catch (e) {
+                saveStatus.textContent = 'Error saving';
+                saveStatus.style.opacity = '1';
+            }
+
+            updateUndoBtnVisibility();
         });
     }
 
