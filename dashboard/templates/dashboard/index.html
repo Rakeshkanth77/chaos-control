@@ -16,7 +16,6 @@
     padding: 0;
     margin-bottom: 20px;
     position: relative;
-    overflow: hidden;
     display: flex;
     align-items: center;
     min-height: 72px;
@@ -27,6 +26,8 @@
     position: absolute;
     inset: 0;
     pointer-events: none;
+    border-radius: 18px;
+    overflow: hidden;
 }
 
 #dashBannerCanvas {
@@ -142,7 +143,183 @@
     .command-banner-content { padding: 12px 16px; }
 }
 
+/* ── Pending Tasks Dropdown ── */
+.pending-dropdown-container {
+    position: relative;
+    padding: 0 !important; /* Reset padding to let button fill space */
+}
 
+.banner-stat-btn {
+    background: none;
+    border: none;
+    padding: 6px 14px;
+    color: inherit;
+    font: inherit;
+    cursor: pointer;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    border-radius: 10px;
+    outline: none;
+    transition: background-color 0.2s;
+}
+
+.banner-stat-btn:hover {
+    background: rgba(255, 255, 255, 0.08);
+}
+
+.pending-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 8px);
+    right: 0;
+    width: 320px;
+    background: rgba(10, 35, 33, 0.96);
+    border: 1px solid rgba(45, 212, 191, 0.3);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border-radius: 14px;
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(45, 212, 191, 0.15);
+    z-index: 1000;
+    display: none;
+    flex-direction: column;
+    overflow: hidden;
+    text-align: left;
+}
+
+.pending-dropdown-menu.show {
+    display: flex;
+    animation: pendingFadeInScale 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes pendingFadeInScale {
+    from {
+        opacity: 0;
+        transform: scale(0.96) translateY(-8px);
+    }
+    to {
+        opacity: 1;
+        transform: scale(1) translateY(0);
+    }
+}
+
+.pending-dropdown-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 16px;
+    border-bottom: 1px solid rgba(45, 212, 191, 0.15);
+    background: rgba(255, 255, 255, 0.02);
+}
+
+.pending-dropdown-header span:first-child {
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    font-size: 0.88rem;
+    color: #2dd4bf;
+    letter-spacing: 0.5px;
+}
+
+.pending-header-count {
+    font-size: 0.72rem;
+    color: rgba(200, 235, 230, 0.6);
+    font-family: 'JetBrains Mono', monospace;
+}
+
+.pending-dropdown-list {
+    max-height: 280px;
+    overflow-y: auto;
+    padding: 6px 0;
+}
+
+.pending-dropdown-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.pending-dropdown-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.pending-dropdown-list::-webkit-scrollbar-thumb {
+    background: rgba(45, 212, 191, 0.2);
+    border-radius: 3px;
+}
+
+.pending-dropdown-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(45, 212, 191, 0.4);
+}
+
+/* Missed tasks inside dropdown styling overrides */
+.pending-dropdown-list .pending-todo-item {
+    display: flex;
+    align-items: center;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    margin-bottom: 0;
+    padding: 8px 16px;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    cursor: default;
+}
+
+.pending-dropdown-list .pending-todo-item:last-child {
+    border-bottom: none;
+}
+
+.pending-dropdown-list .pending-todo-item:hover {
+    background: rgba(45, 212, 191, 0.05);
+}
+
+.pending-dropdown-list .pending-todo-item.completed {
+    opacity: 0.5;
+}
+
+.pending-dropdown-list .pending-todo-item.completed .todo-text {
+    text-decoration: line-through;
+    color: rgba(200, 235, 230, 0.4) !important;
+}
+
+.pending-todo-info {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+}
+
+.pending-dropdown-list .todo-text {
+    font-size: 0.85rem;
+    color: #fff;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-weight: 500;
+}
+
+.pending-dropdown-list .todo-checkbox {
+    border: 1.5px solid rgba(45, 212, 191, 0.4);
+}
+
+.pending-dropdown-list .todo-checkbox:checked {
+    background-color: #2dd4bf;
+    border-color: #2dd4bf;
+}
+
+.pending-dropdown-list .todo-checkbox:checked::after {
+    border-left-color: #061616;
+    border-bottom-color: #061616;
+}
+
+.todo-date-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(45, 212, 191, 0.55);
+    margin-top: 1px;
+}
+
+.pending-empty-state {
+    padding: 24px 16px;
+    text-align: center;
+    font-size: 0.82rem;
+    color: rgba(200, 235, 230, 0.5);
+}
 </style>
 {% endblock %}
 
@@ -162,6 +339,37 @@
             </div>
         </div>
         <div class="banner-right">
+            <div class="banner-stat pending-dropdown-container">
+                <button class="banner-stat-btn" id="pending-toggle-btn" aria-haspopup="true" aria-expanded="false">
+                    <div class="banner-stat-num" id="banner-pending-count">{{ pending_todos|length }}</div>
+                    <div class="banner-stat-label" style="display: flex; align-items: center; justify-content: center; gap: 4px;">
+                        Missed <span class="arrow-indicator" style="transition: transform 0.2s; display: inline-block;">▼</span>
+                    </div>
+                </button>
+                <div class="pending-dropdown-menu" id="pending-dropdown-menu">
+                    <div class="pending-dropdown-header">
+                        <span>Missed Tasks</span>
+                        <span class="pending-header-count">{{ pending_todos|length }} pending</span>
+                    </div>
+                    <div class="pending-dropdown-list">
+                        {% for todo in pending_todos %}
+                            <div class="todo-item {% if todo.is_completed %}completed{% endif %} pending-todo-item" data-id="{{ todo.id }}">
+                                <div class="todo-content-wrapper">
+                                    <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
+                                    <div class="pending-todo-info">
+                                        <span class="todo-text">{{ todo.title }}</span>
+                                        <span class="todo-date-badge">{{ todo.date|date:"M d" }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                        {% empty %}
+                            <div class="pending-empty-state">
+                                No missed tasks. Great job! 🎉
+                            </div>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
             <div class="banner-stat">
                 <div class="banner-stat-num" id="banner-total-tasks">—</div>
                 <div class="banner-stat-label">Tasks Today</div>
@@ -654,10 +862,10 @@
 
     requestAnimationFrame(frame);
 
-    // Live task count from DOM
+    // Live task count from DOM (excluding pending dropdown tasks)
     function updateBannerStats() {
-        const allItems = document.querySelectorAll('.todo-item');
-        const doneItems = document.querySelectorAll('.todo-item.completed');
+        const allItems = document.querySelectorAll('.todo-item:not(.pending-todo-item)');
+        const doneItems = document.querySelectorAll('.todo-item.completed:not(.pending-todo-item)');
         const totalEl = document.getElementById('banner-total-tasks');
         const doneEl = document.getElementById('banner-done-tasks');
         if (totalEl) totalEl.textContent = allItems.length || '0';
@@ -667,7 +875,7 @@
     // Update immediately and on any checkbox toggle
     updateBannerStats();
     document.addEventListener('change', (e) => {
-        if (e.target.classList.contains('todo-checkbox')) {
+        if (e.target.classList.contains('todo-checkbox') && !e.target.closest('.pending-todo-item')) {
             setTimeout(updateBannerStats, 100);
         }
     });
@@ -675,6 +883,69 @@
     const observer = new MutationObserver(updateBannerStats);
     const grid = document.querySelector('.dashboard-grid');
     if (grid) observer.observe(grid, { childList: true, subtree: true });
+
+    // ── Missed Tasks Dropdown Toggle & Count Handling ──
+    const pendingToggleBtn = document.getElementById('pending-toggle-btn');
+    const pendingDropdownMenu = document.getElementById('pending-dropdown-menu');
+
+    if (pendingToggleBtn && pendingDropdownMenu) {
+        const arrow = pendingToggleBtn.querySelector('.arrow-indicator');
+        
+        pendingToggleBtn.addEventListener('click', (e) => {
+            e.stopPropagation();
+            const show = pendingDropdownMenu.classList.toggle('show');
+            pendingToggleBtn.setAttribute('aria-expanded', show);
+            if (arrow) {
+                arrow.style.transform = show ? 'rotate(180deg)' : 'rotate(0deg)';
+            }
+        });
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', (e) => {
+            if (!pendingDropdownMenu.contains(e.target) && !pendingToggleBtn.contains(e.target)) {
+                pendingDropdownMenu.classList.remove('show');
+                pendingToggleBtn.setAttribute('aria-expanded', 'false');
+                if (arrow) {
+                    arrow.style.transform = 'rotate(0deg)';
+                }
+            }
+        });
+    }
+
+    // Dynamic count update for missed/pending tasks in dropdown
+    function updatePendingCounts() {
+        const pendingList = document.querySelector('.pending-dropdown-list');
+        if (!pendingList) return;
+        const activeCount = pendingList.querySelectorAll('.pending-todo-item:not(.completed)').length;
+        
+        const countBadge = document.getElementById('banner-pending-count');
+        const headerCountBadge = document.querySelector('.pending-header-count');
+        
+        if (countBadge) countBadge.textContent = activeCount;
+        if (headerCountBadge) headerCountBadge.textContent = `${activeCount} pending`;
+        
+        // Show empty state if count becomes 0
+        if (activeCount === 0) {
+            if (!pendingList.querySelector('.pending-empty-state')) {
+                const emptyDiv = document.createElement('div');
+                emptyDiv.className = 'pending-empty-state';
+                emptyDiv.innerHTML = 'No missed tasks. Great job! 🎉';
+                pendingList.appendChild(emptyDiv);
+            }
+        } else {
+            const emptyDiv = pendingList.querySelector('.pending-empty-state');
+            if (emptyDiv) emptyDiv.remove();
+        }
+    }
+
+    // Update pending counts on checkbox change (including programmatically on rollback)
+    document.addEventListener('change', (e) => {
+        if (e.target.classList.contains('todo-checkbox') && e.target.closest('.pending-todo-item')) {
+            updatePendingCounts();
+            // Safeguard against backend request failures reverting UI state asynchronously
+            setTimeout(updatePendingCounts, 500);
+        }
+    });
 })();
 
 

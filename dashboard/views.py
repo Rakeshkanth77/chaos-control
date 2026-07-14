@@ -30,6 +30,13 @@ def index(request):
     # Get todos for selected date owned by request.user
     todos = Todo.objects.filter(date=selected_date, user=request.user)
     
+    # Get pending (incomplete) todos from past days owned by request.user
+    pending_todos = Todo.objects.filter(
+        user=request.user,
+        is_completed=False,
+        date__lt=selected_date
+    ).order_by('-date', 'order')
+    
     # Group todos by priority
     todos_by_priority = {
         'unassigned': todos.filter(priority='unassigned'),
@@ -69,6 +76,7 @@ def index(request):
         'is_today': selected_date == timezone.localdate(),
         'braindump': braindump,
         'todos_by_priority': todos_by_priority,
+        'pending_todos': pending_todos,
         'reflection': reflection,
         'pomodoros_completed': pomodoros_completed,
         'total_flashcards': total_flashcards,
