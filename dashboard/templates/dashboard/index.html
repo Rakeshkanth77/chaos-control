@@ -320,6 +320,32 @@
     font-size: 0.82rem;
     color: rgba(200, 235, 230, 0.5);
 }
+
+.pending-priority-select {
+    background: rgba(45, 212, 191, 0.08);
+    border: 1px solid rgba(45, 212, 191, 0.25);
+    color: rgba(45, 212, 191, 0.85);
+    font-size: 0.72rem;
+    padding: 3px 6px;
+    border-radius: 6px;
+    outline: none;
+    cursor: pointer;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 500;
+    max-width: 105px;
+    transition: all 0.2s ease;
+}
+
+.pending-priority-select:hover {
+    background: rgba(45, 212, 191, 0.15);
+    color: #fff;
+    border-color: rgba(45, 212, 191, 0.45);
+}
+
+.pending-priority-select option {
+    background: #0a2321;
+    color: #fff;
+}
 </style>
 {% endblock %}
 
@@ -354,12 +380,21 @@
                     <div class="pending-dropdown-list">
                         {% for todo in pending_todos %}
                             <div class="todo-item {% if todo.is_completed %}completed{% endif %} pending-todo-item" data-id="{{ todo.id }}">
-                                <div class="todo-content-wrapper">
-                                    <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
-                                    <div class="pending-todo-info">
-                                        <span class="todo-text">{{ todo.title }}</span>
-                                        <span class="todo-date-badge">{{ todo.date|date:"M d" }}</span>
+                                <div class="todo-content-wrapper" style="width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;">
+                                    <div style="display: flex; align-items: center; gap: 10px; min-width: 0; flex-grow: 1;">
+                                        <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %}>
+                                        <div class="pending-todo-info">
+                                            <span class="todo-text">{{ todo.title }}</span>
+                                            <span class="todo-date-badge">{{ todo.date|date:"M d" }}</span>
+                                        </div>
                                     </div>
+                                    <select class="pending-priority-select" data-id="{{ todo.id }}" title="Prioritize for Today">
+                                        <option value="" selected disabled>📅 Prioritize</option>
+                                        <option value="urgent_important">🔥 Urgent &amp; Important</option>
+                                        <option value="important_not_urgent">⭐ Important &amp; Not Urgent</option>
+                                        <option value="urgent_not_important">⚡ Urgent &amp; Not Important</option>
+                                        <option value="neither">💤 Neither</option>
+                                    </select>
                                 </div>
                             </div>
                         {% empty %}
@@ -944,6 +979,86 @@
             updatePendingCounts();
             // Safeguard against backend request failures reverting UI state asynchronously
             setTimeout(updatePendingCounts, 500);
+        }
+    });
+
+    // Event listener for prioritizing a pending task
+    document.addEventListener('change', async (e) => {
+        if (e.target.classList.contains('pending-priority-select')) {
+            const select = e.target;
+            const todoId = select.dataset.id;
+            const newPriority = select.value;
+            const pendingItem = select.closest('.pending-todo-item');
+            if (!pendingItem) return;
+
+            const title = pendingItem.querySelector('.todo-text').textContent;
+            const isCompleted = pendingItem.querySelector('.todo-checkbox').checked;
+
+            // Get target date (viewed date) from the date navigator
+            const dateDisplay = document.getElementById('date-display');
+            const targetDate = dateDisplay ? dateDisplay.textContent.trim() : new Date().toISOString().split('T')[0];
+
+            try {
+                // Call Django update-priority API (passing date to update date as well)
+                const response = await window.apiPost('/api/todo/update-priority/', {
+                    id: todoId,
+                    priority: newPriority,
+                    date: targetDate
+                });
+
+                if (response.status === 'success') {
+                    // Animate fade-out from dropdown
+                    pendingItem.style.transition = 'all 0.3s ease';
+                    pendingItem.style.opacity = '0';
+                    pendingItem.style.transform = 'translateX(20px)';
+
+                    setTimeout(() => {
+                        pendingItem.remove();
+                        updatePendingCounts();
+                        
+                        // Create standard todo item HTML card for dashboard
+                        const itemHtml = `
+                            <div class="todo-item ${isCompleted ? 'completed' : ''}" data-id="${todoId}">
+                                <div class="todo-content-wrapper">
+                                    <input type="checkbox" class="todo-checkbox" ${isCompleted ? 'checked' : ''}>
+                                    <span class="todo-text">${title}</span>
+                                    <select class="todo-priority-select" data-id="${todoId}" title="Change priority">
+                                        <option value="unassigned" ${newPriority === 'unassigned' ? 'selected' : ''}>Prioritize</option>
+                                        <option value="urgent_important" ${newPriority === 'urgent_important' ? 'selected' : ''}>Urgent &amp; Important</option>
+                                        <option value="important_not_urgent" ${newPriority === 'important_not_urgent' ? 'selected' : ''}>Important &amp; Not Urgent</option>
+                                        <option value="urgent_not_important" ${newPriority === 'urgent_not_important' ? 'selected' : ''}>Urgent &amp; Not Important</option>
+                                        <option value="neither" ${newPriority === 'neither' ? 'selected' : ''}>Neither</option>
+                                    </select>
+                                </div>
+                                <div class="todo-actions">
+                                    <button class="action-btn edit">edit</button>
+                                    <button class="action-btn breakdown">details</button>
+                                    <button class="action-btn delete">delete</button>
+                                </div>
+                            </div>
+                        `;
+
+                        // Add to target quadrant list
+                        const targetListId = newPriority === 'unassigned' ? 'unassigned-todo-list' : `list-${newPriority}`;
+                        const targetList = document.getElementById(targetListId);
+                        
+                        if (targetList) {
+                            const emptyMsg = targetList.querySelector('.empty-state-message');
+                            if (emptyMsg) emptyMsg.remove();
+                            
+                            targetList.insertAdjacentHTML('beforeend', itemHtml);
+                            
+                            // Re-sync Eisenhower scripts
+                            if (window.updatePriorityCounts) window.updatePriorityCounts();
+                            if (window.syncSelectClasses) window.syncSelectClasses();
+                            updateBannerStats();
+                        }
+                    }, 300);
+                }
+            } catch (err) {
+                console.error('Failed to prioritize task:', err);
+                select.value = ''; // Reset select
+            }
         }
     });
 })();

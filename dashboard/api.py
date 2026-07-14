@@ -147,6 +147,14 @@ def update_todo_priority(request):
 
         todo = Todo.objects.get(id=todo_id, user=request.user)
         
+        # Optional date rollover / rescheduling
+        date_str = data.get('date')
+        if date_str:
+            try:
+                todo.date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+
         if new_priority in dict(Todo.PRIORITY_CHOICES).keys():
             todo.priority = new_priority
             todo.save()
