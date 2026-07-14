@@ -295,10 +295,11 @@ def clean_ramble_text(content):
     return cleaned.strip()
 
 
-def fetch_vocab_words_via_search():
+def fetch_vocab_words_via_search(count=1):
     """
-    Fetches a daily batch of 5 high-quality advanced English vocabulary words.
-    First tries calling an LLM to generate them using search query context, and falls back to a curated local list if API keys fail.
+    Fetches a batch of advanced English vocabulary words.
+    count: how many words to generate (default 1 for word-of-the-day).
+    First tries calling an LLM, falls back to a curated local list.
     """
     gemini_key = os.getenv('GEMINI_API_KEY')
     openai_key = os.getenv('OPENAI_API_KEY')
@@ -309,7 +310,7 @@ def fetch_vocab_words_via_search():
         openai_key = None
 
     prompt = (
-        "Generate exactly 5 advanced, interesting, and useful English vocabulary words suitable for GRE, SAT, or professional writing.\n"
+        f"Generate exactly {count} advanced, interesting, and useful English vocabulary word{'s' if count > 1 else ''} suitable for GRE, SAT, or professional writing.\n"
         "For each word, provide:\n"
         "1. The word (spelled correctly)\n"
         "2. The definition (clear, concise)\n"
@@ -432,6 +433,6 @@ def fetch_vocab_words_via_search():
             "context": "Fake news has a pernicious influence on democratic elections."
         }
     ]
-    return random.sample(all_fallback_words, min(5, len(all_fallback_words)))
+    return random.sample(all_fallback_words, min(count, len(all_fallback_words)))
 
 

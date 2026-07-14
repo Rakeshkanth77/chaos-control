@@ -855,6 +855,107 @@ def fetch_daily_vocab(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
+@csrf_exempt
+@api_login_required
+def word_of_the_day(request):
+    """
+    GET /api/bible-memory/word-of-the-day/
+    Returns today's vocabulary word. If the user doesn't have one created today,
+    auto-fetches a new word via LLM/fallback and saves it to the database.
+    """
+    try:
+        today = timezone.localdate()
+        
+        # Check if we already have a word created today
+        existing = BibleVerse.objects.filter(
+            user=request.user,
+            practice_type='english',
+            created_at__date=today
+        ).first()
+        
+        if existing:
+            return JsonResponse({
+                'status': 'success',
+                'word': {
+                    'id': existing.id,
+                    'reference': existing.reference,
+                    'text': existing.text,
+                    'category': existing.category,
+                    'hook': existing.hook,
+                    'context': existing.context,
+                    'mastered': existing.mastered,
+                    'review_count': existing.review_count,
+                    'created_at': existing.created_at.isoformat(),
+                },
+                'is_new': False
+            })
+        
+        # Fetch a new word
+        from .services import fetch_vocab_words_via_search
+        words = fetch_vocab_words_via_search(count=1)
+        
+        if not words or len(words) == 0:
+            return JsonResponse({'status': 'error', 'message': 'Could not fetch a word today.'}, status=500)
+        
+        word_data = words[0]
+        
+        # Check if this exact word already exists to avoid duplicates
+        word_name = word_data.get('reference', '').strip()
+        duplicate = BibleVerse.objects.filter(
+            user=request.user,
+            practice_type='english',
+            reference__iexact=word_name
+        ).first()
+        
+        if duplicate:
+            # Return the existing word rather than creating a duplicate
+            return JsonResponse({
+                'status': 'success',
+                'word': {
+                    'id': duplicate.id,
+                    'reference': duplicate.reference,
+                    'text': duplicate.text,
+                    'category': duplicate.category,
+                    'hook': duplicate.hook,
+                    'context': duplicate.context,
+                    'mastered': duplicate.mastered,
+                    'review_count': duplicate.review_count,
+                    'created_at': duplicate.created_at.isoformat(),
+                },
+                'is_new': False
+            })
+        
+        # Save the new word
+        new_word = BibleVerse.objects.create(
+            user=request.user,
+            reference=word_name,
+            text=word_data.get('text', ''),
+            category=word_data.get('category', 'Vocabulary'),
+            hook=word_data.get('hook', ''),
+            context=word_data.get('context', ''),
+            practice_type='english',
+            next_review=timezone.now()
+        )
+        
+        return JsonResponse({
+            'status': 'success',
+            'word': {
+                'id': new_word.id,
+                'reference': new_word.reference,
+                'text': new_word.text,
+                'category': new_word.category,
+                'hook': new_word.hook,
+                'context': new_word.context,
+                'mastered': new_word.mastered,
+                'review_count': new_word.review_count,
+                'created_at': new_word.created_at.isoformat(),
+            },
+            'is_new': True
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
 # ── Task Breakdown endpoints ──────────────────────────────────────────────────
 
 from django.views.decorators.http import require_http_methods

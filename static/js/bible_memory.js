@@ -1,54 +1,24 @@
 // ════════════════════════════════════════
-//  BIBLE MEMORY CONTROLLER (SPA BEHAVIOR)
+//  DAILY PRACTICE — Minimal Friction-Free Controller
+//  One word per day. One verse per day. That's it.
 // ════════════════════════════════════════
 
+let ALL_WORDS = [];
 let ALL_VERSES = [];
-let GOAL_TARGET = 1;
-let SELECTED_CATEGORY = 'all';
-let SEARCH_QUERY = '';
-
-// Session state variables
-let sessionMode = 'learn';
-let sessionQueue = [];
-let sessionIdx = 0;
-let sessionMastered = 0;
-let currentV = null;
-
-// Learn step 1 read counter
-let readStep = 0;
-
-// Cloze test variables
-let clozeHidden = new Set();
+let CURRENT_TAB = 'word';
+let REVIEW_ITEM = null;
 
 // ════════════════════════════════════════
-//  DOM INITIALIZATION & DATA LOADING
+//  INITIALIZATION
 // ════════════════════════════════════════
 
 document.addEventListener('DOMContentLoaded', () => {
-    const savedType = localStorage.getItem('bm_practice_type') || 'bible';
-    switchPracticeType(savedType);
-
-    // Attach search event
-    const searchBox = document.getElementById('verse-search-box');
-    if (searchBox) {
-        searchBox.addEventListener('input', (e) => {
-            SEARCH_QUERY = e.target.value.toLowerCase();
-            applyFilters();
-        });
-    }
-
-    // Attach goal click handler
-    const goalLabel = document.getElementById('goal-label-display');
-    if (goalLabel) {
-        goalLabel.addEventListener('click', editGoalTarget);
-    }
-
-    // Check if there is an unfinished session to resume
-    checkAndPromptResumeSession();
+    const savedTab = localStorage.getItem('practice_tab') || 'word';
+    switchTab(savedTab);
 });
 
 // Helper for CSRF-protected JSON POST
-async function bibleApiPost(url, body = {}) {
+async function practicePost(url, body = {}) {
     const response = await fetch(url, {
         method: 'POST',
         headers: {
@@ -64,1642 +34,462 @@ async function bibleApiPost(url, body = {}) {
     return await response.json();
 }
 
-let CURRENT_PRACTICE_TYPE = 'bible';
-
-async function loadLibrary() {
-    try {
-        const response = await fetch(`/api/bible-memory/get-verses/?practice_type=${CURRENT_PRACTICE_TYPE}`);
-        const data = await response.json();
-        if (data.status === 'success') {
-            ALL_VERSES = data.verses;
-            GOAL_TARGET = data.goal;
-            updateOverviewStats();
-            renderCategoryChips();
-            applyFilters();
-        } else {
-            showToast(CURRENT_PRACTICE_TYPE === 'english' ? '❌ Error loading vocabulary library.' : '❌ Error loading scripture library.');
-        }
-    } catch (err) {
-        console.error(err);
-        showToast('❌ Could not connect to the database.');
-    }
-}
-
-// ════════════════════════════════════════
-//  OVERVIEW & LIBRARY RENDERING
-// ════════════════════════════════════════
-
-function updateOverviewStats() {
-    const total = ALL_VERSES.length;
-    const mastered = ALL_VERSES.filter(v => v.mastered).length;
-    
-    // Calculate due items — only mastered ones (Review Due is mastered-only)
-    const now = new Date();
-    const fullDueCount = ALL_VERSES.filter(v => {
-        return v.mastered && new Date(v.next_review) <= now;
-    }).length;
-
-    // Cap what we DISPLAY at the daily goal — shows today's target, not an overwhelming backlog
-    const displayedDueCount = Math.min(fullDueCount, GOAL_TARGET);
-
-    // UI counts
-    document.getElementById('mastered-count-display').textContent = mastered;
-    document.getElementById('goal-count-display').textContent = GOAL_TARGET;
-    document.getElementById('stat-due-count').textContent = displayedDueCount;
-    document.getElementById('stat-total-count').textContent = total;
-    
-    if (CURRENT_PRACTICE_TYPE === 'english') {
-        document.getElementById('library-count-label').textContent = `${total} word${total !== 1 ? 's' : ''}`;
-    } else {
-        document.getElementById('library-count-label').textContent = `${total} verse${total !== 1 ? 's' : ''}`;
-    }
-
-    const heroLabel = document.getElementById('hero-mastered-label-lbl');
-    if (heroLabel) heroLabel.textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Words Mastered' : 'Verses Mastered';
-
-    const statTotalLabel = document.getElementById('stat-total-label-lbl');
-    if (statTotalLabel) statTotalLabel.textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Total Words' : 'Total Verses';
-
-    const statDueLabel = document.getElementById('stat-due-label-lbl');
-    if (statDueLabel) statDueLabel.textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Words Due Today' : 'Due Today';
-
-    // Update Mode review button label — show goal-capped count
-    const modeBadgeDue = document.getElementById('mode-badge-due');
-    if (modeBadgeDue) {
-        modeBadgeDue.textContent = `${displayedDueCount} due`;
-        if (displayedDueCount > 0) {
-            modeBadgeDue.className = 'bm-mode-badge bm-badge-red';
-        } else {
-            modeBadgeDue.className = 'bm-mode-badge bm-badge-green';
-        }
-    }
-
-    // Progress Bar
-    const pct = Math.min(100, total > 0 ? (mastered / GOAL_TARGET) * 100 : 0);
-    document.getElementById('hero-progress-bar').style.width = `${pct}%`;
-    document.getElementById('progress-percent-label').textContent = `${Math.round(pct)}% of goal reached`;
-}
-
-function renderCategoryChips() {
-    // Get unique categories
-    const categories = ['all', ...new Set(ALL_VERSES.map(v => v.category).filter(Boolean))];
-    const container = document.getElementById('category-chips-container');
-    if (!container) return;
-
-    let html = '';
-    categories.forEach(cat => {
-        const count = cat === 'all' 
-            ? ALL_VERSES.length 
-            : ALL_VERSES.filter(v => v.category === cat).length;
-        
-        const activeClass = SELECTED_CATEGORY === cat ? 'active' : '';
-        const displayName = cat === 'all' ? 'All' : cat;
-        
-        html += `
-            <div class="bm-chip ${activeClass}" data-category="${cat}" onclick="filterByCategory('${cat}', this)">
-                ${displayName} <span class="bm-chip-count">${count}</span>
-            </div>
-        `;
-    });
-    container.innerHTML = html;
-}
-
-function filterByCategory(cat, el) {
-    SELECTED_CATEGORY = cat;
-    document.querySelectorAll('.bm-chip').forEach(c => c.classList.remove('active'));
-    if (el) el.classList.add('active');
-    applyFilters();
-}
-
-function applyFilters() {
-    const tableBody = document.getElementById('verse-table-body');
-    if (!tableBody) return;
-
-    let filtered = ALL_VERSES;
-
-    // Category Filter
-    if (SELECTED_CATEGORY !== 'all') {
-        filtered = filtered.filter(v => v.category === SELECTED_CATEGORY);
-    }
-
-    // Search Query Filter
-    if (SEARCH_QUERY) {
-        filtered = filtered.filter(v => 
-            v.reference.toLowerCase().includes(SEARCH_QUERY) || 
-            v.text.toLowerCase().includes(SEARCH_QUERY) ||
-            v.category.toLowerCase().includes(SEARCH_QUERY)
-        );
-    }
-
-    if (filtered.length === 0) {
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="5" class="text-center" style="color: var(--text-secondary); padding: 30px;">
-                    No verses found matching the active filters.
-                </td>
-            </tr>
-        `;
-        return;
-    }
-
-    const now = new Date();
-    let html = '';
-    filtered.forEach(v => {
-        // Status tag
-        let statusTag = '';
-        const nextReviewDate = new Date(v.next_review);
-        if (v.mastered) {
-            statusTag = `<span class="bm-verse-status-tag status-mastered">Mastered</span>`;
-        } else if (nextReviewDate <= now) {
-            statusTag = `<span class="bm-verse-status-tag status-due">Due Review</span>`;
-        } else {
-            statusTag = `<span class="bm-verse-status-tag status-learning">Learning</span>`;
-        }
-
-        const excerpt = v.text.length > 50 ? v.text.substring(0, 47) + '...' : v.text;
-
-        const editTitle = CURRENT_PRACTICE_TYPE === 'english' ? 'Edit Word' : 'Edit Verse';
-        const deleteTitle = CURRENT_PRACTICE_TYPE === 'english' ? 'Delete Word' : 'Delete Verse';
-        const practiceTitle = CURRENT_PRACTICE_TYPE === 'english' ? 'Practice Word' : 'Practice Verse';
-
-        html += `
-            <tr data-id="${v.id}">
-                <td><span class="bm-verse-ref">${escapeHtml(v.reference)}</span></td>
-                <td><span class="bm-verse-text-excerpt" title="${escapeHtml(v.text)}">${escapeHtml(excerpt)}</span></td>
-                <td><span class="bm-verse-cat-tag">${escapeHtml(v.category)}</span></td>
-                <td>${statusTag}</td>
-                <td style="text-align: right; white-space: nowrap;">
-                    <button class="action-btn" onclick="startSingleVerseSession(${v.id})" title="${practiceTitle}">🎯</button>
-                    <button class="action-btn" onclick="editVerse(${v.id})" title="${editTitle}">✏️</button>
-                    <button class="action-btn delete" onclick="deleteVerse(${v.id})" title="${deleteTitle}">🗑️</button>
-                </td>
-            </tr>
-        `;
-    });
-    tableBody.innerHTML = html;
-}
-
-// ════════════════════════════════════════
-//  VERSE ADD / EDIT / DELETE ACTIONS
-// ════════════════════════════════════════
-
-function toggleCustomCategory(select) {
-    const customInput = document.getElementById('verse-category-custom-input');
-    if (select.value === 'Custom') {
-        customInput.style.display = 'block';
-        customInput.required = true;
-        customInput.focus();
-    } else {
-        customInput.style.display = 'none';
-        customInput.required = false;
-        customInput.value = '';
-    }
-}
-
-async function autoFetchVerseText() {
-    const refInput = document.getElementById('verse-ref-input');
-    const ref = refInput.value.trim();
-    if (!ref) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            showToast('⚠️ Please enter a vocabulary word first.');
-        } else {
-            showToast('⚠️ Please enter a reference first (e.g. John 3:16).');
-        }
-        refInput.focus();
-        return;
-    }
-
-    const fetchBtn = document.getElementById('fetch-verse-btn');
-    fetchBtn.disabled = true;
-    fetchBtn.textContent = 'Searching...';
-
-    if (CURRENT_PRACTICE_TYPE === 'english') {
-        try {
-            const response = await fetch(`https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(ref)}`);
-            if (!response.ok) throw new Error('Word definition not found');
-            const data = await response.json();
-            
-            const firstMeaning = data[0]?.meanings[0];
-            const firstDefObj = firstMeaning?.definitions[0];
-            const definition = firstDefObj?.definition || '';
-            const example = firstDefObj?.example || '';
-            const category = firstMeaning?.partOfSpeech || 'Nouns';
-
-            document.getElementById('verse-text-input').value = definition;
-            if (example) {
-                document.getElementById('verse-context-input').value = example;
-            }
-            
-            // Set category dropdown if it exists or use Custom
-            const catSelect = document.getElementById('verse-category-input');
-            const catLower = category.toLowerCase();
-            let catName = 'Custom';
-            
-            if (catLower.includes('noun')) catName = 'Nouns';
-            else if (catLower.includes('verb')) catName = 'Verbs';
-            else if (catLower.includes('adject')) catName = 'Adjectives';
-            else if (catLower.includes('adverb')) catName = 'Adverbs';
-            
-            const options = Array.from(catSelect.options).map(o => o.value);
-            if (!options.includes(catName) && catName !== 'Custom') {
-                const opt = document.createElement('option');
-                opt.value = catName;
-                opt.textContent = catName;
-                catSelect.add(opt, catSelect.options[catSelect.options.length - 1]);
-            }
-            catSelect.value = catName;
-            toggleCustomCategory(catSelect);
-            if (catName === 'Custom') {
-                document.getElementById('verse-category-custom-input').value = category;
-            }
-
-            showToast(`✓ Fetched definition for "${ref}"`);
-        } catch (err) {
-            console.error(err);
-            showToast('❌ Could not fetch definition automatically. Please type it.');
-        } finally {
-            fetchBtn.disabled = false;
-            fetchBtn.textContent = 'Define Word 🔍';
-        }
-    } else {
-        try {
-            const response = await fetch(`https://bible-api.com/${encodeURIComponent(ref)}?translation=kjv`);
-            if (!response.ok) throw new Error('Scripture reference not found');
-            const data = await response.json();
-            
-            document.getElementById('verse-text-input').value = data.text.trim();
-            showToast(`✓ Fetched text for ${data.reference}`);
-        } catch (err) {
-            console.error(err);
-            showToast('❌ Could not auto-fill. Please type scripture manually.');
-        } finally {
-            fetchBtn.disabled = false;
-            fetchBtn.textContent = 'Auto-Fill 🔍';
-        }
-    }
-}
-
-async function handleVerseSubmit(e) {
-    e.preventDefault();
-
-    const idVal = document.getElementById('edit-verse-id').value;
-    const reference = document.getElementById('verse-ref-input').value.trim();
-    const text = document.getElementById('verse-text-input').value.trim();
-    const catSelect = document.getElementById('verse-category-input');
-    let category = catSelect.value;
-    
-    if (category === 'Custom') {
-        category = document.getElementById('verse-category-custom-input').value.trim();
-    }
-    const hook = document.getElementById('verse-hook-input').value.trim();
-    const context = document.getElementById('verse-context-input').value.trim();
-
-    if (!reference || !text) {
-        showToast('⚠️ Reference and Scripture text are required.');
-        return;
-    }
-
-    const saveBtn = document.getElementById('save-verse-btn');
-    saveBtn.disabled = true;
-
-    try {
-        if (idVal) {
-            // Edit mode
-            const res = await bibleApiPost('/api/bible-memory/update-verse/', {
-                id: parseInt(idVal),
-                reference,
-                text,
-                category,
-                hook,
-                context
-            });
-            if (res.status === 'success') {
-                showToast(`✓ Updated ${reference}`);
-                // Refresh local model
-                const idx = ALL_VERSES.findIndex(v => v.id === res.verse.id);
-                if (idx !== -1) {
-                    ALL_VERSES[idx] = { ...ALL_VERSES[idx], ...res.verse };
-                }
-            }
-        } else {
-            // Add mode
-            const res = await bibleApiPost('/api/bible-memory/add-verse/', {
-                reference,
-                text,
-                category,
-                hook,
-                context,
-                practice_type: CURRENT_PRACTICE_TYPE
-            });
-            if (res.status === 'success') {
-                showToast(`✓ Added ${reference} to library`);
-                ALL_VERSES.push(res.verse);
-            }
-        }
-
-        // Clean UI form and refresh
-        resetVerseForm();
-        updateOverviewStats();
-        renderCategoryChips();
-        applyFilters();
-
-    } catch (err) {
-        console.error(err);
-        showToast(`❌ Error: ${err.message}`);
-    } finally {
-        saveBtn.disabled = false;
-    }
-}
-
-function editVerse(id) {
-    const v = ALL_VERSES.find(item => item.id === id);
-    if (!v) return;
-
-    // Switch form state
-    document.getElementById('verse-form-title').textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Edit Vocabulary Word' : 'Edit Memory Verse';
-    document.getElementById('save-verse-btn').textContent = 'Save Changes';
-    document.getElementById('edit-verse-id').value = v.id;
-    document.getElementById('verse-ref-input').value = v.reference;
-    document.getElementById('verse-text-input').value = v.text;
-    document.getElementById('verse-hook-input').value = v.hook || '';
-    document.getElementById('verse-context-input').value = v.context || '';
-    document.getElementById('clear-form-btn').style.display = 'block';
-
-    const catSelect = document.getElementById('verse-category-input');
-    const customInput = document.getElementById('verse-category-custom-input');
-    
-    // Check if category matches dropdown
-    const options = Array.from(catSelect.options).map(o => o.value);
-    if (options.includes(v.category)) {
-        catSelect.value = v.category;
-        customInput.style.display = 'none';
-        customInput.value = '';
-    } else {
-        catSelect.value = 'Custom';
-        customInput.style.display = 'block';
-        customInput.value = v.category;
-    }
-    
-    // Scroll smoothly to the form
-    document.getElementById('verse-form').scrollIntoView({ behavior: 'smooth' });
-}
-
-async function deleteVerse(id) {
-    const v = ALL_VERSES.find(item => item.id === id);
-    if (!v) return;
-
-    const isEnglish = CURRENT_PRACTICE_TYPE === 'english';
-    const confirmed = await window.confirmDialog({
-        title: isEnglish ? 'Delete Word' : 'Delete Verse',
-        message: isEnglish 
-            ? `Are you sure you want to remove "${v.reference}" from your vocabulary library?`
-            : `Are you sure you want to remove ${v.reference} from your memory library?`,
-        confirmText: 'Delete',
-        cancelText: 'Cancel'
-    });
-
-    if (confirmed) {
-        try {
-            const res = await bibleApiPost('/api/bible-memory/delete-verse/', { id });
-            if (res.status === 'success') {
-                showToast(isEnglish ? `Deleted "${v.reference}"` : `Deleted ${v.reference}`);
-                ALL_VERSES = ALL_VERSES.filter(item => item.id !== id);
-                
-                // Clear form if we deleted the verse being edited
-                const editingId = document.getElementById('edit-verse-id').value;
-                if (editingId && parseInt(editingId) === id) {
-                    resetVerseForm();
-                }
-
-                updateOverviewStats();
-                renderCategoryChips();
-                applyFilters();
-            }
-        } catch (err) {
-            console.error(err);
-            showToast(isEnglish ? '❌ Error deleting word.' : '❌ Error deleting verse.');
-        }
-    }
-}
-
-function resetVerseForm() {
-    document.getElementById('verse-form-title').textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Add Vocabulary Word' : 'Add Memory Verse';
-    document.getElementById('save-verse-btn').textContent = CURRENT_PRACTICE_TYPE === 'english' ? '+ Add Word' : '+ Add Verse';
-    document.getElementById('edit-verse-id').value = '';
-    document.getElementById('verse-ref-input').value = '';
-    document.getElementById('verse-text-input').value = '';
-    document.getElementById('verse-hook-input').value = '';
-    document.getElementById('verse-context-input').value = '';
-    document.getElementById('clear-form-btn').style.display = 'none';
-    
-    const catSelect = document.getElementById('verse-category-input');
-    if (CURRENT_PRACTICE_TYPE === 'english') {
-        catSelect.value = 'Nouns';
-    } else {
-        catSelect.value = 'Fear';
-    }
-    toggleCustomCategory(catSelect);
-}
-
-async function editGoalTarget() {
-    const isEnglish = CURRENT_PRACTICE_TYPE === 'english';
-    const goalStr = prompt(isEnglish ? 'Enter your target number of words to learn:' : 'Enter your target number of verses to memorize:', GOAL_TARGET);
-    if (goalStr === null) return;
-    
-    const goal = parseInt(goalStr);
-    if (isNaN(goal) || goal <= 0) {
-        alert('Please enter a valid positive number.');
-        return;
-    }
-
-    try {
-        const res = await bibleApiPost('/api/bible-memory/update-goal/', { goal });
-        if (res.status === 'success') {
-            GOAL_TARGET = res.goal;
-            updateOverviewStats();
-            showToast(isEnglish ? `Goal updated to ${GOAL_TARGET} words!` : `Goal updated to ${GOAL_TARGET} verses!`);
-        }
-    } catch (err) {
-        console.error(err);
-        showToast('❌ Error updating goal.');
-    }
-}
-
-async function seedDefaultCollection() {
-    const confirmed = await window.confirmDialog({
-        title: 'Seed Default Scriptures',
-        message: 'This will seed 15 popular verses across categories like Fear, Worship, Courage, Peace, and Strength. Continue?',
-        confirmText: 'Seed',
-        cancelText: 'Cancel'
-    });
-
-    if (!confirmed) return;
-
-    try {
-        showToast('Seeding database...');
-        const res = await bibleApiPost('/api/bible-memory/seed/');
-        if (res.status === 'success') {
-            showToast(`✓ Seeding complete! Seeded ${res.seeded_count} new verses.`);
-            loadLibrary();
-        }
-    } catch (err) {
-        console.error(err);
-        showToast('❌ Error seeding verses.');
-    }
-}
-
-// ════════════════════════════════════════
-//  DRILL WORKSPACE CONTROLLER
-// ════════════════════════════════════════
-
-function startSession(mode) {
-    sessionMode = mode;
-    sessionQueue = [];
-    sessionIdx = 0;
-    sessionMastered = 0;
-    currentV = null;
-
-    const now = new Date();
-    const isEnglish = CURRENT_PRACTICE_TYPE === 'english';
-    const itemWord = isEnglish ? 'words' : 'verses';
-
-    if (mode === 'review') {
-        // Only mastered items that are scheduled for review
-        const masteredDue = ALL_VERSES.filter(v => v.mastered && new Date(v.next_review) <= now);
-        if (masteredDue.length === 0) {
-            const hasMastered = ALL_VERSES.some(v => v.mastered);
-            if (!hasMastered) {
-                showToast(`⚠️ No mastered ${itemWord} yet. Use "Learn New" first to master some ${itemWord}!`);
-            } else {
-                showToast(`🎉 All caught up! No mastered ${itemWord} are due for review right now.`);
-            }
-            return;
-        }
-        sessionQueue = masteredDue;
-        shuffle(sessionQueue);
-    } else if (mode === 'learn') {
-        // Only unmastered items — new learning
-        sessionQueue = ALL_VERSES.filter(v => v.review_count === 0 && !v.mastered);
-        if (sessionQueue.length === 0) {
-            // Fallback: any unmastered verse
-            sessionQueue = ALL_VERSES.filter(v => !v.mastered);
-        }
-        if (sessionQueue.length === 0) {
-            showToast(`🏆 You have mastered all ${itemWord} in your library! Add more to learn.`);
-            return;
-        }
-        shuffle(sessionQueue);
-    } else {
-        // Type It Cold — only mastered items (recall challenge)
-        sessionQueue = ALL_VERSES.filter(v => v.mastered);
-        if (sessionQueue.length === 0) {
-            showToast(`⚠️ No mastered ${itemWord} yet. Complete "Learn New" first to unlock this mode!`);
-            return;
-        }
-        shuffle(sessionQueue);
-    }
-
-    // Toggle views
-    document.getElementById('bm-main-view').style.display = 'none';
-    document.getElementById('bm-drill-view').style.display = 'block';
-    
-    // Set headers
-    const modeNames = {
-        learn: CURRENT_PRACTICE_TYPE === 'english' ? 'Learn Word' : 'Learn Verse',
-        review: CURRENT_PRACTICE_TYPE === 'english' ? 'Review Due' : 'Review Due',
-        quick: 'Quick Recall (Oral)',
-        type: 'Type Cold'
-    };
-    document.getElementById('drill-title-lbl').textContent = modeNames[mode] || 'Study Session';
-
-    saveActiveSessionState();
-    loadNextVerse();
-}
-
-function loadNextVerse() {
-    showPhase('phase-loading');
-    document.getElementById('drill-loading-msg').textContent = CURRENT_PRACTICE_TYPE === 'english' ? 'Preparing next word...' : 'Preparing next scripture...';
-
-    if (sessionQueue.length > sessionIdx) {
-        currentV = sessionQueue[sessionIdx];
-        saveActiveSessionState();
-        renderActivePhase();
-    } else {
-        showCelebration();
-    }
-}
-
-function renderActivePhase() {
-    const tot = sessionQueue.length;
-    document.getElementById('drill-progress-bar').style.width = `${(sessionIdx / tot) * 100}%`;
-    document.getElementById('drill-counter-lbl').textContent = `${sessionIdx + 1} / ${tot} (✓ ${sessionMastered} mastered)`;
-
-    if (sessionMode === 'learn') {
-        startReadPhase();
-    } else if (sessionMode === 'quick' || sessionMode === 'review') {
-        startQuickPhase();
-    } else if (sessionMode === 'type') {
-        startTypePhase();
-    }
-}
-
-function showPhase(phaseId) {
-    document.querySelectorAll('.bm-phase-box').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById(phaseId);
-    if (target) target.classList.add('active');
-    
-    const indicator = document.getElementById('unified-steps-indicator');
-    if (indicator) {
-        if (phaseId === 'phase-loading' || phaseId === 'phase-done') {
-            indicator.style.display = 'none';
-        } else {
-            indicator.style.display = 'flex';
-        }
-    }
-
-    // Auto-save the active session state whenever we display a new phase
-    if (phaseId !== 'phase-loading') {
-        saveActiveSessionState();
-    }
-}
-
-function exitDrill() {
-    document.getElementById('bm-drill-view').style.display = 'none';
-    document.getElementById('bm-main-view').style.display = 'block';
-    localStorage.removeItem('bm_active_session');
-    loadLibrary(); // refresh statistics and lists
-}
-
-// ── STEP 1: READ PHASE ──
-function startReadPhase() {
-    readStep = 0;
-    renderDrillSteps(1);
-
-    const readInst = document.getElementById('read-instruction-lbl');
-    if (readInst) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            readInst.textContent = 'Read this word and definition out loud 3 times. Tap the button below each time you finish reading.';
-        } else {
-            readInst.textContent = 'Read this verse out loud 3 times. Tap the button below each time you finish reading.';
-        }
-    }
-
-    document.getElementById('read-ref-lbl').textContent = `${currentV.reference} · Category: ${currentV.category}`;
-    document.getElementById('read-text-lbl').innerHTML = highlightKeywords(currentV.text);
-
-    // Show optional info
-    const hookStrip = document.getElementById('read-hook-strip');
-    const hookLbl = document.getElementById('read-hook-lbl');
-    if (currentV.hook) {
-        hookStrip.style.display = 'block';
-        hookLbl.textContent = currentV.hook;
-    } else {
-        hookStrip.style.display = 'none';
-    }
-
-    const contextStrip = document.getElementById('read-context-strip');
-    const contextLbl = document.getElementById('read-context-lbl');
-    if (currentV.context) {
-        contextStrip.style.display = 'block';
-        contextLbl.textContent = currentV.context;
-    } else {
-        contextStrip.style.display = 'none';
-    }
-
-    updateReadDots();
-    document.getElementById('read-next-btn').textContent = 'Read Again →';
-    showPhase('phase-read');
-}
-
-function highlightKeywords(text) {
-    const common = new Set([
-        'which', 'their', 'shall', 'that', 'thou', 'thee', 'they', 'have', 'from', 'with', 'this', 'into',
-        'unto', 'upon', 'were', 'also', 'when', 'then', 'there', 'being', 'these', 'those', 'them', 'your',
-        'been', 'will', 'said', 'more', 'even', 'only', 'about', 'before', 'after', 'every'
-    ]);
-    return text.split(/\s+/).map(w => {
-        const clean = w.replace(/[^a-zA-Z]/g, '').toLowerCase();
-        if (clean.length > 4 && !common.has(clean)) {
-            return `<span class="highlight-word">${w}</span>`;
-        }
-        return w;
-    }).join(' ');
-}
-
-function updateReadDots() {
-    const dots = document.querySelectorAll('#read-dots-container .bm-read-dot');
-    dots.forEach((dot, i) => {
-        dot.classList.toggle('filled', i <= readStep);
-    });
-
-    const messages = CURRENT_PRACTICE_TYPE === 'english' ? [
-        'Read it carefully. Take in the wording.',
-        'Read it again — emphasize the meaning.',
-        'One more time. Commit the definition to memory.'
-    ] : [
-        'Read it carefully. Take in the wording.',
-        'Read it again — emphasize the keywords.',
-        'One more time. Commit the flow to memory.'
-    ];
-    document.getElementById('read-status-msg').textContent = messages[readStep] || '';
-}
-
-function advanceRead() {
-    readStep++;
-    if (readStep < 3) {
-        updateReadDots();
-        if (readStep === 2) {
-            document.getElementById('read-next-btn').textContent = 'Next: Fill Blanks →';
-        }
-    } else {
-        startClozePhase();
-    }
-}
-
-// ── STEP 2: CLOZE PHASE ──
-function startClozePhase() {
-    renderDrillSteps(2);
-    const clozeInst = document.getElementById('cloze-instruction-lbl');
-    if (clozeInst) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            clozeInst.textContent = 'Type the correct letters in the input boxes to complete the missing words of the definition.';
-        } else {
-            clozeInst.textContent = 'Type the correct letters in the input boxes to complete the missing words.';
-        }
-    }
-    document.getElementById('cloze-ref-lbl').textContent = currentV.reference;
-    document.getElementById('cloze-hook-lbl').textContent = currentV.hook ? `Hook: ${currentV.hook}` : '';
-
-    const words = currentV.text.split(/\s+/);
-    const tiny = new Set(['a', 'an', 'the', 'of', 'in', 'is', 'to', 'and', 'or', 'but', 'for', 'not', 'my', 'me', 'he', 'we', 'be', 'it', 'at', 'by', 'do', 'go', 'no', 'so', 'up', 'as', 'on', 'if', 'i']);
-    
-    // Select candidates to hide
-    const candidates = words
-        .map((w, i) => ({ w, i }))
-        .filter(({ w }) => w.replace(/[^a-zA-Z]/g, '').length > 2 && !tiny.has(w.replace(/[^a-zA-Z]/g, '').toLowerCase()));
-
-    // Hide up to 40% of candidate words
-    const hideCount = Math.max(2, Math.floor(candidates.length * 0.4));
-    const shuffledCands = shuffle([...candidates]);
-    const pickedIdx = shuffledCands.slice(0, hideCount).map(c => c.i);
-    clozeHidden = new Set(pickedIdx);
-
-    // Render HTML with inputs
-    let html = '';
-    words.forEach((w, i) => {
-        if (clozeHidden.has(i)) {
-            const bare = w.replace(/[^a-zA-Z']/g, '');
-            const trail = w.replace(/[a-zA-Z']/g, '');
-            const width = Math.max(60, bare.length * 13) + 'px';
-            html += `<input class="bm-blank-input" id="c-input-${i}" data-idx="${i}" data-word="${bare}" style="width:${width}" maxlength="${bare.length + 2}" autocomplete="off" autocorrect="off" spellcheck="false">${trail} `;
-        } else {
-            html += w + ' ';
-        }
-    });
-
-    document.getElementById('cloze-verse-container').innerHTML = html;
-    // Clear any browser-restored values to prevent duplicate character bugs on resume
-    document.querySelectorAll('.bm-blank-input').forEach(inp => inp.value = '');
-    document.getElementById('cloze-status-lbl').textContent = 'Fill in the blanks';
-    document.getElementById('cloze-status-lbl').style.color = '';
-    document.getElementById('cloze-next-btn').disabled = true;
-
-    // Add event listeners to blanks
-    clozeHidden.forEach(i => {
-        const inp = document.getElementById(`c-input-${i}`);
-        if (inp) {
-            inp.addEventListener('input', checkClozeInput);
-            inp.addEventListener('keydown', e => {
-                if (e.key === 'Enter') focusNextBlank(i);
-            });
-        }
-    });
-
-    showPhase('phase-cloze');
-    
-    // Auto-focus first blank
-    const sortedBlanks = [...clozeHidden].sort((a, b) => a - b);
-    setTimeout(() => {
-        const firstInput = document.getElementById(`c-input-${sortedBlanks[0]}`);
-        if (firstInput) firstInput.focus();
-    }, 150);
-}
-
-function checkClozeInput(e) {
-    const inp = e.target;
-    const target = inp.dataset.word.toLowerCase();
-    const val = inp.value.replace(/[^a-zA-Z']/g, '').toLowerCase();
-
-    if (val === target) {
-        inp.classList.add('correct');
-        inp.classList.remove('wrong');
-    } else if (val.length >= target.length) {
-        inp.classList.add('wrong');
-        inp.classList.remove('correct');
-    } else {
-        inp.classList.remove('correct', 'wrong');
-    }
-
-    // Verify all correct
-    const allCorrect = [...clozeHidden].every(i => {
-        const el = document.getElementById(`c-input-${i}`);
-        return el && el.classList.contains('correct');
-    });
-
-    if (allCorrect) {
-        document.getElementById('cloze-status-lbl').textContent = '✓ All blanks filled correctly!';
-        document.getElementById('cloze-status-lbl').style.color = '#10b981';
-        document.getElementById('cloze-next-btn').disabled = false;
-    } else {
-        const countCorrect = [...clozeHidden].filter(i => {
-            const el = document.getElementById(`c-input-${i}`);
-            return el && el.classList.contains('correct');
-        }).length;
-        document.getElementById('cloze-status-lbl').textContent = `${countCorrect} / ${clozeHidden.size} correct`;
-        document.getElementById('cloze-status-lbl').style.color = '';
-    }
-}
-
-function focusNextBlank(currIdx) {
-    const sorted = [...clozeHidden].sort((a, b) => a - b);
-    const pos = sorted.indexOf(currIdx);
-    if (pos < sorted.length - 1) {
-        const nextInp = document.getElementById(`c-input-${sorted[pos + 1]}`);
-        if (nextInp) nextInp.focus();
-    } else {
-        // If last blank, check if we can submit
-        const nextBtn = document.getElementById('cloze-next-btn');
-        if (!nextBtn.disabled) {
-            nextBtn.click();
-        }
-    }
-}
-
-function clozeHint() {
-    [...clozeHidden].forEach(i => {
-        const inp = document.getElementById(`c-input-${i}`);
-        if (inp && !inp.classList.contains('correct')) {
-            const word = inp.dataset.word;
-            if (!inp.value) inp.value = word[0]; // Seed first letter
-            inp.dispatchEvent(new Event('input'));
-        }
-    });
-}
-
-function gotoClozeNext() {
-    // Fill all remaining with correct values (reveal corrections)
-    [...clozeHidden].forEach(i => {
-        const inp = document.getElementById(`c-input-${i}`);
-        if (inp && !inp.classList.contains('correct')) {
-            inp.value = inp.dataset.word;
-            inp.classList.add('correct');
-        }
-    });
-
-    setTimeout(() => {
-        startTypePhase();
-    }, 300);
-}
-
-// ── STEP 3: TYPE PHASE ──
-function startTypePhase() {
-    renderDrillSteps(sessionMode === 'type' ? 1 : 3);
-
-    const typeInst = document.getElementById('type-instruction-lbl');
-    if (typeInst) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            typeInst.textContent = 'Type the entire definition from memory. No looking!';
-        } else {
-            typeInst.textContent = 'Type the entire verse from memory. No looking!';
-        }
-    }
-    const typeInp = document.getElementById('type-attempt-input');
-    if (typeInp) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            typeInp.placeholder = 'Type the definition out...';
-        } else {
-            typeInp.placeholder = 'Type the scripture out...';
-        }
-    }
-
-    document.getElementById('type-ref-lbl').textContent = currentV.reference;
-    document.getElementById('type-attempt-input').value = '';
-
-    const hookStrip = document.getElementById('type-hook-strip');
-    const hookLbl = document.getElementById('type-hook-lbl');
-    if (currentV.hook) {
-        hookStrip.style.display = 'block';
-        hookLbl.textContent = currentV.hook;
-    } else {
-        hookStrip.style.display = 'none';
-    }
-
-    showPhase('phase-type');
-    
-    setTimeout(() => {
-        const textarea = document.getElementById('type-attempt-input');
-        if (textarea) textarea.focus();
-    }, 150);
-}
-
-function checkTyped() {
-    const attempt = document.getElementById('type-attempt-input').value.trim();
-    if (!attempt) {
-        showToast('⚠️ Type your attempt, even if you guess!');
-        return;
-    }
-
-    const clean = s => s.toLowerCase().replace(/[^a-z0-9]/g, '');
-    const cleanAttemptWords = attempt.split(/\s+/).filter(Boolean);
-    const cleanKJVWords = currentV.text.split(/\s+/).filter(Boolean);
-
-    // Calculate match score
-    let matches = 0;
-    cleanKJVWords.forEach((word, idx) => {
-        if (cleanAttemptWords[idx] && clean(cleanAttemptWords[idx]) === clean(word)) {
-            matches++;
-        }
-    });
-    const score = Math.round((matches / cleanKJVWords.length) * 100);
-
-    // Generate comparison html
-    const compareHtml = cleanKJVWords.map((word, idx) => {
-        const match = cleanAttemptWords[idx] && clean(cleanAttemptWords[idx]) === clean(word);
-        return match 
-            ? `<span class="match">${word}</span>` 
-            : `<span class="miss">${word}</span>`;
-    }).join(' ');
-
-    const scoreColor = score >= 85 ? '#10b981' : score >= 50 ? '#f59e0b' : '#ef4444';
-    const scoreDesc = score >= 85 ? 'Excellent!' : score >= 50 ? 'Getting closer...' : 'Needs review!';
-
-    const compareInst = document.getElementById('compare-instruction-lbl');
-    if (compareInst) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            compareInst.textContent = 'Compare your typed attempt with the actual definition below.';
-        } else {
-            compareInst.textContent = 'Compare your typed attempt with the actual Bible verse text below.';
-        }
-    }
-
-    const card = document.getElementById('compare-results-card');
-    card.innerHTML = `
-        <div class="bm-compare-sec">
-            <p class="bm-compare-lbl">Your Attempt</p>
-            <p class="bm-compare-text" style="color: var(--text-secondary); font-style: italic;">${escapeHtml(attempt)}</p>
-        </div>
-        <div class="bm-compare-sec">
-            <p class="bm-compare-lbl">${CURRENT_PRACTICE_TYPE === 'english' ? 'Definition' : 'KJV'} — ${escapeHtml(currentV.reference)}</p>
-            <p class="bm-compare-text">${compareHtml}</p>
-        </div>
-        <div class="bm-score-badge">
-            <p class="bm-score-pct" style="color: ${scoreColor}">${score}%</p>
-            <p class="bm-score-desc">${scoreDesc}</p>
-        </div>
-    `;
-
-    showPhase('phase-compare');
-    renderDrillSteps(sessionMode === 'type' ? 2 : 4);
-}
-
-// ── STEP 4: ORAL QUICK RECALL PHASE ──
-function startQuickPhase() {
-    const quickInst = document.getElementById('quick-instruction-lbl');
-    if (quickInst) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            quickInst.textContent = 'Say the definition out loud from memory, then click Reveal to check your text.';
-        } else {
-            quickInst.textContent = 'Say the verse out loud from memory, then click Reveal to check your text.';
-        }
-    }
-    const quickTitle = document.getElementById('quick-recall-title-lbl');
-    if (quickTitle) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            quickTitle.textContent = 'Recall this word definition orally...';
-        } else {
-            quickTitle.textContent = 'Recall this verse orally...';
-        }
-    }
-    const quickReveal = document.getElementById('quick-reveal-btn');
-    if (quickReveal) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            quickReveal.textContent = 'Reveal Word Definition';
-        } else {
-            quickReveal.textContent = 'Reveal Scripture Text';
-        }
-    }
-    const quickSkip = document.getElementById('quick-skip-btn');
-    if (quickSkip) {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            quickSkip.textContent = 'Skip Word →';
-        } else {
-            quickSkip.textContent = 'Skip Verse →';
-        }
-    }
-
-    document.getElementById('quick-ref-lbl').textContent = `${currentV.reference} · Category: ${currentV.category}`;
-    
-    const hookStrip = document.getElementById('quick-hook-strip');
-    const hookLbl = document.getElementById('quick-hook-lbl');
-    if (currentV.hook) {
-        hookStrip.style.display = 'block';
-        hookLbl.textContent = currentV.hook;
-    } else {
-        hookStrip.style.display = 'none';
-    }
-
-    document.getElementById('quick-revealed-section').style.display = 'none';
-    document.getElementById('quick-reveal-btn').style.display = 'block';
-    
-    // Toggle quick headers
-    document.getElementById('quick-step1-header').style.display = 'block';
-    document.getElementById('quick-step2-header').style.display = 'none';
-
-    renderDrillSteps(1);
-    showPhase('phase-quick');
-}
-
-function revealQuickVerse() {
-    document.getElementById('quick-text-lbl').textContent = currentV.text;
-    document.getElementById('quick-revealed-section').style.display = 'block';
-    document.getElementById('quick-reveal-btn').style.display = 'none';
-    
-    // Toggle quick headers
-    document.getElementById('quick-step1-header').style.display = 'none';
-    document.getElementById('quick-step2-header').style.display = 'block';
-
-    renderDrillSteps(2);
-}
-
-// ── RATINGS & RECORDING PROGRESS ──
-async function rateVerse(rating) {
-    try {
-        const res = await bibleApiPost('/api/bible-memory/rate/', {
-            id: currentV.id,
-            rating: rating
-        });
-
-        if (res.status === 'success') {
-            // Update local memory cache values
-            const idx = ALL_VERSES.findIndex(v => v.id === res.verse.id);
-            if (idx !== -1) {
-                ALL_VERSES[idx].mastered = res.verse.mastered;
-                ALL_VERSES[idx].next_review = res.verse.next_review;
-                ALL_VERSES[idx].interval_days = res.verse.interval_days;
-            }
-
-            if (rating === 4) {
-                sessionMastered++;
-                showToast(`✓ Mastered ${res.verse.reference}!`);
-                sessionIdx++;
-                
-                // Limit session blocks: show Done screen after completing 5 verses
-                if (sessionIdx > 0 && sessionIdx % 5 === 0) {
-                    showCelebration();
-                } else {
-                    saveActiveSessionState();
-                    loadNextVerse();
-                }
-            } else {
-                if (sessionMode === 'learn' || sessionMode === 'type') {
-                    // Force same verse practice
-                    showToast('Let\'s practice this verse again to lock it in!');
-                    setTimeout(() => {
-                        if (sessionMode === 'learn') {
-                            startClozePhase();
-                        } else {
-                            startTypePhase();
-                        }
-                    }, 1500);
-                } else {
-                    // Review or Quick mode: put back into queue
-                    sessionQueue.splice(sessionIdx + 2, 0, currentV);
-                    showToast('Added back to session. Review recorded.');
-                    sessionIdx++;
-                    
-                    if (sessionIdx > 0 && sessionIdx % 5 === 0) {
-                        showCelebration();
-                    } else {
-                        saveActiveSessionState();
-                        loadNextVerse();
-                    }
-                }
-            }
-        }
-    } catch (err) {
-        console.error(err);
-        showToast('❌ Error updating spaced repetition status.');
-    }
-}
-
-function skipVerse() {
-    sessionIdx++;
-    saveActiveSessionState();
-    loadNextVerse();
-}
-
-function showCelebration() {
-    const masteredCount = sessionMastered;
-    let doneMsg = '';
-    if (masteredCount === 0) {
-        doneMsg = "Review session completed. Consistency is key to remembering!";
-    } else {
-        if (CURRENT_PRACTICE_TYPE === 'english') {
-            doneMsg = `Well done! You mastered ${masteredCount} word${masteredCount !== 1 ? 's' : ''} in this session!`;
-        } else {
-            doneMsg = `Well done! You mastered ${masteredCount} verse${masteredCount !== 1 ? 's' : ''} in this session!`;
-        }
-    }
-        
-    document.getElementById('done-message-lbl').textContent = doneMsg;
-    localStorage.removeItem('bm_active_session');
-    showPhase('phase-done');
-}
-
-function continueSession() {
-    if (sessionIdx >= sessionQueue.length) {
-        // No more remaining: restart a new block
-        startSession(sessionMode);
-    } else {
-        // Keep going with queue
-        loadNextVerse();
-    }
-}
-
-// ════════════════════════════════════════
-//  DRILL LAYOUT HELPERS
-// ════════════════════════════════════════
-
-function renderDrillSteps(activeStep) {
-    const el = document.getElementById('unified-steps-indicator');
-    if (!el) return;
-
-    if (sessionMode === 'quick' || sessionMode === 'review') {
-        const steps = [
-            { n: 1, lbl: CURRENT_PRACTICE_TYPE === 'english' ? '1. Recite Definition' : '1. Recite Aloud' },
-            { n: 2, lbl: '2. Rate Self' }
-        ];
-        el.innerHTML = steps.map(s => {
-            let cls = '';
-            let dotVal = s.n;
-            if (s.n < activeStep) {
-                cls = 'done';
-                dotVal = '✓';
-            } else if (s.n === activeStep) {
-                cls = 'active';
-            }
-            return `
-                <div class="bm-step-node ${cls}">
-                    <div class="bm-step-dot">${dotVal}</div>
-                    <div class="bm-step-lbl">${s.lbl}</div>
-                </div>
-            `;
-        }).join('');
-    } else if (sessionMode === 'type') {
-        const steps = [
-            { n: 1, lbl: CURRENT_PRACTICE_TYPE === 'english' ? '1. Type Definition' : '1. Type Cold' },
-            { n: 2, lbl: '2. Rate Self' }
-        ];
-        el.innerHTML = steps.map(s => {
-            let cls = '';
-            let dotVal = s.n;
-            if (s.n < activeStep) {
-                cls = 'done';
-                dotVal = '✓';
-            } else if (s.n === activeStep) {
-                cls = 'active';
-            }
-            return `
-                <div class="bm-step-node ${cls}">
-                    <div class="bm-step-dot">${dotVal}</div>
-                    <div class="bm-step-lbl">${s.lbl}</div>
-                </div>
-            `;
-        }).join('');
-    } else {
-        const steps = [
-            { n: 1, lbl: '1. Read' },
-            { n: 2, lbl: '2. Fill Blanks' },
-            { n: 3, lbl: CURRENT_PRACTICE_TYPE === 'english' ? '3. Type Definition' : '3. Type Cold' },
-            { n: 4, lbl: '4. Rate' }
-        ];
-        el.innerHTML = steps.map(s => {
-            let cls = '';
-            let dotVal = s.n;
-            if (s.n < activeStep) {
-                cls = 'done';
-                dotVal = '✓';
-            } else if (s.n === activeStep) {
-                cls = 'active';
-            }
-            return `
-                <div class="bm-step-node ${cls}">
-                    <div class="bm-step-dot">${dotVal}</div>
-                    <div class="bm-step-lbl">${s.lbl}</div>
-                </div>
-            `;
-        }).join('');
-    }
-}
-
-// ════════════════════════════════════════
-//  GENERIC UTILITY OPERATIONS
-// ════════════════════════════════════════
-
-function shuffle(array) {
-    for (let i = array.length - 1; i > 0; i--) {
-        const j = Math.floor(Math.random() * (i + 1));
-        [array[i], array[j]] = [array[j], array[i]];
-    }
-    return array;
-}
-
 function escapeHtml(str) {
-    if (!str) return '';
     const div = document.createElement('div');
-    div.appendChild(document.createTextNode(str));
+    div.textContent = str;
     return div.innerHTML;
 }
 
-let toastTimeout;
-function showToast(msg) {
-    const toast = document.getElementById('bm-toast-element');
+function showPracticeToast(msg) {
+    const toast = document.getElementById('practice-toast');
     if (!toast) return;
-
     toast.textContent = msg;
     toast.classList.add('show');
-
-    clearTimeout(toastTimeout);
-    toastTimeout = setTimeout(() => {
-        toast.classList.remove('show');
-    }, 2500);
+    setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
 // ════════════════════════════════════════
-//  PRACTICE TYPE SWITCHING & VOCAB INBOX
+//  TAB SWITCHING
 // ════════════════════════════════════════
 
-function switchPracticeType(type) {
-    CURRENT_PRACTICE_TYPE = type;
-    localStorage.setItem('bm_practice_type', type);
+function switchTab(tab) {
+    CURRENT_TAB = tab;
+    localStorage.setItem('practice_tab', tab);
 
-    // Toggle switch buttons
-    const btnBible = document.getElementById('btn-switch-bible');
-    const btnEnglish = document.getElementById('btn-switch-english');
-    
-    if (type === 'bible') {
-        btnBible.classList.add('active');
-        btnEnglish.classList.remove('active');
-        
-        document.getElementById('bm-title-scripture').textContent = 'Bible';
-        document.getElementById('bm-title-memory').textContent = 'Memory';
-        document.getElementById('translation-badge-lbl').textContent = 'KJV Translation';
-        
-        document.getElementById('database-seed-panel').style.display = 'block';
-        document.getElementById('vocab-inbox-panel').style.display = 'none';
+    // Update tab buttons
+    document.getElementById('tab-word').classList.toggle('active', tab === 'word');
+    document.getElementById('tab-verse').classList.toggle('active', tab === 'verse');
 
-        // Form placeholder swaps
-        document.getElementById('verse-ref-input').placeholder = 'e.g. John 3:16';
-        document.getElementById('fetch-verse-btn').textContent = 'Auto-Fill 🔍';
-        document.getElementById('verse-text-input').placeholder = 'Scripture text (KJV wording recommended)...';
-        document.getElementById('verse-hook-input').placeholder = 'Memory Tip / Hook (optional)';
-        document.getElementById('verse-context-input').placeholder = 'Biblical Context (optional)';
-        
-        document.getElementById('library-title-lbl').textContent = 'Verse Library';
-        
-        // Header rows
-        const thRef = document.querySelector('.bm-verse-table th:nth-child(1)');
-        const thExcerpt = document.querySelector('.bm-verse-table th:nth-child(2)');
-        if (thRef) thRef.textContent = 'Reference';
-        if (thExcerpt) thExcerpt.textContent = 'Excerpt';
+    // Show/hide panels
+    document.getElementById('panel-word').style.display = tab === 'word' ? 'block' : 'none';
+    document.getElementById('panel-verse').style.display = tab === 'verse' ? 'block' : 'none';
 
-        // Category dropdown initial values
-        const catSelect = document.getElementById('verse-category-input');
-        catSelect.innerHTML = `
-            <option value="Fear">Fear</option>
-            <option value="Worship">Worship</option>
-            <option value="Courage">Courage</option>
-            <option value="Peace">Peace</option>
-            <option value="Strength">Strength</option>
-            <option value="Custom">-- Custom Category --</option>
-        `;
-
-        // Refined wording & Quote
-        const searchBox = document.getElementById('verse-search-box');
-        if (searchBox) searchBox.placeholder = 'Search reference or text...';
-
-        const quoteLbl = document.getElementById('hero-quote-lbl');
-        if (quoteLbl) quoteLbl.innerHTML = '"Thy word have I hid in mine heart, that I might not sin against thee." — Psalm 119:11';
-
-        const modeLearnIcon = document.getElementById('mode-learn-icon');
-        if (modeLearnIcon) modeLearnIcon.textContent = '📖';
-        const modeLearnName = document.getElementById('mode-learn-name');
-        if (modeLearnName) modeLearnName.textContent = 'Learn New Verse';
-        const modeLearnDesc = document.getElementById('mode-learn-desc');
-        if (modeLearnDesc) modeLearnDesc.textContent = 'Step-by-step training: Read → Blanks → Type.';
-        const modeReviewDesc = document.getElementById('mode-review-desc');
-        if (modeReviewDesc) modeReviewDesc.textContent = 'Review verses due today based on spaced repetition.';
-        const modeTypeDesc = document.getElementById('mode-type-desc');
-        if (modeTypeDesc) modeTypeDesc.textContent = 'See the reference only. Type the full verse from memory.';
+    // Fetch data for the active tab
+    if (tab === 'word') {
+        fetchWordOfTheDay();
     } else {
-        btnBible.classList.remove('active');
-        btnEnglish.classList.add('active');
-
-        document.getElementById('bm-title-scripture').textContent = 'English';
-        document.getElementById('bm-title-memory').textContent = 'Vocabulary';
-        document.getElementById('translation-badge-lbl').textContent = 'SRS learning';
-        
-        document.getElementById('database-seed-panel').style.display = 'none';
-        document.getElementById('vocab-inbox-panel').style.display = 'block';
-
-        // Form placeholder swaps
-        document.getElementById('verse-ref-input').placeholder = 'e.g. Serendipity';
-        document.getElementById('fetch-verse-btn').textContent = 'Define Word 🔍';
-        document.getElementById('verse-text-input').placeholder = 'Word definition/meaning...';
-        document.getElementById('verse-hook-input').placeholder = 'Mnemonic / Association (optional)';
-        document.getElementById('verse-context-input').placeholder = 'Example sentence usage (optional)';
-        
-        document.getElementById('library-title-lbl').textContent = 'Vocabulary Library';
-
-        // Header rows
-        const thRef = document.querySelector('.bm-verse-table th:nth-child(1)');
-        const thExcerpt = document.querySelector('.bm-verse-table th:nth-child(2)');
-        if (thRef) thRef.textContent = 'Word';
-        if (thExcerpt) thExcerpt.textContent = 'Definition';
-
-        // Category dropdown initial values
-        const catSelect = document.getElementById('verse-category-input');
-        catSelect.innerHTML = `
-            <option value="Nouns">Nouns</option>
-            <option value="Verbs">Verbs</option>
-            <option value="Adjectives">Adjectives</option>
-            <option value="Adverbs">Adverbs</option>
-            <option value="GRE">GRE</option>
-            <option value="Advanced">Advanced</option>
-            <option value="Custom">-- Custom Category --</option>
-        `;
-
-        // Refined wording & Quote
-        const searchBox = document.getElementById('verse-search-box');
-        if (searchBox) searchBox.placeholder = 'Search word or definition...';
-
-        const quoteLbl = document.getElementById('hero-quote-lbl');
-        if (quoteLbl) quoteLbl.innerHTML = '"The limits of my language mean the limits of my world." — Ludwig Wittgenstein';
-
-        const modeLearnIcon = document.getElementById('mode-learn-icon');
-        if (modeLearnIcon) modeLearnIcon.textContent = '🔤';
-        const modeLearnName = document.getElementById('mode-learn-name');
-        if (modeLearnName) modeLearnName.textContent = 'Learn New Word';
-        const modeLearnDesc = document.getElementById('mode-learn-desc');
-        if (modeLearnDesc) modeLearnDesc.textContent = 'Step-by-step training: Read → Blanks → Type.';
-        const modeReviewDesc = document.getElementById('mode-review-desc');
-        if (modeReviewDesc) modeReviewDesc.textContent = 'Review words due today based on spaced repetition.';
-        const modeTypeDesc = document.getElementById('mode-type-desc');
-        if (modeTypeDesc) modeTypeDesc.textContent = 'See the word only. Type the full definition from memory.';
-    }
-
-    resetVerseForm();
-    loadLibrary();
-    if (type === 'english') {
-        loadVocabCurationInbox();
+        fetchTodayVerse();
     }
 }
 
-let INBOX_WORDS = [];
+// ════════════════════════════════════════
+//  WORD OF THE DAY
+// ════════════════════════════════════════
 
-async function fetchDailyVocabBatch() {
-    const fetchBtn = document.getElementById('fetch-vocab-btn');
-    const inboxList = document.getElementById('vocab-inbox-list');
-    if (!fetchBtn || !inboxList) return;
-    
-    fetchBtn.disabled = true;
-    fetchBtn.textContent = 'Searching databases...';
-    inboxList.innerHTML = `
-        <div class="text-center" style="padding: 20px 0;">
-            <div class="spinner" style="border-top-color: var(--accent-color); width: 20px; height: 20px; margin: 0 auto 8px;"></div>
-            <p style="font-size: 0.75rem; color: var(--text-secondary);">Analyzing search context...</p>
-        </div>
-    `;
+async function fetchWordOfTheDay() {
+    const loadingEl = document.getElementById('word-loading');
+    const cardEl = document.getElementById('word-card');
+    const historyEl = document.getElementById('word-history');
+
+    // Show shimmer
+    loadingEl.style.display = 'block';
+    cardEl.style.display = 'none';
 
     try {
-        const data = await bibleApiPost('/api/bible-memory/fetch-daily-vocab/');
-        if (data.status === 'success' && data.words) {
-            const todayStr = new Date().toISOString().split('T')[0];
-            localStorage.setItem('vocab_inbox_date', todayStr);
-            renderVocabInbox(data.words);
-            showToast('✓ Fetched daily vocabulary batch');
-        } else {
-            showToast('❌ Failed to fetch daily vocabulary.');
-            inboxList.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">Failed to load words.</p>';
+        // Fetch today's word
+        const res = await fetch('/api/bible-memory/word-of-the-day/');
+        const data = await res.json();
+
+        if (data.status !== 'success' || !data.word) {
+            throw new Error(data.message || 'No word available');
         }
-    } catch (err) {
-        console.error(err);
-        showToast('❌ Error connecting to backend.');
-        inboxList.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">Error loading vocabulary.</p>';
-    } finally {
-        fetchBtn.disabled = false;
-        fetchBtn.textContent = 'Search/Fetch Daily Words 🔍';
-    }
-}
 
-function loadVocabCurationInbox() {
-    const todayStr = new Date().toISOString().split('T')[0];
-    const cachedDate = localStorage.getItem('vocab_inbox_date');
-    const cachedWordsStr = localStorage.getItem('vocab_inbox_words');
+        const word = data.word;
 
-    if (cachedDate === todayStr && cachedWordsStr) {
-        try {
-            const words = JSON.parse(cachedWordsStr);
-            renderVocabInbox(words);
-            return;
-        } catch (e) {
-            console.error('Error parsing cached vocab words:', e);
-        }
-    }
-
-    // Auto-fetch if cache is missing or stale
-    fetchDailyVocabBatch();
-}
-
-function renderVocabInbox(words) {
-    INBOX_WORDS = words;
-    localStorage.setItem('vocab_inbox_words', JSON.stringify(words));
-
-    const inboxList = document.getElementById('vocab-inbox-list');
-    if (!words || words.length === 0) {
-        inboxList.innerHTML = '<p style="font-size: 0.75rem; color: var(--text-secondary); text-align: center; padding: 10px;">All daily words processed.</p>';
-        return;
-    }
-
-    let html = '';
-    words.forEach((w, idx) => {
-        html += `
-            <div class="glass-panel vocab-inbox-card" id="inbox-card-${idx}" style="padding: 12px; background: rgba(255,255,255,0.65); border: 1px solid rgba(12,88,85,0.12); border-radius: 12px; margin-bottom: 8px;">
-                <div style="display: flex; justify-content: space-between; align-items: baseline; margin-bottom: 4px;">
-                    <strong style="font-family: 'Outfit', sans-serif; font-size: 1.05rem; color: var(--accent-color);">${escapeHtml(w.reference)}</strong>
-                    <span style="font-size: 0.7rem; font-weight: 600; text-transform: uppercase; background: rgba(12,88,85,0.06); padding: 2px 6px; border-radius: 6px; color: var(--text-secondary);">${escapeHtml(w.category)}</span>
+        // Render today's word card
+        cardEl.innerHTML = `
+            <div class="daily-card">
+                <div class="daily-card-hero">
+                    <div class="word-title">${escapeHtml(word.reference)}</div>
+                    <span class="word-category">${escapeHtml(word.category)}</span>
                 </div>
-                <p style="font-size: 0.8rem; line-height: 1.35; color: var(--text-primary); margin-bottom: 6px;">${escapeHtml(w.text)}</p>
-                ${w.hook ? `<p style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 4px; font-style: italic;">Mnemonic: ${escapeHtml(w.hook)}</p>` : ''}
-                ${w.context ? `<p style="font-size: 0.72rem; color: var(--text-secondary); margin-bottom: 8px;">Sentence: "${escapeHtml(w.context)}"</p>` : ''}
-                <div style="display: flex; gap: 8px;">
-                    <button type="button" class="btn" style="padding: 4px 10px; font-size: 0.72rem; flex: 1;" onclick="keepInboxWord(${idx})">Keep</button>
-                    <button type="button" class="btn btn-secondary" style="padding: 4px 10px; font-size: 0.72rem; flex: 1;" onclick="dropInboxWord(${idx})">Drop</button>
+                <div class="daily-card-body">
+                    <div class="info-block">
+                        <div class="info-block-label">📖 Definition</div>
+                        <div class="info-block-value definition">${escapeHtml(word.text)}</div>
+                    </div>
+                    ${word.hook ? `
+                    <div class="info-block">
+                        <div class="info-block-label">💡 Memory Hook</div>
+                        <div class="info-block-value">${escapeHtml(word.hook)}</div>
+                    </div>
+                    ` : ''}
+                    ${word.context ? `
+                    <div class="info-block">
+                        <div class="info-block-label">📝 Example</div>
+                        <div class="info-block-value" style="font-style: italic;">"${escapeHtml(word.context)}"</div>
+                    </div>
+                    ` : ''}
+                    <button class="learned-btn ${word.mastered ? 'done' : 'primary'}" 
+                            id="word-learned-btn"
+                            onclick="markLearned(${word.id}, 'word')">
+                        ${word.mastered ? '✅ Learned!' : '✅ I\'ve learned this'}
+                    </button>
                 </div>
             </div>
         `;
-    });
-    inboxList.innerHTML = html;
-}
 
-function dropInboxWord(idx) {
-    const card = document.getElementById(`inbox-card-${idx}`);
-    if (card) {
-        card.style.opacity = '0';
-        card.style.transform = 'scale(0.9)';
-        card.style.transition = 'all 0.3s ease';
-        setTimeout(() => {
-            INBOX_WORDS.splice(idx, 1);
-            renderVocabInbox(INBOX_WORDS);
-        }, 300);
-    }
-}
+        loadingEl.style.display = 'none';
+        cardEl.style.display = 'block';
 
-async function keepInboxWord(idx) {
-    const w = INBOX_WORDS[idx];
-    if (!w) return;
+        // Fetch all words for the past list
+        await loadPastItems('english');
 
-    try {
-        const res = await bibleApiPost('/api/bible-memory/add-verse/', {
-            reference: w.reference,
-            text: w.text,
-            category: w.category,
-            hook: w.hook || '',
-            context: w.context || '',
-            practice_type: 'english'
-        });
-        if (res.status === 'success') {
-            showToast(`✓ Kept "${w.reference}"`);
-            ALL_VERSES.push(res.verse);
-            dropInboxWord(idx);
-            updateOverviewStats();
-            renderCategoryChips();
-            applyFilters();
-        } else {
-            showToast('❌ Failed to save word.');
-        }
     } catch (err) {
-        console.error(err);
-        showToast('❌ Error keeping word.');
+        console.error('Word of the day error:', err);
+        loadingEl.style.display = 'none';
+        cardEl.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-emoji">📚</div>
+                <div class="empty-state-text">Could not load today's word. Please check your internet connection and try refreshing.</div>
+            </div>
+        `;
+        cardEl.style.display = 'block';
     }
 }
 
 // ════════════════════════════════════════
-//  ACTIVE SESSION PERSISTENCE & RECOVERY
+//  TODAY'S VERSE
 // ════════════════════════════════════════
 
-function saveActiveSessionState() {
-    if (sessionQueue && sessionQueue.length > 0 && sessionIdx < sessionQueue.length) {
-        // Find which phase box is currently active (has class 'active')
-        let activePhase = '';
-        document.querySelectorAll('.bm-phase-box').forEach(p => {
-            if (p.classList.contains('active')) {
-                activePhase = p.id;
-            }
-        });
+async function fetchTodayVerse() {
+    const loadingEl = document.getElementById('verse-loading');
+    const cardEl = document.getElementById('verse-card');
 
-        const state = {
-            practiceType: CURRENT_PRACTICE_TYPE,
-            mode: sessionMode,
-            queueIds: sessionQueue.map(v => v.id),
-            idx: sessionIdx,
-            mastered: sessionMastered,
-            phase: activePhase
-        };
-        localStorage.setItem('bm_active_session', JSON.stringify(state));
-    } else {
-        localStorage.removeItem('bm_active_session');
-    }
-}
-
-function checkAndPromptResumeSession() {
-    const saved = localStorage.getItem('bm_active_session');
-    if (!saved) return;
+    loadingEl.style.display = 'block';
+    cardEl.style.display = 'none';
 
     try {
-        const state = JSON.parse(saved);
-        if (state.queueIds && state.queueIds.length > 0 && state.idx < state.queueIds.length) {
-            // Show banner
-            const banner = document.getElementById('resume-session-banner');
-            const bannerText = document.getElementById('resume-banner-text');
-            if (banner && bannerText) {
-                const itemWord = state.practiceType === 'english' ? 'word(s)' : 'verse(s)';
-                const modeWord = state.mode === 'learn' ? 'learning' : state.mode === 'review' ? 'review' : 'type challenge';
-                bannerText.textContent = `You have an unfinished ${modeWord} session (${state.idx} of ${state.queueIds.length} ${itemWord} done).`;
-                banner.style.display = 'flex';
-            }
-        } else {
-            localStorage.removeItem('bm_active_session');
+        const res = await fetch('/api/bible-memory/get-verses/?practice_type=bible');
+        const data = await res.json();
+
+        if (data.status !== 'success') {
+            throw new Error(data.message || 'Failed to load verses');
         }
-    } catch (e) {
-        console.error('Error parsing active session cache:', e);
-        localStorage.removeItem('bm_active_session');
-    }
-}
 
-function hideResumeBanner() {
-    const banner = document.getElementById('resume-session-banner');
-    if (banner) banner.style.display = 'none';
-}
+        ALL_VERSES = data.verses || [];
 
-function discardActiveSession() {
-    localStorage.removeItem('bm_active_session');
-    hideResumeBanner();
-}
+        // Find today's verse: first un-mastered one, or the most recently created one
+        let todayVerse = ALL_VERSES.find(v => !v.mastered);
+        if (!todayVerse && ALL_VERSES.length > 0) {
+            todayVerse = ALL_VERSES[ALL_VERSES.length - 1];
+        }
 
-function resumeActiveSession() {
-    const saved = localStorage.getItem('bm_active_session');
-    if (!saved) return;
-
-    try {
-        const state = JSON.parse(saved);
-        
-        // Wait, what if CURRENT_PRACTICE_TYPE doesn't match?
-        // Switch to the correct practice type if needed and load the library
-        if (state.practiceType !== CURRENT_PRACTICE_TYPE) {
-            switchPracticeType(state.practiceType);
-            const checkInterval = setInterval(() => {
-                if (ALL_VERSES && ALL_VERSES.length > 0) {
-                    clearInterval(checkInterval);
-                    doResumeState(state);
-                }
-            }, 100);
+        if (!todayVerse) {
+            loadingEl.style.display = 'none';
+            cardEl.innerHTML = `
+                <div class="empty-state">
+                    <div class="empty-state-emoji">📖</div>
+                    <div class="empty-state-text">No verses in your library yet. You can seed a curated collection to get started.</div>
+                    <button class="review-btn" onclick="seedVerses()" style="margin-top: 16px; width: auto; display: inline-flex;">
+                        📥 Load Curated Verses
+                    </button>
+                </div>
+            `;
+            cardEl.style.display = 'block';
             return;
         }
 
-        doResumeState(state);
-    } catch (e) {
-        console.error('Error restoring session:', e);
-        localStorage.removeItem('bm_active_session');
-        hideResumeBanner();
+        cardEl.innerHTML = `
+            <div class="daily-card">
+                <div class="daily-card-hero">
+                    <div class="word-title">${escapeHtml(todayVerse.reference)}</div>
+                    <span class="word-category">${escapeHtml(todayVerse.category)}</span>
+                </div>
+                <div class="daily-card-body">
+                    <div class="info-block">
+                        <div class="info-block-label">📖 Scripture</div>
+                        <div class="info-block-value verse-text">${escapeHtml(todayVerse.text)}</div>
+                    </div>
+                    ${todayVerse.hook ? `
+                    <div class="info-block">
+                        <div class="info-block-label">💡 Memory Hook</div>
+                        <div class="info-block-value">${escapeHtml(todayVerse.hook)}</div>
+                    </div>
+                    ` : ''}
+                    ${todayVerse.context ? `
+                    <div class="info-block">
+                        <div class="info-block-label">📝 Context</div>
+                        <div class="info-block-value">${escapeHtml(todayVerse.context)}</div>
+                    </div>
+                    ` : ''}
+                    <button class="learned-btn ${todayVerse.mastered ? 'done' : 'primary'}" 
+                            id="verse-learned-btn"
+                            onclick="markLearned(${todayVerse.id}, 'verse')">
+                        ${todayVerse.mastered ? '✅ Learned!' : '✅ I\'ve learned this'}
+                    </button>
+                </div>
+            </div>
+        `;
+
+        loadingEl.style.display = 'none';
+        cardEl.style.display = 'block';
+
+        // Load past items
+        renderPastItems('bible', ALL_VERSES);
+
+    } catch (err) {
+        console.error('Verse fetch error:', err);
+        loadingEl.style.display = 'none';
+        cardEl.innerHTML = `
+            <div class="empty-state">
+                <div class="empty-state-emoji">📖</div>
+                <div class="empty-state-text">Could not load today's verse. Please try refreshing.</div>
+            </div>
+        `;
+        cardEl.style.display = 'block';
     }
 }
 
-function doResumeState(state) {
-    const queue = state.queueIds.map(id => ALL_VERSES.find(v => v.id === id)).filter(Boolean);
-    if (queue.length === 0) {
-        showToast('⚠️ Could not load session items.');
-        localStorage.removeItem('bm_active_session');
-        hideResumeBanner();
+// ════════════════════════════════════════
+//  MARK AS LEARNED
+// ════════════════════════════════════════
+
+async function markLearned(id, type) {
+    const btnId = type === 'word' ? 'word-learned-btn' : 'verse-learned-btn';
+    const btn = document.getElementById(btnId);
+    if (!btn || btn.classList.contains('done')) return;
+
+    btn.textContent = 'Saving...';
+    btn.disabled = true;
+
+    try {
+        await practicePost('/api/bible-memory/rate/', { id, rating: 4 });
+
+        btn.textContent = '✅ Learned!';
+        btn.classList.remove('primary');
+        btn.classList.add('done');
+        btn.disabled = false;
+
+        // Update streak in localStorage
+        const streakKey = `practice_streak_${type}`;
+        const lastDateKey = `practice_last_${type}`;
+        const today = new Date().toDateString();
+        const lastDate = localStorage.getItem(lastDateKey);
+
+        if (lastDate !== today) {
+            const yesterday = new Date();
+            yesterday.setDate(yesterday.getDate() - 1);
+            const currentStreak = parseInt(localStorage.getItem(streakKey) || '0');
+
+            if (lastDate === yesterday.toDateString()) {
+                localStorage.setItem(streakKey, String(currentStreak + 1));
+            } else {
+                localStorage.setItem(streakKey, '1');
+            }
+            localStorage.setItem(lastDateKey, today);
+        }
+
+        showPracticeToast('🎉 Great job! Word retained.');
+
+        // Refresh past items
+        if (type === 'word') {
+            await loadPastItems('english');
+        } else {
+            // Update local data and re-render
+            const v = ALL_VERSES.find(item => item.id === id);
+            if (v) v.mastered = true;
+            renderPastItems('bible', ALL_VERSES);
+        }
+
+    } catch (err) {
+        console.error(err);
+        btn.textContent = '✅ I\'ve learned this';
+        btn.disabled = false;
+        showPracticeToast('❌ Error saving. Please try again.');
+    }
+}
+
+// ════════════════════════════════════════
+//  PAST ITEMS & STREAK
+// ════════════════════════════════════════
+
+async function loadPastItems(practiceType) {
+    try {
+        const res = await fetch(`/api/bible-memory/get-verses/?practice_type=${practiceType}`);
+        const data = await res.json();
+        if (data.status === 'success') {
+            const items = data.verses || [];
+            if (practiceType === 'english') {
+                ALL_WORDS = items;
+            } else {
+                ALL_VERSES = items;
+            }
+            renderPastItems(practiceType, items);
+        }
+    } catch (err) {
+        console.error('Error loading past items:', err);
+    }
+}
+
+function renderPastItems(practiceType, items) {
+    const isWord = practiceType === 'english';
+    const listEl = document.getElementById(isWord ? 'word-past-list' : 'verse-past-list');
+    const historyEl = document.getElementById(isWord ? 'word-history' : 'verse-history');
+    const streakEl = document.getElementById(isWord ? 'word-streak' : 'verse-streak');
+    const reviewBtn = document.getElementById(isWord ? 'word-review-btn' : 'verse-review-btn');
+
+    if (!listEl || !historyEl) return;
+
+    // Sort by created_at descending, take last 7
+    const sorted = [...items].sort((a, b) => {
+        const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+        const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+        return dateB - dateA;
+    });
+    const recent = sorted.slice(0, 7);
+
+    if (recent.length === 0) {
+        historyEl.style.display = 'none';
         return;
     }
 
-    sessionMode = state.mode;
-    sessionQueue = queue;
-    sessionIdx = state.idx;
-    sessionMastered = state.mastered;
-    currentV = queue[sessionIdx];
+    historyEl.style.display = 'block';
 
-    // Toggle views
-    document.getElementById('bm-main-view').style.display = 'none';
-    document.getElementById('bm-drill-view').style.display = 'block';
-    
-    const modeNames = {
-        learn: CURRENT_PRACTICE_TYPE === 'english' ? 'Practice Word' : 'Practice Verse',
-        review: CURRENT_PRACTICE_TYPE === 'english' ? 'Review Word' : 'Review Verse',
-        type: 'Type Cold'
-    };
-    document.getElementById('drill-title-lbl').textContent = modeNames[sessionMode] || 'Study Session';
-
-    hideResumeBanner();
-    
-    // Resume the exact phase
-    if (state.phase && state.phase !== 'phase-loading' && state.phase !== 'phase-done') {
-        const tot = sessionQueue.length;
-        document.getElementById('drill-progress-bar').style.width = `${(sessionIdx / tot) * 100}%`;
-        document.getElementById('drill-counter-lbl').textContent = `${sessionIdx + 1} / ${tot} (✓ ${sessionMastered} mastered)`;
-
-        if (state.phase === 'phase-read') {
-            startReadPhase();
-        } else if (state.phase === 'phase-cloze') {
-            startClozePhase();
-        } else if (state.phase === 'phase-type') {
-            startTypePhase();
-        } else if (state.phase === 'phase-compare') {
-            startTypePhase(); // fallback: type it again
-        } else if (state.phase === 'phase-quick') {
-            startQuickPhase();
-        } else {
-            renderActivePhase();
-        }
+    // Streak display
+    const type = isWord ? 'word' : 'verse';
+    const streak = parseInt(localStorage.getItem(`practice_streak_${type}`) || '0');
+    if (streak > 0) {
+        streakEl.innerHTML = `<div class="streak-badge">🔥 ${streak} day${streak !== 1 ? 's' : ''} streak</div>`;
     } else {
-        renderActivePhase();
+        streakEl.innerHTML = '';
+    }
+
+    // Render past items
+    const today = new Date();
+    let html = '';
+    recent.forEach(item => {
+        const createdDate = item.created_at ? new Date(item.created_at) : null;
+        let dateLabel = '';
+        if (createdDate) {
+            const diffDays = Math.floor((today - createdDate) / (1000 * 60 * 60 * 24));
+            if (diffDays === 0) dateLabel = 'Today';
+            else if (diffDays === 1) dateLabel = 'Yesterday';
+            else dateLabel = `${diffDays}d ago`;
+        }
+
+        const statusClass = item.mastered ? 'mastered' : 'learning';
+        const statusText = item.mastered ? '✓ learned' : 'learning';
+
+        html += `
+            <div class="past-item">
+                <div class="past-item-left">
+                    <span class="past-item-date">${dateLabel}</span>
+                    <span class="past-item-word">${escapeHtml(item.reference)}</span>
+                </div>
+                <span class="past-item-status ${statusClass}">${statusText}</span>
+            </div>
+        `;
+    });
+    listEl.innerHTML = html;
+
+    // Show review button if there are mastered items
+    const masteredItems = items.filter(v => v.mastered);
+    if (reviewBtn) {
+        reviewBtn.style.display = masteredItems.length > 0 ? 'flex' : 'none';
     }
 }
 
-function startSingleVerseSession(id, mode = 'learn') {
-    const v = ALL_VERSES.find(item => item.id === id);
-    if (!v) return;
+// ════════════════════════════════════════
+//  FLASHCARD QUICK REVIEW
+// ════════════════════════════════════════
 
-    sessionMode = mode;
-    sessionQueue = [v];
-    sessionIdx = 0;
-    sessionMastered = 0;
-    currentV = v;
+function startReview(practiceType) {
+    const items = practiceType === 'english' ? ALL_WORDS : ALL_VERSES;
+    const mastered = items.filter(v => v.mastered);
 
-    saveActiveSessionState();
+    if (mastered.length === 0) {
+        showPracticeToast('No items to review yet. Learn some first!');
+        return;
+    }
 
-    // Toggle views
-    document.getElementById('bm-main-view').style.display = 'none';
-    document.getElementById('bm-drill-view').style.display = 'block';
-    
-    const modeNames = {
-        learn: CURRENT_PRACTICE_TYPE === 'english' ? 'Practice Word' : 'Practice Verse',
-        review: CURRENT_PRACTICE_TYPE === 'english' ? 'Review Word' : 'Review Verse',
-        type: 'Type Cold'
-    };
-    document.getElementById('drill-title-lbl').textContent = modeNames[mode] || 'Study Session';
+    // Pick a random mastered item
+    REVIEW_ITEM = mastered[Math.floor(Math.random() * mastered.length)];
+    REVIEW_ITEM._practiceType = practiceType;
 
-    loadNextVerse();
+    const overlay = document.getElementById('flashcard-overlay');
+    const wordEl = document.getElementById('flashcard-word');
+    const promptEl = document.getElementById('flashcard-prompt');
+    const answerEl = document.getElementById('flashcard-answer');
+    const defEl = document.getElementById('flashcard-definition');
+    const actionsEl = document.getElementById('flashcard-actions');
+
+    // Set front
+    wordEl.textContent = REVIEW_ITEM.reference;
+    promptEl.textContent = practiceType === 'english'
+        ? 'Do you remember what this word means?'
+        : 'Can you recall this verse?';
+
+    // Set back
+    defEl.textContent = REVIEW_ITEM.text;
+
+    // Reset state
+    answerEl.classList.remove('revealed');
+    actionsEl.innerHTML = `
+        <button class="flashcard-btn reveal" onclick="revealFlashcard()">
+            Tap to Reveal
+        </button>
+    `;
+
+    overlay.classList.add('visible');
 }
 
+function revealFlashcard() {
+    const answerEl = document.getElementById('flashcard-answer');
+    const actionsEl = document.getElementById('flashcard-actions');
+
+    answerEl.classList.add('revealed');
+
+    actionsEl.innerHTML = `
+        <button class="flashcard-btn forgot" onclick="rateReview(1)">
+            😰 Forgot
+        </button>
+        <button class="flashcard-btn got-it" onclick="rateReview(4)">
+            ✅ Got it!
+        </button>
+    `;
+}
+
+async function rateReview(rating) {
+    if (!REVIEW_ITEM) return;
+
+    try {
+        await practicePost('/api/bible-memory/rate/', {
+            id: REVIEW_ITEM.id,
+            rating: rating
+        });
+
+        closeReview();
+
+        if (rating >= 4) {
+            showPracticeToast('🎉 Great recall!');
+        } else {
+            showPracticeToast('📖 Keep practicing — you\'ll get it!');
+        }
+    } catch (err) {
+        console.error(err);
+        showPracticeToast('❌ Error saving review.');
+    }
+}
+
+function closeReview() {
+    const overlay = document.getElementById('flashcard-overlay');
+    overlay.classList.remove('visible');
+    REVIEW_ITEM = null;
+}
+
+// ════════════════════════════════════════
+//  SEED VERSES HELPER
+// ════════════════════════════════════════
+
+async function seedVerses() {
+    try {
+        showPracticeToast('📥 Loading curated verses...');
+        await practicePost('/api/bible-memory/seed/');
+        showPracticeToast('✅ Verses loaded! Refreshing...');
+        setTimeout(() => location.reload(), 800);
+    } catch (err) {
+        console.error(err);
+        showPracticeToast('❌ Error loading verses.');
+    }
+}

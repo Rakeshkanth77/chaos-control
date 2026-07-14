@@ -45,4 +45,5 @@ urlpatterns = [
     path('api/bible-memory/update-goal/', api.update_bible_goal, name='api_update_bible_goal'),
     path('api/bible-memory/seed/', api.seed_bible_verses, name='api_seed_bible_verses'),
     path('api/bible-memory/fetch-daily-vocab/', api.fetch_daily_vocab, name='api_fetch_daily_vocab'),
+    path('api/bible-memory/word-of-the-day/', api.word_of_the_day, name='api_word_of_the_day'),
 ]

@@ -1,891 +1,482 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Practice Portal | Command Center{% endblock %}
+{% block title %}Daily Practice | Command Center{% endblock %}
 
 {% block extra_css %}
 <style>
     @import url('https://fonts.googleapis.com/css2?family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
 
-    .bm-container {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        width: 100%;
-        max-width: 1200px;
+    .practice-container {
+        max-width: 620px;
         margin: 0 auto;
-        padding-bottom: 50px;
-        box-sizing: border-box;
+        padding: 0 16px 60px;
     }
 
-    .bm-header {
+    /* ── Tab Switcher ── */
+    .practice-tabs {
         display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 10px;
+        background: rgba(12, 88, 85, 0.06);
+        border: 1px solid rgba(12, 88, 85, 0.12);
+        border-radius: 16px;
+        padding: 4px;
+        margin-bottom: 24px;
     }
 
-    .bm-header h2 {
-        font-family: 'Outfit', sans-serif;
-        font-weight: 800;
-        font-size: 1.8rem;
-        color: var(--text-primary);
-    }
-
-    .bm-header h2 span {
-        color: var(--accent-color);
-    }
-
-    /* Stats & Progress Layout */
-    .bm-hero {
-        background: var(--card-bg);
-        border: var(--card-border);
-        border-radius: var(--card-radius);
-        box-shadow: var(--card-shadow);
-        backdrop-filter: var(--backdrop-blur);
-        padding: 24px;
-        text-align: center;
-        position: relative;
-        overflow: hidden;
-    }
-
-    .bm-hero-quote {
-        font-family: 'EB Garamond', serif;
-        font-style: italic;
-        font-size: 1.1rem;
+    .practice-tab {
+        flex: 1;
+        padding: 12px 16px;
+        border: none;
+        background: transparent;
+        border-radius: 13px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.95rem;
+        font-weight: 600;
         color: var(--text-secondary);
-        margin-bottom: 16px;
-        line-height: 1.5;
-    }
-
-    .bm-big-count-wrapper {
+        cursor: pointer;
+        transition: all 0.25s ease;
         display: flex;
-        align-items: baseline;
+        align-items: center;
         justify-content: center;
         gap: 8px;
     }
 
-    .bm-big-count {
-        font-family: 'Outfit', sans-serif;
-        font-size: 3.5rem;
-        font-weight: 800;
+    .practice-tab.active {
+        background: #fff;
         color: var(--accent-color);
-        line-height: 1;
+        box-shadow: 0 2px 8px rgba(12, 88, 85, 0.1);
     }
 
-    .bm-goal-label {
-        font-size: 0.9rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-        cursor: pointer;
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
-        padding: 4px 8px;
-        border-radius: 8px;
-        transition: background 0.2s;
-    }
-
-    .bm-goal-label:hover {
-        background: rgba(12, 88, 85, 0.06);
+    .practice-tab:hover:not(.active) {
         color: var(--text-primary);
+        background: rgba(255, 255, 255, 0.4);
     }
 
-    .bm-pbar-wrap {
-        background: rgba(12, 88, 85, 0.1);
-        border-radius: 10px;
-        height: 8px;
-        margin: 16px auto 8px;
-        width: 100%;
-        max-width: 600px;
-        overflow: hidden;
-    }
+    .tab-emoji { font-size: 1.2rem; }
 
-    .bm-pbar-fill {
-        height: 100%;
-        background: var(--accent-color);
-        border-radius: 10px;
-        width: 0%;
-        transition: width 0.6s cubic-bezier(0.4, 0, 0.2, 1);
-    }
-
-    .bm-pbar-label {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-    }
-
-    /* Main Grid Layout */
-    .bm-grid {
-        display: grid;
-        grid-template-columns: 1fr 2fr;
-        gap: 20px;
-        width: 100%;
-        min-width: 0;
-    }
-
-    @media (max-width: 900px) {
-        .bm-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .bm-sidebar-panel {
-        display: flex;
-        flex-direction: column;
-        gap: 20px;
-        width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-    }
-
-    /* Stats Grid */
-    .bm-stats-grid {
-        display: grid;
-        grid-template-columns: repeat(2, 1fr);
-        gap: 12px;
-    }
-
-    .bm-stat-card {
+    /* ── Loading Shimmer ── */
+    .shimmer-card {
         background: var(--card-bg);
         border: var(--card-border);
-        border-radius: 15px;
-        padding: 16px 12px;
-        text-align: center;
-        box-shadow: var(--card-shadow);
-        backdrop-filter: var(--backdrop-blur);
+        border-radius: 20px;
+        padding: 32px 24px;
+        animation: shimmerPulse 1.5s infinite ease-in-out;
     }
 
-    .bm-stat-num {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.8rem;
-        font-weight: 700;
-        color: var(--text-primary);
-        line-height: 1.1;
-    }
-
-    .bm-stat-label {
-        font-size: 0.75rem;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        margin-top: 4px;
-        font-weight: 600;
-    }
-
-    /* Form Styles */
-    .bm-form {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .bm-form-row {
-        display: flex;
-        gap: 8px;
-        width: 100%;
-        min-width: 0;
-    }
-
-    .form-group-flex {
-        flex-grow: 1;
-        min-width: 0;
-    }
-
-    /* Mode Selection Grid */
-    .bm-modes-title {
-        font-size: 0.95rem;
-        font-weight: 600;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        color: var(--text-secondary);
+    .shimmer-line {
+        height: 14px;
+        background: rgba(12, 88, 85, 0.08);
+        border-radius: 8px;
         margin-bottom: 12px;
     }
 
-    .bm-modes-grid {
-        display: grid;
-        grid-template-columns: repeat(3, 1fr);
-        gap: 12px;
-        margin-bottom: 20px;
+    .shimmer-line.title { height: 32px; width: 50%; margin: 0 auto 20px; }
+    .shimmer-line.subtitle { height: 12px; width: 30%; margin: 0 auto 24px; }
+    .shimmer-line.body { width: 90%; }
+    .shimmer-line.body-short { width: 65%; }
+
+    @keyframes shimmerPulse {
+        0%, 100% { opacity: 1; }
+        50% { opacity: 0.5; }
     }
 
-    @media (max-width: 768px) {
-        .bm-modes-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    @media (max-width: 480px) {
-        .bm-modes-grid {
-            grid-template-columns: 1fr;
-        }
-    }
-
-    .bm-mode-card {
+    /* ── Word/Verse Card ── */
+    .daily-card {
         background: var(--card-bg);
         border: var(--card-border);
-        border-radius: 15px;
-        padding: 18px 16px;
-        cursor: pointer;
-        transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s;
+        border-radius: 20px;
         box-shadow: var(--card-shadow);
         backdrop-filter: var(--backdrop-blur);
-        display: flex;
-        gap: 12px;
-        align-items: flex-start;
-        text-align: left;
+        overflow: hidden;
+        animation: cardFadeIn 0.4s ease;
     }
 
-    .bm-mode-card:hover {
-        transform: translateY(-2px);
-        border-color: var(--accent-color);
-        box-shadow: 0 10px 20px rgba(12, 88, 85, 0.08);
+    @keyframes cardFadeIn {
+        from { opacity: 0; transform: translateY(12px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    .bm-mode-icon {
-        font-size: 1.6rem;
-        flex-shrink: 0;
+    .daily-card-hero {
+        background: var(--text-primary);
+        color: #fff;
+        padding: 32px 24px 28px;
+        text-align: center;
     }
 
-    .bm-mode-name {
+    .daily-card-hero .word-title {
+        font-family: 'EB Garamond', serif;
+        font-size: 2.4rem;
         font-weight: 600;
-        font-size: 0.95rem;
-        color: var(--text-primary);
-        margin-bottom: 4px;
+        line-height: 1.2;
+        margin-bottom: 6px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
     }
 
-    .bm-mode-desc {
-        font-size: 0.78rem;
-        color: var(--text-secondary);
-        line-height: 1.35;
-    }
-
-    .bm-mode-badge {
+    .daily-card-hero .word-category {
         display: inline-block;
-        font-size: 0.7rem;
-        padding: 2px 6px;
-        border-radius: 6px;
-        margin-top: 8px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.72rem;
         font-weight: 600;
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-    }
-
-    .bm-badge-blue { background: rgba(59, 130, 246, 0.1); color: #2563eb; }
-    .bm-badge-red { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
-    .bm-badge-yellow { background: rgba(245, 158, 11, 0.1); color: #d97706; }
-    .bm-badge-green { background: rgba(16, 185, 129, 0.1); color: #059669; }
-
-    /* Category Chips */
-    .bm-chips-row {
-        display: flex;
-        gap: 8px;
-        flex-wrap: wrap;
-        margin-bottom: 16px;
-    }
-
-    .bm-chip {
-        background: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(12, 88, 85, 0.12);
+        letter-spacing: 1px;
+        color: rgba(255, 255, 255, 0.6);
+        background: rgba(255, 255, 255, 0.1);
+        padding: 3px 12px;
         border-radius: 20px;
-        padding: 6px 14px;
-        font-size: 0.8rem;
-        font-weight: 500;
+    }
+
+    .daily-card-body {
+        padding: 24px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+    }
+
+    .info-block {
+        background: rgba(12, 88, 85, 0.03);
+        border: 1px solid rgba(12, 88, 85, 0.08);
+        border-radius: 14px;
+        padding: 14px 16px;
+    }
+
+    .info-block-label {
+        font-size: 0.68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
         color: var(--text-secondary);
-        cursor: pointer;
-        transition: all 0.2s;
+        margin-bottom: 6px;
         display: flex;
         align-items: center;
         gap: 6px;
     }
 
-    .bm-chip:hover, .bm-chip.active {
-        background: var(--accent-color);
-        color: #fff;
-        border-color: var(--accent-color);
-    }
-
-    .bm-chip-count {
-        background: rgba(0, 0, 0, 0.08);
-        border-radius: 50%;
-        width: 18px;
-        height: 18px;
-        display: inline-flex;
-        align-items: center;
-        justify-content: center;
-        font-size: 0.7rem;
-    }
-
-    .bm-chip.active .bm-chip-count {
-        background: rgba(255, 255, 255, 0.2);
-    }
-
-    /* Verse List UI */
-    .bm-list-panel {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-        width: 100%;
-        min-width: 0;
-        box-sizing: border-box;
-    }
-
-    .bm-search-input {
-        width: 100%;
-        padding: 10px 14px;
-        border: 1px solid rgba(12, 88, 85, 0.15);
-        border-radius: 12px;
-        font-size: 0.9rem;
-        background: rgba(255, 255, 255, 0.5);
+    .info-block-value {
+        font-size: 0.92rem;
         color: var(--text-primary);
-        outline: none;
-        transition: border-color 0.2s, background 0.2s;
+        line-height: 1.5;
     }
 
-    .bm-search-input:focus {
-        border-color: var(--accent-color);
-        background: rgba(255, 255, 255, 0.8);
-    }
-
-    .bm-verse-table-container {
-        overflow-x: auto;
-        border-radius: 12px;
-        background: rgba(255, 255, 255, 0.35);
-        border: 1px solid rgba(12, 88, 85, 0.08);
-        max-height: 400px;
-        overflow-y: auto;
-    }
-
-    .bm-verse-table {
-        width: 100%;
-        border-collapse: collapse;
-        text-align: left;
-        font-size: 0.85rem;
-    }
-
-    .bm-verse-table th {
-        background: rgba(12, 88, 85, 0.05);
-        color: var(--text-primary);
-        font-weight: 600;
-        padding: 10px 14px;
-        border-bottom: 1px solid rgba(12, 88, 85, 0.1);
-        position: sticky;
-        top: 0;
-        z-index: 10;
-    }
-
-    .bm-verse-table td {
-        padding: 12px 14px;
-        border-bottom: 1px solid rgba(12, 88, 85, 0.05);
-        vertical-align: middle;
-    }
-
-    .bm-verse-table tr:hover td {
-        background: rgba(12, 88, 85, 0.02);
-    }
-
-    .bm-verse-ref {
+    .info-block-value.definition {
         font-family: 'EB Garamond', serif;
-        font-weight: 600;
+        font-size: 1.15rem;
+        line-height: 1.55;
+    }
+
+    .info-block-value.verse-text {
+        font-family: 'EB Garamond', serif;
+        font-size: 1.3rem;
+        line-height: 1.65;
+    }
+
+    /* ── Learned Button ── */
+    .learned-btn {
+        width: 100%;
+        padding: 16px;
+        border: none;
+        border-radius: 14px;
+        font-family: 'Inter', sans-serif;
         font-size: 1rem;
-        color: var(--accent-color);
-    }
-
-    .bm-verse-text-excerpt {
-        color: var(--text-secondary);
-        max-width: 250px;
-        overflow: hidden;
-        text-overflow: ellipsis;
-        white-space: nowrap;
-    }
-
-    .bm-verse-cat-tag {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
-        font-weight: 500;
-        background: rgba(12, 88, 85, 0.06);
-        color: var(--accent-color);
-        text-transform: capitalize;
-    }
-
-    .bm-verse-status-tag {
-        display: inline-block;
-        padding: 2px 8px;
-        border-radius: 12px;
-        font-size: 0.75rem;
         font-weight: 600;
-    }
-
-    .status-mastered { background: rgba(16, 185, 129, 0.1); color: #059669; }
-    .status-learning { background: rgba(245, 158, 11, 0.1); color: #d97706; }
-    .status-due { background: rgba(239, 68, 68, 0.1); color: #dc2626; }
-
-    /* DRILL WORKSPACE */
-    .bm-drill-panel {
-        display: none;
-        max-width: 650px;
-        margin: 20px auto;
-        animation: fadeIn 0.3s ease;
-    }
-
-    @keyframes fadeIn {
-        from { opacity: 0; transform: translateY(10px); }
-        to { opacity: 1; transform: translateY(0); }
-    }
-
-    .bm-drill-header {
-        display: flex;
-        align-items: center;
-        justify-content: space-between;
-        margin-bottom: 14px;
-    }
-
-    .bm-drill-title-wrap {
-        display: flex;
-        align-items: baseline;
-        gap: 10px;
-    }
-
-    .bm-drill-title {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.4rem;
-        font-weight: 700;
-        color: var(--text-primary);
-    }
-
-    .bm-drill-subtitle {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-    }
-
-    /* Drill Step Indicator */
-    .bm-steps {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 24px;
-        position: relative;
-    }
-
-    .bm-steps::before {
-        content: '';
-        position: absolute;
-        height: 2px;
-        background: rgba(12, 88, 85, 0.1);
-        left: 10%;
-        right: 10%;
-        top: 15px;
-        z-index: 1;
-    }
-
-    .bm-step-node {
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        z-index: 2;
-        flex: 1;
-    }
-
-    .bm-step-dot {
-        width: 32px;
-        height: 32px;
-        border-radius: 50%;
-        background: #fff;
-        border: 2px solid rgba(12, 88, 85, 0.15);
+        cursor: pointer;
+        transition: all 0.2s ease;
         display: flex;
         align-items: center;
         justify-content: center;
-        font-size: 0.85rem;
-        font-weight: 700;
-        color: var(--text-secondary);
-        transition: all 0.3s;
+        gap: 8px;
     }
 
-    .bm-step-node.active .bm-step-dot {
-        border-color: var(--accent-color);
+    .learned-btn.primary {
         background: var(--accent-color);
         color: #fff;
-        box-shadow: 0 0 10px rgba(12, 88, 85, 0.3);
     }
 
-    .bm-step-node.done .bm-step-dot {
-        border-color: #10b981;
-        background: #10b981;
-        color: #fff;
+    .learned-btn.primary:hover {
+        background: #0a4a47;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(12, 88, 85, 0.25);
     }
 
-    .bm-step-lbl {
-        font-size: 0.7rem;
-        font-weight: 600;
-        color: var(--text-secondary);
-        margin-top: 6px;
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
+    .learned-btn.primary:active {
+        transform: scale(0.98);
     }
 
-    .bm-step-node.active .bm-step-lbl {
-        color: var(--accent-color);
+    .learned-btn.done {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+        cursor: default;
+        pointer-events: none;
     }
 
-    .bm-step-node.done .bm-step-lbl {
-        color: #10b981;
-    }
-
-    /* Drill phase boxes */
-    .bm-phase-box {
-        display: none;
-    }
-
-    .bm-phase-box.active {
-        display: block;
-    }
-
-    /* Learn Screen */
-    .bm-learn-card {
-        background: var(--text-primary); /* Slate Night background for deep scripture focus */
-        color: #fff;
-        border-radius: var(--card-radius);
-        padding: 32px 24px;
-        margin-bottom: 20px;
-        box-shadow: 0 10px 30px rgba(15, 41, 40, 0.15);
-        text-align: center;
-    }
-
-    .bm-learn-ref {
-        font-family: 'EB Garamond', serif;
-        font-style: italic;
-        font-size: 1.2rem;
-        color: #e2a84b; /* Gold */
-        margin-bottom: 16px;
-    }
-
-    .bm-learn-text {
-        font-family: 'EB Garamond', serif;
-        font-size: 1.6rem;
-        line-height: 1.6;
-        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.25);
-    }
-
-    .bm-learn-text .highlight-word {
-        color: #f5d08a; /* Soft Gold for keywords */
-        font-weight: 600;
-    }
-
-    .bm-info-strip {
-        background: rgba(255, 255, 255, 0.6);
-        border: 1px solid rgba(12, 88, 85, 0.1);
-        border-radius: 12px;
-        padding: 14px 18px;
-        margin-bottom: 14px;
-    }
-
-    .bm-info-lbl {
-        font-size: 0.7rem;
-        font-weight: 700;
-        text-transform: uppercase;
-        color: var(--text-secondary);
-        letter-spacing: 0.5px;
-        margin-bottom: 4px;
-    }
-
-    .bm-info-val {
-        font-size: 0.88rem;
-        color: var(--text-primary);
-        line-height: 1.4;
-    }
-
-    /* Read count indicators */
-    .bm-read-status {
+    /* ── Streak & Past Words ── */
+    .section-divider {
         display: flex;
         align-items: center;
         gap: 12px;
-        background: rgba(255, 255, 255, 0.5);
-        border: 1px solid rgba(12, 88, 85, 0.08);
-        border-radius: 12px;
-        padding: 12px 18px;
-        margin-bottom: 20px;
+        margin: 28px 0 16px;
     }
 
-    .bm-read-dots {
-        display: flex;
-        gap: 8px;
+    .section-divider-line {
+        flex: 1;
+        height: 1px;
+        background: rgba(12, 88, 85, 0.08);
     }
 
-    .bm-read-dot {
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
-        border: 2px solid rgba(12, 88, 85, 0.2);
-        background: transparent;
-        transition: all 0.3s;
-    }
-
-    .bm-read-dot.filled {
-        background: var(--accent-color);
-        border-color: var(--accent-color);
-        box-shadow: 0 0 8px rgba(12, 88, 85, 0.4);
-    }
-
-    .bm-read-msg {
-        font-size: 0.82rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-    }
-
-    /* Cloze Screen */
-    .bm-cloze-verse {
-        font-family: 'EB Garamond', serif;
-        font-size: 1.5rem;
-        line-height: 1.8;
-        color: var(--text-primary);
-        background: #fff;
-        border: 1px solid rgba(12, 88, 85, 0.12);
-        border-radius: 15px;
-        padding: 24px;
-        margin-bottom: 16px;
-        text-align: center;
-    }
-
-    .bm-blank-input {
-        border: none;
-        border-bottom: 2px solid var(--accent-color);
-        background: transparent;
-        font-family: 'EB Garamond', serif;
-        font-size: 1.5rem;
-        color: var(--text-primary);
-        text-align: center;
-        outline: none;
-        padding: 0 4px;
-        transition: all 0.2s;
-    }
-
-    .bm-blank-input.correct {
-        border-bottom-color: #10b981;
-        color: #10b981;
-    }
-
-    .bm-blank-input.wrong {
-        border-bottom-color: #ef4444;
-        color: #ef4444;
-    }
-
-    .bm-cloze-status {
-        text-align: center;
-        font-size: 0.9rem;
+    .section-divider-text {
+        font-size: 0.78rem;
         font-weight: 600;
-        margin-bottom: 16px;
-        color: var(--text-secondary);
-    }
-
-    /* Type Cold Screen */
-    .bm-ref-preview {
-        background: var(--text-primary);
-        border-radius: 15px;
-        padding: 20px;
-        text-align: center;
-        margin-bottom: 16px;
-        color: #fff;
-    }
-
-    .bm-ref-preview-title {
-        font-size: 0.75rem;
-        color: #e2a84b;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-        margin-bottom: 4px;
-        font-weight: 600;
-    }
-
-    .bm-ref-preview-val {
-        font-family: 'EB Garamond', serif;
-        font-style: italic;
-        font-size: 1.8rem;
-    }
-
-    .bm-type-box {
-        background: #fff;
-        border: 1px solid rgba(12, 88, 85, 0.15);
-        border-radius: 15px;
-        overflow: hidden;
-        margin-bottom: 16px;
-        box-shadow: 0 4px 12px rgba(12, 88, 85, 0.03);
-    }
-
-    textarea.bm-type-textarea {
-        width: 100%;
-        border: none;
-        outline: none;
-        font-family: 'EB Garamond', serif;
-        font-size: 1.3rem;
-        line-height: 1.6;
-        color: var(--text-primary);
-        padding: 20px;
-        resize: none;
-        min-height: 120px;
-        background: transparent;
-    }
-
-    /* Compare Screen */
-    .bm-compare-card {
-        background: #fff;
-        border: 1px solid rgba(12, 88, 85, 0.15);
-        border-radius: 15px;
-        overflow: hidden;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(12, 88, 85, 0.04);
-    }
-
-    .bm-compare-sec {
-        padding: 16px 20px;
-    }
-
-    .bm-compare-sec + .bm-compare-sec {
-        border-top: 1px solid rgba(12, 88, 85, 0.08);
-    }
-
-    .bm-compare-lbl {
-        font-size: 0.7rem;
-        font-weight: 700;
         text-transform: uppercase;
         letter-spacing: 0.5px;
-        margin-bottom: 6px;
         color: var(--text-secondary);
+        white-space: nowrap;
     }
 
-    .bm-compare-text {
-        font-family: 'EB Garamond', serif;
-        font-size: 1.3rem;
-        line-height: 1.6;
+    .streak-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background: rgba(245, 158, 11, 0.08);
+        border: 1px solid rgba(245, 158, 11, 0.15);
+        border-radius: 20px;
+        padding: 6px 14px;
+        font-size: 0.82rem;
+        font-weight: 600;
+        color: #d97706;
+        margin-bottom: 12px;
+    }
+
+    .past-list {
+        display: flex;
+        flex-direction: column;
+        gap: 2px;
+    }
+
+    .past-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 10px 14px;
+        border-radius: 12px;
+        transition: background 0.2s;
+    }
+
+    .past-item:hover {
+        background: rgba(12, 88, 85, 0.03);
+    }
+
+    .past-item-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        min-width: 0;
+    }
+
+    .past-item-date {
+        font-size: 0.72rem;
+        font-weight: 500;
+        color: var(--text-secondary);
+        min-width: 70px;
+    }
+
+    .past-item-word {
+        font-size: 0.88rem;
+        font-weight: 600;
         color: var(--text-primary);
     }
 
-    .bm-compare-text .match {
-        background: rgba(16, 185, 129, 0.15);
-        color: #047857;
-        border-radius: 4px;
-        padding: 0 3px;
-    }
-
-    .bm-compare-text .miss {
-        background: rgba(239, 68, 68, 0.15);
-        color: #b91c1c;
-        border-radius: 4px;
-        padding: 0 3px;
-    }
-
-    .bm-score-badge {
-        text-align: center;
-        padding: 16px;
-        background: rgba(12, 88, 85, 0.02);
-        border-top: 1px solid rgba(12, 88, 85, 0.08);
-    }
-
-    .bm-score-pct {
-        font-family: 'Outfit', sans-serif;
-        font-size: 2.2rem;
-        font-weight: 800;
-        line-height: 1;
-    }
-
-    .bm-score-desc {
-        font-size: 0.8rem;
-        color: var(--text-secondary);
-        font-weight: 500;
-        margin-top: 4px;
-    }
-
-    /* Rating Row */
-    .bm-rate-row {
-        display: grid;
-        grid-template-columns: repeat(4, 1fr);
-        gap: 8px;
-        margin-bottom: 20px;
-    }
-
-    @media (max-width: 500px) {
-        .bm-rate-row {
-            grid-template-columns: repeat(2, 1fr);
-        }
-    }
-
-    .bm-rate-btn {
-        padding: 12px 6px;
-        text-align: center;
-        border-radius: 12px;
-        cursor: pointer;
-        transition: transform 0.1s, opacity 0.2s;
-        border: none;
-        color: #fff;
-        font-family: 'Inter', sans-serif;
+    .past-item-status {
+        font-size: 0.72rem;
         font-weight: 600;
-        font-size: 0.8rem;
-        line-height: 1.3;
+        padding: 2px 8px;
+        border-radius: 10px;
+        flex-shrink: 0;
     }
 
-    .bm-rate-btn:active { transform: scale(0.96); }
-
-    .bm-rate-red { background: #ef4444; }
-    .bm-rate-yellow { background: #f59e0b; }
-    .bm-rate-blue { background: #3b82f6; }
-    .bm-rate-green { background: #10b981; }
-
-    .bm-rate-btn-sub {
-        display: block;
-        font-size: 0.65rem;
-        font-weight: 400;
-        opacity: 0.85;
-        margin-top: 2px;
+    .past-item-status.mastered {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
     }
 
-    /* Oral Study Box */
-    .bm-reveal-card {
+    .past-item-status.learning {
+        background: rgba(245, 158, 11, 0.1);
+        color: #d97706;
+    }
+
+    /* ── Quick Review Button ── */
+    .review-btn {
+        width: 100%;
+        padding: 14px;
+        border: 1px solid rgba(12, 88, 85, 0.15);
+        border-radius: 14px;
+        background: rgba(12, 88, 85, 0.03);
+        font-family: 'Inter', sans-serif;
+        font-size: 0.9rem;
+        font-weight: 600;
+        color: var(--accent-color);
+        cursor: pointer;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        margin-top: 8px;
+    }
+
+    .review-btn:hover {
+        background: rgba(12, 88, 85, 0.08);
+        border-color: var(--accent-color);
+    }
+
+    /* ── Flashcard Review ── */
+    .flashcard-overlay {
+        display: none;
+        position: fixed;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(6px);
+        z-index: 999;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        animation: fadeInOverlay 0.2s ease;
+    }
+
+    .flashcard-overlay.visible {
+        display: flex;
+    }
+
+    @keyframes fadeInOverlay {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    .flashcard {
         background: #fff;
-        border: 1px solid rgba(12, 88, 85, 0.12);
-        border-radius: 15px;
-        padding: 24px;
+        border-radius: 24px;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.2);
+        max-width: 440px;
+        width: 100%;
+        overflow: hidden;
+        animation: cardSlideUp 0.3s ease;
+    }
+
+    @keyframes cardSlideUp {
+        from { opacity: 0; transform: translateY(30px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .flashcard-front {
+        padding: 40px 24px;
+        text-align: center;
+    }
+
+    .flashcard-word {
         font-family: 'EB Garamond', serif;
-        font-size: 1.5rem;
-        line-height: 1.7;
+        font-size: 2.2rem;
+        font-weight: 600;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+    }
+
+    .flashcard-prompt {
+        font-size: 0.82rem;
+        color: var(--text-secondary);
+        margin-bottom: 24px;
+    }
+
+    .flashcard-answer {
+        display: none;
+        padding: 0 24px 8px;
         text-align: center;
-        margin-bottom: 20px;
-        box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
     }
 
-    /* Celebration Screen */
-    .bm-done-card {
-        text-align: center;
-        padding: 40px 20px;
-        background: var(--card-bg);
-        border: var(--card-border);
-        border-radius: var(--card-radius);
-        box-shadow: var(--card-shadow);
-        backdrop-filter: var(--backdrop-blur);
+    .flashcard-answer.revealed {
+        display: block;
+        animation: cardFadeIn 0.3s ease;
     }
 
-    .bm-done-trophy {
-        font-size: 3.5rem;
-        margin-bottom: 16px;
-        animation: pulse 1.5s infinite alternate;
+    .flashcard-definition {
+        font-family: 'EB Garamond', serif;
+        font-size: 1.15rem;
+        line-height: 1.5;
+        color: var(--text-primary);
+        margin-bottom: 8px;
+        padding: 16px;
+        background: rgba(12, 88, 85, 0.03);
+        border-radius: 12px;
     }
 
-    @keyframes pulse {
-        from { transform: scale(1); }
-        to { transform: scale(1.1); }
-    }
-
-    /* Button rows & generic modifications */
-    .btn-row {
+    .flashcard-actions {
+        padding: 16px 24px 24px;
         display: flex;
         gap: 10px;
     }
 
-    .btn-full {
+    .flashcard-btn {
+        flex: 1;
+        padding: 14px 12px;
+        border: none;
+        border-radius: 12px;
+        font-family: 'Inter', sans-serif;
+        font-size: 0.88rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.1s;
+    }
+
+    .flashcard-btn:active { transform: scale(0.96); }
+
+    .flashcard-btn.reveal {
+        background: var(--accent-color);
+        color: #fff;
         width: 100%;
     }
 
-    /* Add Toast notification override */
-    .bm-toast {
+    .flashcard-btn.forgot {
+        background: rgba(239, 68, 68, 0.1);
+        color: #dc2626;
+    }
+
+    .flashcard-btn.got-it {
+        background: rgba(16, 185, 129, 0.1);
+        color: #059669;
+    }
+
+    .flashcard-close {
+        position: absolute;
+        top: 16px;
+        right: 16px;
+        background: rgba(0, 0, 0, 0.1);
+        border: none;
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        font-size: 1rem;
+        cursor: pointer;
+    }
+
+    /* ── Empty State ── */
+    .empty-state {
+        text-align: center;
+        padding: 40px 20px;
+        color: var(--text-secondary);
+    }
+
+    .empty-state-emoji { font-size: 2.5rem; margin-bottom: 12px; }
+
+    .empty-state-text {
+        font-size: 0.9rem;
+        line-height: 1.5;
+        max-width: 300px;
+        margin: 0 auto;
+    }
+
+    /* ── Toast ── */
+    .practice-toast {
         position: fixed;
         bottom: 24px;
         left: 50%;
@@ -896,601 +487,127 @@
         font-weight: 500;
         padding: 10px 20px;
         border-radius: 30px;
-        border: 1px solid rgba(255, 255, 255, 0.1);
         z-index: 1000;
         box-shadow: 0 10px 25px rgba(0,0,0,0.2);
         transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
     }
 
-    .bm-toast.show {
+    .practice-toast.show {
         transform: translateX(-50%) translateY(0);
     }
 
-    /* ── MOBILE RESPONSIVE LAYOUT ADJUSTMENTS ── */
-    @media (max-width: 768px) {
-        .bm-header {
-            flex-direction: column;
-            align-items: stretch !important;
-            gap: 12px;
-            margin-bottom: 15px;
-        }
-        .bm-header h2 {
-            text-align: center;
-            font-size: 1.5rem;
-        }
-        .bm-header > div {
-            width: 100%;
-            justify-content: space-between;
-            flex-wrap: wrap;
-        }
-        .bm-container {
-            padding: 0 12px 30px !important;
-        }
-        .bm-hero {
-            padding: 16px;
-        }
-        .bm-hero-quote {
-            font-size: 0.95rem;
-            margin-bottom: 12px;
-        }
-        .bm-big-count {
-            font-size: 2.8rem;
-        }
-        .bm-pbar-wrap {
-            margin: 12px auto 6px;
-        }
-        .bm-mode-card {
-            padding: 14px 12px;
-            gap: 8px;
-        }
-        .bm-mode-icon {
-            font-size: 1.3rem;
-        }
-        .bm-mode-name {
-            font-size: 0.88rem;
-        }
-        .bm-mode-desc {
-            font-size: 0.74rem;
-        }
-    }
-
+    /* ── Responsive ── */
     @media (max-width: 600px) {
-        /* Hide excerpt and category columns to fit screen cleanly */
-        .bm-verse-table th:nth-child(2),
-        .bm-verse-table td:nth-child(2),
-        .bm-verse-table th:nth-child(3),
-        .bm-verse-table td:nth-child(3) {
-            display: none;
-        }
-        
-        .bm-verse-table th, .bm-verse-table td {
-            padding: 8px 10px;
-            font-size: 0.8rem;
-        }
-        
-        .bm-chip {
-            padding: 4px 10px;
-            font-size: 0.75rem;
-        }
-
-        .bm-form-row {
-            flex-direction: row; /* Keep inline but handle shrink */
-            gap: 6px;
-        }
-
-        /* Practice workspace layout adjustments */
-        .bm-drill-panel {
-            margin: 10px auto;
-            padding: 0 8px;
-        }
-        .bm-learn-card {
-            padding: 20px 16px;
-            margin-bottom: 12px;
-        }
-        .bm-learn-text {
-            font-size: 1.25rem;
-            line-height: 1.5;
-        }
-        .bm-learn-ref {
-            font-size: 1.05rem;
-            margin-bottom: 10px;
-        }
-        .bm-cloze-verse {
-            font-size: 1.2rem;
-            line-height: 1.6;
-            padding: 16px;
-        }
-        .bm-blank-input {
-            font-size: 1.2rem;
-        }
-        .bm-ref-preview-val {
-            font-size: 1.4rem;
-        }
-        textarea.bm-type-textarea {
-            font-size: 1.15rem;
-            padding: 12px;
-            min-height: 100px;
-        }
-        .bm-compare-text {
-            font-size: 1.15rem;
-        }
-        .bm-score-pct {
-            font-size: 1.8rem;
-        }
-        .bm-reveal-card {
-            font-size: 1.2rem;
-            padding: 16px;
-        }
-        .bm-rate-btn {
-            font-size: 0.75rem;
-            padding: 10px 4px;
-        }
-        .bm-rate-btn-sub {
-            font-size: 0.6rem;
-        }
-        .bm-step-lbl {
-            font-size: 0.6rem;
-            text-transform: none;
-            letter-spacing: 0;
-        }
-        .bm-step-dot {
-            width: 28px;
-            height: 28px;
-            font-size: 0.75rem;
-        }
-        .bm-steps::before {
-            top: 13px;
-        }
-    }
-
-    @media (max-width: 400px) {
-        .bm-stats-grid {
-            gap: 8px;
-        }
-        .bm-stat-card {
-            padding: 12px 8px;
-        }
-        .bm-stat-num {
-            font-size: 1.5rem;
-        }
-        .bm-stat-label {
-            font-size: 0.7rem;
-        }
-        .bm-rate-row {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 6px;
-        }
+        .practice-container { padding: 0 10px 40px; }
+        .daily-card-hero { padding: 24px 16px 20px; }
+        .daily-card-hero .word-title { font-size: 1.9rem; }
+        .daily-card-body { padding: 16px; gap: 12px; }
+        .info-block-value.definition { font-size: 1.05rem; }
+        .info-block-value.verse-text { font-size: 1.15rem; }
+        .flashcard { border-radius: 20px; }
+        .flashcard-word { font-size: 1.8rem; }
+        .past-item { padding: 8px 10px; }
     }
 </style>
 {% endblock %}
 
 {% block content %}
-<div class="bm-container">
+<div class="practice-container">
 
-    <!-- MAIN DASHBOARD VIEW -->
-    <div id="bm-main-view">
-        <!-- Header -->
-        <div class="bm-header">
-            <h2><span id="bm-title-scripture">Bible</span> <span id="bm-title-memory">Memory</span></h2>
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <div class="practice-type-switch" style="display: flex; background: rgba(12, 88, 85, 0.08); border: 1px solid rgba(12, 88, 85, 0.18); border-radius: 20px; padding: 2px;">
-                    <button type="button" class="btn btn-secondary active" id="btn-switch-bible" onclick="switchPracticeType('bible')" style="padding: 4px 12px; font-size: 0.78rem; border-radius: 18px; border: none; font-weight: 600;">📖 Scripture</button>
-                    <button type="button" class="btn btn-secondary" id="btn-switch-english" onclick="switchPracticeType('english')" style="padding: 4px 12px; font-size: 0.78rem; border-radius: 18px; border: none; font-weight: 600;">📝 Vocabulary</button>
-                </div>
-                <div id="translation-badge-lbl" style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary);">
-                    KJV Translation
-                </div>
-            </div>
+    <!-- Tab Switcher -->
+    <div class="practice-tabs">
+        <button class="practice-tab active" id="tab-word" onclick="switchTab('word')">
+            <span class="tab-emoji">🔤</span> Word
+        </button>
+        <button class="practice-tab" id="tab-verse" onclick="switchTab('verse')">
+            <span class="tab-emoji">📖</span> Verse
+        </button>
+    </div>
+
+    <!-- Word Tab Content -->
+    <div id="panel-word">
+        <!-- Loading Shimmer (shown while fetching) -->
+        <div id="word-loading" class="shimmer-card">
+            <div class="shimmer-line title"></div>
+            <div class="shimmer-line subtitle"></div>
+            <div class="shimmer-line body"></div>
+            <div class="shimmer-line body"></div>
+            <div class="shimmer-line body-short"></div>
         </div>
 
-        <!-- Resume Session Banner -->
-        <div id="resume-session-banner" class="glass-panel" style="display: none; background: rgba(12, 88, 85, 0.05); border: 1px solid rgba(12, 88, 85, 0.2); padding: 12px 16px; margin-bottom: 20px; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; border-radius: 12px; width: 100%;">
-            <div style="display: flex; align-items: center; gap: 8px;">
-                <span id="resume-banner-text" style="font-size: 0.88rem; font-weight: 500; color: var(--text-primary);">You have an unfinished practice session.</span>
+        <!-- Today's Word Card (hidden until loaded) -->
+        <div id="word-card" style="display: none;"></div>
+
+        <!-- Past Words Section -->
+        <div id="word-history" style="display: none;">
+            <div class="section-divider">
+                <div class="section-divider-line"></div>
+                <span class="section-divider-text">Past Words</span>
+                <div class="section-divider-line"></div>
             </div>
-            <div style="display: flex; gap: 8px;">
-                <button class="btn" onclick="resumeActiveSession()" style="padding: 4px 12px; font-size: 0.75rem;">Resume</button>
-                <button class="btn btn-secondary" onclick="discardActiveSession()" style="padding: 4px 12px; font-size: 0.75rem; border-color: rgba(12, 88, 85, 0.15);">Dismiss</button>
-            </div>
-        </div>
-
-        <!-- Progress Hero Panel -->
-        <div class="bm-hero mb-4">
-            <p class="bm-hero-quote" id="hero-quote-lbl">"Thy word have I hid in mine heart, that I might not sin against thee." — Psalm 119:11</p>
-            <div class="bm-big-count-wrapper">
-                <span class="bm-big-count" id="mastered-count-display">0</span>
-                <span style="font-size: 1.5rem; font-weight: 600; color: var(--text-secondary); margin: 0 4px;">/</span>
-                <span class="bm-goal-label" id="goal-label-display" title="Click to change goal">
-                    <span id="goal-count-display">1</span> <span style="display: inline-flex; align-items: center; opacity: 0.7; margin-left: 2px; vertical-align: middle;"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg></span>
-                </span>
-            </div>
-            <p id="hero-mastered-label-lbl" style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; font-weight: 600; color: var(--text-secondary); margin-top: 2px;">Verses Mastered</p>
-            
-            <div class="bm-pbar-wrap">
-                <div class="bm-pbar-fill" id="hero-progress-bar"></div>
-            </div>
-            <p class="bm-pbar-label" id="progress-percent-label">0% completed</p>
-        </div>
-
-        <!-- 2-Column Workspace Grid -->
-        <div class="bm-grid">
-            
-            <!-- LEFT COLUMN: Adding & Seeding -->
-            <div class="bm-sidebar-panel">
-                
-                <!-- Stats Summary -->
-                <div class="bm-stats-grid">
-                    <div class="bm-stat-card">
-                        <div class="bm-stat-num" id="stat-due-count">0</div>
-                        <div class="bm-stat-label" id="stat-due-label-lbl">Due Today</div>
-                    </div>
-                    <div class="bm-stat-card">
-                        <div class="bm-stat-num" id="stat-total-count">0</div>
-                        <div class="bm-stat-label" id="stat-total-label-lbl">Total Verses</div>
-                    </div>
-                </div>
-
-                <!-- Add/Edit Verse Panel -->
-                <div class="glass-panel">
-                    <h3 class="panel-title" id="verse-form-title">Add Memory Verse</h3>
-                    <form id="verse-form" class="bm-form" onsubmit="handleVerseSubmit(event)">
-                        <input type="hidden" id="edit-verse-id" value="">
-                        
-                        <div class="bm-form-row">
-                            <div class="form-group-flex">
-                                <input type="text" id="verse-ref-input" class="form-control inline-input w-100" placeholder="e.g. John 3:16" required>
-                            </div>
-                            <button type="button" class="btn btn-secondary" id="fetch-verse-btn" onclick="autoFetchVerseText()" style="padding: 0 12px; font-size: 0.75rem;">Auto-Fill 🔍</button>
-                        </div>
-                        
-                        <div class="form-group">
-                            <textarea id="verse-text-input" class="form-control braindump-textarea" placeholder="Scripture text (KJV wording recommended)..." rows="3" required></textarea>
-                        </div>
-
-                        <div class="form-group">
-                            <select id="verse-category-input" class="form-control inline-input w-100" style="background: rgba(255,255,255,0.5); border: 1px solid rgba(12,88,85,0.15);" onchange="toggleCustomCategory(this)">
-                                <option value="Fear">Fear</option>
-                                <option value="Worship">Worship</option>
-                                <option value="Courage">Courage</option>
-                                <option value="Peace">Peace</option>
-                                <option value="Strength">Strength</option>
-                                <option value="Custom">-- Custom Category --</option>
-                            </select>
-                            <input type="text" id="verse-category-custom-input" class="form-control inline-input w-100 mt-2" placeholder="Custom category name" style="display:none;">
-                        </div>
-
-                        <div class="form-group">
-                            <input type="text" id="verse-hook-input" class="form-control inline-input w-100" placeholder="Memory Tip / Hook (optional)">
-                        </div>
-
-                        <div class="form-group">
-                            <input type="text" id="verse-context-input" class="form-control inline-input w-100" placeholder="Biblical Context (optional)">
-                        </div>
-
-                        <div class="btn-row">
-                            <button type="button" class="btn btn-secondary w-50" id="clear-form-btn" onclick="resetVerseForm()" style="display:none;">Cancel</button>
-                            <button type="submit" class="btn w-100" id="save-verse-btn">+ Add Verse</button>
-                        </div>
-                    </form>
-                </div>
-
-                <!-- Database Seeding Helper -->
-                <div class="glass-panel text-center" id="database-seed-panel">
-                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">Missing verses? Populate your database with a collection of curated default scriptures across common categories.</p>
-                    <button class="btn btn-secondary btn-full" onclick="seedDefaultCollection()">Load Curated Verses</button>
-                </div>
-
-                <!-- Vocabulary Discovery Inbox (Visible only in Vocab mode) -->
-                <div class="glass-panel" id="vocab-inbox-panel" style="display: none; padding: 20px;">
-                    <h3 class="panel-title">Vocabulary Discovery Inbox</h3>
-                    <p style="font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 12px;">Discover advanced vocabulary words curated daily. Keep what fits your learning queue and drop what doesn't.</p>
-                    <button type="button" class="btn btn-secondary w-100" id="fetch-vocab-btn" onclick="fetchDailyVocabBatch()">Search/Fetch Daily Words</button>
-                    
-                    <div id="vocab-inbox-list" style="margin-top: 14px; display: flex; flex-direction: column; gap: 12px; max-height: 320px; overflow-y: auto; padding-right: 4px;">
-                        <!-- Fetched words will load here as cards -->
-                    </div>
-                </div>
-
-            </div>
-
-            <!-- RIGHT COLUMN: Modes & Verse List -->
-            <div class="bm-list-panel">
-                
-                <!-- Quick Practice Modes -->
-                <div>
-                    <h3 class="bm-modes-title">Memory Training Modes</h3>
-                    <div class="bm-modes-grid">
-                        <div class="bm-mode-card" onclick="startSession('learn')">
-                            <span class="bm-mode-icon" id="mode-learn-icon" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                            </span>
-                            <div>
-                                <div class="bm-mode-name" id="mode-learn-name">Learn New Verse</div>
-                                <div class="bm-mode-desc" id="mode-learn-desc">Step-by-step training: Read → Blanks → Type.</div>
-                                <span class="bm-mode-badge bm-badge-blue">Start Here</span>
-                            </div>
-                        </div>
-                        <div class="bm-mode-card" onclick="startSession('review')">
-                            <span class="bm-mode-icon" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></svg>
-                            </span>
-                            <div>
-                                <div class="bm-mode-name">Review Due</div>
-                                <div class="bm-mode-desc" id="mode-review-desc">Review verses due today based on spaced repetition.</div>
-                                <span class="bm-mode-badge bm-badge-red" id="mode-badge-due">0 due</span>
-                            </div>
-                        </div>
-                        <div class="bm-mode-card" onclick="startSession('type')">
-                            <span class="bm-mode-icon" style="display: inline-flex; align-items: center; justify-content: center; width: 36px; height: 36px;">
-                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2" ry="2"></rect><line x1="6" y1="8" x2="6" y2="8"></line><line x1="10" y1="8" x2="10" y2="8"></line><line x1="14" y1="8" x2="14" y2="8"></line><line x1="18" y1="8" x2="18" y2="8"></line><line x1="6" y1="12" x2="6" y2="12"></line><line x1="10" y1="12" x2="10" y2="12"></line><line x1="14" y1="12" x2="14" y2="12"></line><line x1="18" y1="12" x2="18" y2="12"></line><line x1="7" y1="16" x2="17" y2="16"></line></svg>
-                            </span>
-                            <div>
-                                <div class="bm-mode-name">Type It Cold</div>
-                                <div class="bm-mode-desc" id="mode-type-desc">See the reference only. Type the full verse from memory.</div>
-                                <span class="bm-mode-badge bm-badge-green">Advanced</span>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Verse Inventory -->
-                <div class="glass-panel">
-                    <div class="panel-title">
-                        <span id="library-title-lbl">Verse Library</span>
-                        <span class="panel-subtitle" id="library-count-label">0 verses</span>
-                    </div>
-
-                    <!-- Filters -->
-                    <div class="form-group mb-3">
-                        <input type="text" id="verse-search-box" class="bm-search-input" placeholder="Search reference or text..." oninput="applyFilters()">
-                    </div>
-
-                    <!-- Category Chips -->
-                    <div class="bm-chips-row" id="category-chips-container">
-                        <div class="bm-chip active" data-category="all" onclick="filterByCategory('all', this)">All</div>
-                    </div>
-
-                    <!-- List Container -->
-                    <div class="bm-verse-table-container">
-                        <table class="bm-verse-table">
-                            <thead>
-                                <tr>
-                                    <th>Reference</th>
-                                    <th>Excerpt</th>
-                                    <th>Category</th>
-                                    <th>Status</th>
-                                    <th style="text-align: right;">Actions</th>
-                                </tr>
-                            </thead>
-                            <tbody id="verse-table-body">
-                                <tr>
-                                    <td colspan="5" class="text-center" style="color: var(--text-secondary); padding: 20px;">
-                                        Loading your scripture library...
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-
-            </div>
-
+            <div id="word-streak"></div>
+            <div id="word-past-list" class="past-list"></div>
+            <button class="review-btn" id="word-review-btn" onclick="startReview('english')" style="display: none;">
+                🔄 Quick Review
+            </button>
         </div>
     </div>
 
-
-    <!-- DRILL SESSION SCREEN -->
-    <div id="bm-drill-view" class="bm-drill-panel">
-        
-        <div class="bm-drill-header">
-            <div class="bm-drill-title-wrap">
-                <span class="bm-drill-title" id="drill-title-lbl">Study Session</span>
-                <span class="bm-drill-subtitle" id="drill-counter-lbl">0/0</span>
-            </div>
-            <button class="btn btn-secondary" onclick="exitDrill()" style="padding: 6px 12px; font-size: 0.8rem;">← Exit Session</button>
+    <!-- Verse Tab Content -->
+    <div id="panel-verse" style="display: none;">
+        <!-- Loading Shimmer -->
+        <div id="verse-loading" class="shimmer-card">
+            <div class="shimmer-line title"></div>
+            <div class="shimmer-line subtitle"></div>
+            <div class="shimmer-line body"></div>
+            <div class="shimmer-line body"></div>
+            <div class="shimmer-line body-short"></div>
         </div>
 
-        <div class="bm-pbar-wrap" style="margin-bottom: 20px;">
-            <div class="bm-pbar-fill" id="drill-progress-bar" style="width: 0%;"></div>
+        <!-- Today's Verse Card -->
+        <div id="verse-card" style="display: none;"></div>
+
+        <!-- Past Verses Section -->
+        <div id="verse-history" style="display: none;">
+            <div class="section-divider">
+                <div class="section-divider-line"></div>
+                <span class="section-divider-text">Past Verses</span>
+                <div class="section-divider-line"></div>
+            </div>
+            <div id="verse-streak"></div>
+            <div id="verse-past-list" class="past-list"></div>
+            <button class="review-btn" id="verse-review-btn" onclick="startReview('bible')" style="display: none;">
+                🔄 Quick Review
+            </button>
         </div>
-
-        <!-- Unified Steps Indicator -->
-        <div class="bm-steps" id="unified-steps-indicator" style="margin-bottom: 24px;"></div>
-
-        <!-- LOADING PHASE -->
-        <div id="phase-loading" class="bm-phase-box active">
-            <div class="text-center" style="padding: 50px 0;">
-                <div class="spinner" style="border-top-color: var(--accent-color); width: 30px; height: 30px; margin: 0 auto 12px;"></div>
-                <p style="color: var(--text-secondary); font-style: italic;" id="drill-loading-msg">Preparing scriptures...</p>
-            </div>
-        </div>
-
-        <!-- READ PHASE (Step 1) -->
-        <div id="phase-read" class="bm-phase-box text-center">
-            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 1: Read Aloud 📖</div>
-            <p id="read-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Read this verse out loud 3 times. Tap the button below each time you finish reading.</p>
-            
-            <div class="bm-learn-card">
-                <p class="bm-learn-ref" id="read-ref-lbl">--</p>
-                <p class="bm-learn-text" id="read-text-lbl">--</p>
-            </div>
-
-            <div class="bm-info-strip" id="read-hook-strip" style="display:none;">
-                <p class="bm-info-lbl">Memory Hook</p>
-                <p class="bm-info-val" id="read-hook-lbl">--</p>
-            </div>
-
-            <div class="bm-info-strip" id="read-context-strip" style="display:none;">
-                <p class="bm-info-lbl">Context</p>
-                <p class="bm-info-val" id="read-context-lbl">--</p>
-            </div>
-
-            <div class="bm-read-status">
-                <div class="bm-read-dots" id="read-dots-container">
-                    <div class="bm-read-dot"></div>
-                    <div class="bm-read-dot"></div>
-                    <div class="bm-read-dot"></div>
-                </div>
-                <p class="bm-read-msg" id="read-status-msg">Read it carefully. Take it in.</p>
-            </div>
-
-            <div class="btn-row">
-                <button class="btn btn-secondary w-25" onclick="exitDrill()">Exit</button>
-                <button class="btn w-75" id="read-next-btn" onclick="advanceRead()">Read Again →</button>
-            </div>
-        </div>
-
-        <!-- CLOZE PHASE (Step 2) -->
-        <div id="phase-cloze" class="bm-phase-box text-center">
-            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 2: Fill in the Blanks 🧩</div>
-            <p id="cloze-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Type the correct letters in the input boxes to complete the missing words.</p>
-
-            <div class="bm-info-strip" style="margin-bottom: 12px;">
-                <p class="bm-info-lbl" id="cloze-ref-lbl">--</p>
-                <p class="bm-info-val" style="font-size: 0.75rem; color: var(--text-secondary);" id="cloze-hook-lbl">--</p>
-            </div>
-
-            <div class="bm-cloze-verse" id="cloze-verse-container">--</div>
-            <p class="bm-cloze-status" id="cloze-status-lbl">Fill in the blanks</p>
-
-            <div class="btn-row">
-                <button class="btn btn-secondary w-25" onclick="clozeHint()">Hint</button>
-                <button class="btn w-75" id="cloze-next-btn" onclick="gotoClozeNext()" disabled>Check & Continue →</button>
-            </div>
-        </div>
-
-        <!-- TYPE PHASE (Step 3) -->
-        <div id="phase-type" class="bm-phase-box text-center">
-            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 3: Type from Memory</div>
-            <p id="type-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Type the entire verse from memory. No looking!</p>
-
-            <div class="bm-ref-preview">
-                <p class="bm-ref-preview-title">Type it from memory</p>
-                <p class="bm-ref-preview-val" id="type-ref-lbl">--</p>
-            </div>
-
-            <div class="bm-info-strip" id="type-hook-strip" style="margin-bottom:12px; display:none;">
-                <p class="bm-info-lbl">Memory Hook</p>
-                <p class="bm-info-val" id="type-hook-lbl">--</p>
-            </div>
-
-            <div class="bm-type-box">
-                <textarea id="type-attempt-input" class="bm-type-textarea" placeholder="Type the scripture out..." rows="4"></textarea>
-            </div>
-
-            <div class="btn-row">
-                <button class="btn btn-secondary w-25" onclick="skipVerse()">Skip</button>
-                <button class="btn w-75" onclick="checkTyped()">Check Answer →</button>
-            </div>
-        </div>
-
-        <!-- COMPARE PHASE -->
-        <div id="phase-compare" class="bm-phase-box text-center">
-            <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 4: Check & Rate your Recall</div>
-            <p id="compare-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Compare your typed attempt with the actual Bible verse text below.</p>
-            <div class="bm-compare-card" id="compare-results-card"></div>
-            
-            <p class="text-center" style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">
-                Be honest — how well did you recall it?
-            </p>
-            
-            <div class="bm-rate-row">
-                <button class="bm-rate-btn bm-rate-red" onclick="rateVerse(1)">
-                    Blank
-                    <span class="bm-rate-btn-sub">Repeat now</span>
-                </button>
-                <button class="bm-rate-btn bm-rate-yellow" onclick="rateVerse(2)">
-                    Partial
-                    <span class="bm-rate-btn-sub">Soon</span>
-                </button>
-                <button class="bm-rate-btn bm-rate-blue" onclick="rateVerse(3)">
-                    Almost
-                    <span class="bm-rate-btn-sub">Later</span>
-                </button>
-                <button class="bm-rate-btn bm-rate-green" onclick="rateVerse(4)">
-                    Got it!
-                    <span class="bm-rate-btn-sub">Mastered</span>
-                </button>
-            </div>
-        </div>
-
-        <!-- ORAL QUICK RECALL PHASE -->
-        <div id="phase-quick" class="bm-phase-box text-center">
-            <!-- Step 1 display -->
-            <div id="quick-step1-header">
-                <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 1: Recite Out Loud</div>
-                <p id="quick-instruction-lbl" style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">Say the verse out loud from memory, then click Reveal to check your text.</p>
-            </div>
-            
-            <!-- Step 2 display (shown after reveal) -->
-            <div id="quick-step2-header" style="display:none;">
-                <div class="bm-modes-title" style="font-size:1.1rem; color:var(--text-primary); margin-bottom: 4px;">Step 2: Self-Rate your Accuracy</div>
-                <p style="font-size:0.85rem; color:var(--text-secondary); margin-bottom:16px;">How accurately did you say it? Rate yourself honestly below.</p>
-            </div>
-            <div class="bm-ref-preview">
-                <p class="bm-ref-preview-title" id="quick-recall-title-lbl">Recall this verse orally...</p>
-                <p class="bm-ref-preview-val" id="quick-ref-lbl">--</p>
-            </div>
-
-            <div class="bm-info-strip" id="quick-hook-strip" style="margin-bottom:16px; display:none;">
-                <p class="bm-info-lbl">Memory Hook</p>
-                <p class="bm-info-val" id="quick-hook-lbl">--</p>
-            </div>
-
-            <button class="btn btn-full btn-large" id="quick-reveal-btn" onclick="revealQuickVerse()" style="margin-bottom: 20px; padding: 14px;">Reveal Scripture Text</button>
-
-            <div id="quick-revealed-section" style="display: none;">
-                <div class="bm-reveal-card" id="quick-text-lbl">--</div>
-                
-                <p class="text-center" style="font-size: 0.85rem; font-weight: 500; color: var(--text-secondary); margin-bottom: 12px;">
-                    How well did you orally recall it?
-                </p>
-                
-                <div class="bm-rate-row">
-                    <button class="bm-rate-btn bm-rate-red" onclick="rateVerse(1)">
-                        😰 Blank
-                        <span class="bm-rate-btn-sub">Repeat now</span>
-                    </button>
-                    <button class="bm-rate-btn bm-rate-yellow" onclick="rateVerse(2)">
-                        😅 Partial
-                        <span class="bm-rate-btn-sub">Soon</span>
-                    </button>
-                    <button class="bm-rate-btn bm-rate-blue" onclick="rateVerse(3)">
-                        🙂 Almost
-                        <span class="bm-rate-btn-sub">Later</span>
-                    </button>
-                    <button class="bm-rate-btn bm-rate-green" onclick="rateVerse(4)">
-                        ✅ Got it!
-                        <span class="bm-rate-btn-sub">Mastered</span>
-                    </button>
-                </div>
-            </div>
-            
-            <button class="btn btn-secondary btn-full" id="quick-skip-btn" onclick="skipVerse()" style="margin-top: 10px;">Skip Verse →</button>
-        </div>
-
-        <!-- DONE CELEBRATION -->
-        <div id="phase-done" class="bm-phase-box">
-            <div class="bm-done-card">
-                <div class="bm-done-trophy">🏆</div>
-                <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin-bottom: 6px;">Done!</h3>
-                <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 20px;" id="done-message-lbl">You completed your practice session.</p>
-                <div class="btn-row justify-content-center">
-                    <button class="btn btn-secondary" onclick="exitDrill()" style="width: 120px;">Library</button>
-                    <button class="btn" onclick="continueSession()" style="width: 150px;">Keep Going →</button>
-                </div>
-            </div>
-        </div>
-
     </div>
 
 </div>
 
-<!-- Custom Toast -->
-<div class="bm-toast" id="bm-toast-element"></div>
+<!-- Flashcard Review Overlay -->
+<div class="flashcard-overlay" id="flashcard-overlay">
+    <button class="flashcard-close" onclick="closeReview()">✕</button>
+    <div class="flashcard">
+        <div class="flashcard-front">
+            <div class="flashcard-word" id="flashcard-word"></div>
+            <div class="flashcard-prompt" id="flashcard-prompt">Do you remember what this means?</div>
+        </div>
+        <div class="flashcard-answer" id="flashcard-answer">
+            <div class="flashcard-definition" id="flashcard-definition"></div>
+        </div>
+        <div class="flashcard-actions" id="flashcard-actions">
+            <button class="flashcard-btn reveal" id="flashcard-reveal-btn" onclick="revealFlashcard()">
+                Tap to Reveal
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Toast -->
+<div class="practice-toast" id="practice-toast"></div>
 
 {% endblock %}
 
 {% block extra_js %}
-<script src="{% static 'js/bible_memory.js' %}"></script>
+<script src="{% static 'js/bible_memory.js' %}?v=4"></script>
 {% endblock %}
