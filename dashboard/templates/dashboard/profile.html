@@ -603,6 +603,26 @@
                 </div>
             </div>
         </div>
+
+        <!-- Daily Capacity Average -->
+        <h3 style="margin-top: 30px; margin-bottom: 15px; font-family: 'Outfit', sans-serif; color: var(--text-primary); font-size: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
+            <span>Daily Capacity Profiling</span>
+        </h3>
+        <div class="analytics-grid" style="margin-top: 15px; margin-bottom: 25px;">
+            <div class="glass-panel analytics-chart-panel" style="height: 280px;">
+                <h3 class="panel-title">Avg Sprints Per Weekday <span style="font-size:0.7rem; color: rgba(255,255,255,0.35); font-weight:400; margin-left:6px;">(last 30 days)</span></h3>
+                <div class="chart-wrapper">
+                    <canvas id="capacity-weekday-chart"></canvas>
+                </div>
+            </div>
+            <div class="glass-panel analytics-chart-panel" style="height: 280px; display: flex; flex-direction: column; justify-content: center; padding: 24px;">
+                <h3 class="panel-title" style="margin-bottom: 18px;">Today's Capacity</h3>
+                <div id="capacity-today-panel" style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.3); text-align:center;">Loading…</div>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

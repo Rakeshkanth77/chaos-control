@@ -366,4 +366,92 @@ document.addEventListener('DOMContentLoaded', () => {
 
     loadAnalytics();
     loadPomodoroAnalytics();
+
+    // ── Capacity Profiling Chart ─────────────────────────────────────────
+    async function loadCapacityAnalytics() {
+        try {
+            const res = await fetch('/analytics/api/capacity/');
+            const data = await res.json();
+            if (data.status !== 'success') return;
+
+            const { weekday_avg, today_tasks, today_sprints, weekday_avg_today, today_weekday_name, capacity_status } = data;
+
+            // Weekday bar chart
+            const ctxCap = document.getElementById('capacity-weekday-chart');
+            if (ctxCap) {
+                const dayLabels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+                new Chart(ctxCap.getContext('2d'), {
+                    type: 'bar',
+                    data: {
+                        labels: dayLabels,
+                        datasets: [{
+                            label: 'Avg Sprints',
+                            data: weekday_avg,
+                            backgroundColor: dayLabels.map((_, i) => {
+                                const isToday = i === new Date().getDay() === 0 ? 6 : new Date().getDay() - 1;
+                                return i === (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1)
+                                    ? 'rgba(251, 191, 36, 0.85)'
+                                    : 'rgba(45, 212, 191, 0.6)';
+                            }),
+                            borderColor: dayLabels.map((_, i) =>
+                                i === (new Date().getDay() === 0 ? 6 : new Date().getDay() - 1)
+                                    ? 'rgba(251, 191, 36, 1)'
+                                    : 'rgba(45, 212, 191, 0.9)'
+                            ),
+                            borderWidth: 1,
+                            borderRadius: 6,
+                        }]
+                    },
+                    options: {
+                        ...commonChartOptions,
+                        plugins: {
+                            ...commonChartOptions.plugins,
+                            legend: { display: false },
+                            tooltip: {
+                                callbacks: {
+                                    label: ctx => ` ${ctx.parsed.y} avg sprints`
+                                }
+                            }
+                        }
+                    }
+                });
+            }
+
+            // Today's capacity stat panel
+            const todayPanel = document.getElementById('capacity-today-panel');
+            if (todayPanel) {
+                const statusMap = {
+                    on_track: { label: '✅ On Track', color: '#2dd4bf' },
+                    over_ambitious: { label: '⚠️ Over Ambitious', color: '#fbbf24' },
+                    overloaded: { label: '🔴 Overloaded', color: '#ef4444' },
+                    no_data: { label: '📊 Building History', color: 'rgba(255,255,255,0.4)' },
+                };
+                const s = statusMap[capacity_status] || statusMap.no_data;
+                todayPanel.innerHTML = `
+                    <div style="display:flex; justify-content:space-between; align-items:center; border-bottom:1px solid rgba(255,255,255,0.07); padding-bottom:10px;">
+                        <span style="font-size:0.78rem; color:rgba(255,255,255,0.45); font-family:'JetBrains Mono',monospace; letter-spacing:0.5px;">STATUS</span>
+                        <span style="font-size:0.82rem; font-weight:700; color:${s.color};">${s.label}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:0.78rem; color:rgba(255,255,255,0.45);">Tasks today</span>
+                        <span style="font-size:0.85rem; color:#fff; font-weight:600;">${today_tasks}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:0.78rem; color:rgba(255,255,255,0.45);">Sprints done</span>
+                        <span style="font-size:0.85rem; color:#fff; font-weight:600;">${today_sprints}</span>
+                    </div>
+                    <div style="display:flex; justify-content:space-between;">
+                        <span style="font-size:0.78rem; color:rgba(255,255,255,0.45);">${today_weekday_name} avg</span>
+                        <span style="font-size:0.85rem; color:#2dd4bf; font-weight:600;">${weekday_avg_today} sprints</span>
+                    </div>
+                `;
+            }
+        } catch (e) {
+            console.error('Failed to load capacity analytics:', e);
+        }
+    }
+
+    loadCapacityAnalytics();
+    // ─────────────────────────────────────────────────────────────────────
 });
+

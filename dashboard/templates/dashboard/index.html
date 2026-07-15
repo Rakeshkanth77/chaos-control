@@ -356,6 +356,84 @@
     background: #0a2321;
     color: #fff;
 }
+
+/* ── Daily Capacity Bar ── */
+.capacity-bar-wrapper {
+    width: 100%;
+    background: rgba(6, 22, 20, 0.9);
+    border: 1px solid rgba(45, 212, 191, 0.15);
+    border-radius: 14px;
+    padding: 12px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    flex-wrap: wrap;
+}
+
+.capacity-bar-label {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.68rem;
+    font-weight: 700;
+    letter-spacing: 1.5px;
+    text-transform: uppercase;
+    color: rgba(45, 212, 191, 0.7);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.capacity-bar-track {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.07);
+    border-radius: 99px;
+    overflow: hidden;
+    min-width: 80px;
+}
+
+.capacity-bar-fill {
+    height: 100%;
+    border-radius: 99px;
+    background: linear-gradient(90deg, #0c9e93, #2dd4bf);
+    transition: width 0.6s cubic-bezier(0.16, 1, 0.3, 1), background 0.4s;
+    width: 0%;
+}
+
+.capacity-bar-fill.over-ambitious {
+    background: linear-gradient(90deg, #d97706, #fbbf24);
+}
+
+.capacity-bar-fill.overloaded {
+    background: linear-gradient(90deg, #b91c1c, #ef4444);
+}
+
+.capacity-bar-status {
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.75rem;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+    padding: 2px 8px;
+    border-radius: 6px;
+}
+
+.capacity-bar-status.on_track { color: #2dd4bf; background: rgba(45,212,191,0.1); }
+.capacity-bar-status.over_ambitious { color: #fbbf24; background: rgba(251,191,36,0.1); }
+.capacity-bar-status.overloaded { color: #ef4444; background: rgba(239,68,68,0.1); }
+.capacity-bar-status.no_data { color: rgba(255,255,255,0.35); background: rgba(255,255,255,0.05); }
+
+.capacity-bar-detail {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.3);
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+@media (max-width: 500px) {
+    .capacity-bar-detail { display: none; }
+    .capacity-bar-wrapper { gap: 10px; }
+}
 </style>
 {% endblock %}
 
@@ -426,6 +504,17 @@
         </div>
     </div>
 </div>
+
+<!-- ── Daily Capacity Bar ── -->
+<div class="capacity-bar-wrapper" id="capacityBarWrapper" style="display:none;">
+    <span class="capacity-bar-label">Capacity</span>
+    <div class="capacity-bar-track">
+        <div class="capacity-bar-fill" id="capacityBarFill"></div>
+    </div>
+    <span class="capacity-bar-status" id="capacityBarStatus"></span>
+    <span class="capacity-bar-detail" id="capacityBarDetail"></span>
+</div>
+
 <div class="dashboard-grid">
     
     <!-- COLUMN 1: Brain Dump & Auto-Generated Todos -->
@@ -918,11 +1007,69 @@
         if (doneEl) doneEl.textContent = doneItems.length || '0';
     }
 
+    // ── Daily Capacity Bar ──────────────────────────────────────────────
+    const statusLabels = {
+        on_track: '✅ On Track',
+        over_ambitious: '⚠️ Over Ambitious',
+        overloaded: '🔴 Overloaded',
+        no_data: 'Building history…'
+    };
+
+    async function loadCapacityBar() {
+        try {
+            const res = await fetch('/analytics/api/capacity/');
+            const data = await res.json();
+            if (data.status !== 'success') return;
+
+            const wrapper = document.getElementById('capacityBarWrapper');
+            const fill = document.getElementById('capacityBarFill');
+            const statusEl = document.getElementById('capacityBarStatus');
+            const detailEl = document.getElementById('capacityBarDetail');
+            if (!wrapper || !fill || !statusEl) return;
+
+            const { today_tasks, weekday_avg_today, today_weekday_name, capacity_status, today_sprints } = data;
+
+            // Fill %: tasks as proportion of historical average (capped at 150%)
+            const pct = weekday_avg_today > 0
+                ? Math.min((today_tasks / weekday_avg_today) * 100, 150)
+                : (today_tasks > 0 ? 100 : 0);
+
+            // Remove old status classes
+            fill.classList.remove('over-ambitious', 'overloaded');
+            statusEl.classList.remove('on_track', 'over_ambitious', 'overloaded', 'no_data');
+
+            if (capacity_status === 'over_ambitious') fill.classList.add('over-ambitious');
+            if (capacity_status === 'overloaded') fill.classList.add('overloaded');
+            statusEl.classList.add(capacity_status);
+
+            // Animate fill
+            requestAnimationFrame(() => {
+                fill.style.width = `${pct}%`;
+            });
+
+            statusEl.textContent = statusLabels[capacity_status] || capacity_status;
+
+            detailEl.textContent = weekday_avg_today > 0
+                ? `${today_tasks} tasks · avg ${weekday_avg_today} sprints on ${today_weekday_name}s · ${today_sprints} done today`
+                : `${today_tasks} tasks today · ${today_sprints} sprints done`;
+
+            wrapper.style.display = 'flex';
+        } catch (e) {
+            // Silently fail — not critical
+            console.error('Capacity bar error:', e);
+        }
+    }
+
+    loadCapacityBar();
+    window.updateCapacityBar = loadCapacityBar;
+    // ────────────────────────────────────────────────────────────────────
+
     // Update immediately and on any checkbox toggle
     updateBannerStats();
     document.addEventListener('change', (e) => {
         if (e.target.classList.contains('todo-checkbox') && !e.target.closest('.pending-todo-item')) {
             setTimeout(updateBannerStats, 100);
+            setTimeout(loadCapacityBar, 300); // refresh capacity when tasks are ticked
         }
     });
     // Also observe DOM mutations for added/removed todos
