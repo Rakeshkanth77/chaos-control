@@ -2920,6 +2920,76 @@ body {
     box-shadow: 0 4px 15px rgba(45, 212, 191, 0.4);
 }
 
+/* Floating Mini-Timer Widget (PiP style) */
+.pomo-mini-widget {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    z-index: 10099;
+    background: rgba(8, 26, 25, 0.88);
+    backdrop-filter: blur(12px) saturate(160%);
+    -webkit-backdrop-filter: blur(12px) saturate(160%);
+    border: 1.5px solid rgba(45, 212, 191, 0.35);
+    border-radius: 20px;
+    padding: 8px 14px;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 12px rgba(45, 212, 191, 0.15);
+    cursor: move;
+    user-select: none;
+    transition: box-shadow 0.2s, transform 0.2s, background-color 0.2s;
+    display: flex;
+    align-items: center;
+}
+
+.pomo-mini-widget:hover {
+    background: rgba(10, 32, 30, 0.95);
+    box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 16px rgba(45, 212, 191, 0.3);
+    transform: translateY(-1px);
+}
+
+.pomo-mini-widget:active {
+    cursor: grabbing;
+    transform: scale(0.98);
+}
+
+.pomo-mini-content {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    pointer-events: none; /* Let drag events fall to the outer container */
+}
+
+.pomo-mini-icon-svg {
+    stroke: #2dd4bf;
+    flex-shrink: 0;
+    animation: minipulse 2s infinite alternate;
+}
+
+@keyframes minipulse {
+    0% { filter: drop-shadow(0 0 0px rgba(45, 212, 191, 0)); }
+    100% { filter: drop-shadow(0 0 3px rgba(45, 212, 191, 0.7)); }
+}
+
+.pomo-mini-timer-text {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: #ffffff;
+    letter-spacing: 0.5px;
+    white-space: nowrap;
+}
+
+/* Adjust position on mobile to clear bottom navigation bar */
+@media (max-width: 768px) {
+    .pomo-mini-widget {
+        bottom: 84px;
+        right: 16px;
+        padding: 6px 12px;
+    }
+    .pomo-mini-timer-text {
+        font-size: 0.82rem;
+    }
+}
+
 
 
 

@@ -516,10 +516,21 @@
         </div>
     </div>
 
+    <!-- Floating Mini Picture-in-Picture Timer Widget -->
+    <div id="pomoMiniWidget" class="pomo-mini-widget" style="display: none;" title="Drag to move, click to expand">
+        <div class="pomo-mini-content">
+            <svg class="pomo-mini-icon-svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+            <span id="pomoMiniTimerText" class="pomo-mini-timer-text">25:00</span>
+        </div>
+    </div>
+
     <!-- Audio notification element -->
     <audio id="pomoAlertSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-200.wav" preload="auto"></audio>
 
-    <script src="{% static 'js/pomodoro.js' %}?v=6"></script>
+    <script src="{% static 'js/pomodoro.js' %}?v=7"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

@@ -4,6 +4,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pomoNavTimer = document.getElementById('pomo-nav-timer');
     const mobilePomoNavBtn = document.getElementById('mobile-pomo-nav-btn');
     const mobilePomoNavBadge = document.getElementById('mobile-pomo-nav-badge');
+    const pomoMiniWidget = document.getElementById('pomoMiniWidget');
+    const pomoMiniTimerText = document.getElementById('pomoMiniTimerText');
     
     const pomoPopup = document.getElementById('pomoPopup');
     const pomoPopupOverlay = document.getElementById('pomoPopupOverlay');
@@ -41,6 +43,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let endTimestamp = 0;
     let promptSessionId = null;
     let isStatusPollingActive = false;
+    let xOffset = 0;
+    let yOffset = 0;
 
     // Helper to post API data
     async function apiPost(url, data = {}) {
@@ -172,6 +176,14 @@ document.addEventListener('DOMContentLoaded', () => {
             mobilePomoNavBadge.style.display = 'block';
         }
 
+        // Mini widget PiP update
+        if (pomoMiniTimerText) {
+            pomoMiniTimerText.textContent = formatTime(remaining);
+        }
+        if (pomoMiniWidget && pomoMiniWidget.style.display !== 'flex') {
+            pomoMiniWidget.style.display = 'flex';
+        }
+
         // Timer finished
         if (remaining <= 0) {
             clearInterval(countdownInterval);
@@ -217,6 +229,14 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         if (mobilePomoNavBadge) {
             mobilePomoNavBadge.style.display = 'none';
+        }
+
+        // Hide mini-widget
+        if (pomoMiniWidget) {
+            pomoMiniWidget.style.display = 'none';
+            pomoMiniWidget.style.transform = '';
+            xOffset = 0;
+            yOffset = 0;
         }
         
         pomoSetupControls.style.display = 'block';
@@ -313,6 +333,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     const rem = data.active_session.remaining_seconds;
                     const tot = data.active_session.duration_minutes * 60;
                     startLocalTimer(rem, tot);
+                    if (pomoMiniWidget) {
+                        pomoMiniWidget.style.display = 'flex';
+                    }
                 } else {
                     // No active session is running
                     if (countdownInterval) {
@@ -467,6 +490,91 @@ document.addEventListener('DOMContentLoaded', () => {
             syncStatus();
         }
     });
+
+    // Drag-to-reposition logic for the mini-widget
+    let isDraggingWidget = false;
+    let widgetHasMoved = false;
+
+    if (pomoMiniWidget) {
+        let activeDrag = false;
+        let currentX = 0;
+        let currentY = 0;
+        let initialX = 0;
+        let initialY = 0;
+
+        pomoMiniWidget.addEventListener('mousedown', dragStart);
+        document.addEventListener('mousemove', dragMove);
+        document.addEventListener('mouseup', dragEnd);
+
+        pomoMiniWidget.addEventListener('touchstart', dragStart, { passive: true });
+        document.addEventListener('touchmove', dragMove, { passive: false });
+        document.addEventListener('touchend', dragEnd);
+
+        function dragStart(e) {
+            widgetHasMoved = false;
+            let clientX, clientY;
+            
+            if (e.type === "touchstart") {
+                clientX = e.touches[0].clientX;
+                clientY = e.touches[0].clientY;
+            } else {
+                clientX = e.clientX;
+                clientY = e.clientY;
+            }
+
+            initialX = clientX - xOffset;
+            initialY = clientY - yOffset;
+
+            if (e.target === pomoMiniWidget || pomoMiniWidget.contains(e.target)) {
+                activeDrag = true;
+                isDraggingWidget = true;
+            }
+        }
+
+        function dragMove(e) {
+            if (activeDrag) {
+                widgetHasMoved = true;
+                
+                let clientX, clientY;
+                if (e.type === "touchmove") {
+                    e.preventDefault(); // Prevent scrolling page on mobile while dragging timer
+                    clientX = e.touches[0].clientX;
+                    clientY = e.touches[0].clientY;
+                } else {
+                    clientX = e.clientX;
+                    clientY = e.clientY;
+                }
+
+                currentX = clientX - initialX;
+                currentY = clientY - initialY;
+
+                xOffset = currentX;
+                yOffset = currentY;
+
+                setTranslate(currentX, currentY, pomoMiniWidget);
+            }
+        }
+
+        function setTranslate(xPos, yPos, el) {
+            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+        }
+
+        function dragEnd(e) {
+            initialX = currentX;
+            initialY = currentY;
+            activeDrag = false;
+            setTimeout(() => {
+                isDraggingWidget = false;
+            }, 50);
+        }
+
+        // Open main Pomodoro popup when tapping/clicking without dragging
+        pomoMiniWidget.addEventListener('click', (e) => {
+            if (!widgetHasMoved) {
+                openPomoPopup();
+            }
+        });
+    }
 
     // Start: Perform initial sync on page load
     syncStatus();
