@@ -69,6 +69,7 @@ class PomodoroSession(models.Model):
     started_at = models.DateTimeField(auto_now_add=True)
     duration_minutes = models.IntegerField(default=25)
     completed = models.BooleanField(default=False)
+    focus_log = models.TextField(blank=True, default="")
     date = models.DateField()
 
     def __str__(self):

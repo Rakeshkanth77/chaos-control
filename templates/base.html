@@ -285,6 +285,10 @@
                     <button id="toggle-projects-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px;" title="Current Projects">
                         📁 Projects
                     </button>
+                    <button id="pomo-nav-btn" class="nav-link pomo-nav-btn" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px; position: relative;" title="Pomodoro Focus Timer">
+                        🍅 <span class="pomo-btn-text">Pomodoro</span>
+                        <span id="pomo-nav-timer" style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: bold; background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 6px; border-radius: 6px; display: none;">00:00</span>
+                    </button>
                     <a href="/bible-memory/" class="nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">Practice Portal</a>
                     <a href="/profile/" class="user-profile-badge {% if request.path == '/profile/' %}active{% endif %}">
                         {% if request.user.profile.avatar or request.user.profile.avatar_url %}
@@ -300,6 +304,12 @@
                 <!-- Mobile projects shortcut button -->
                 <button id="mobile-toggle-projects-btn" class="nav-btn" style="display: none; width: 34px; height: 34px; margin-right: 8px; font-size: 1rem; border-radius: 10px;" title="Current Projects">
                     📁
+                </button>
+
+                <!-- Mobile Pomodoro button -->
+                <button id="mobile-pomo-nav-btn" class="nav-btn" style="display: none; width: 34px; height: 34px; margin-right: 8px; font-size: 1rem; border-radius: 10px; position: relative; align-items: center; justify-content: center;" title="Pomodoro Focus Timer">
+                    🍅
+                    <span id="mobile-pomo-nav-badge" style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: none; box-shadow: 0 0 6px #ef4444;"></span>
                 </button>
 
                 <!-- Mobile hamburger -->
@@ -429,6 +439,78 @@
             }, duration);
         };
     </script>
+    
+    <!-- ── Pomodoro Popup Modal Overlay ── -->
+    <div class="pomo-popup-overlay" id="pomoPopupOverlay"></div>
+    <div class="glass-panel pomo-popup" id="pomoPopup">
+        <div class="pomo-popup-header">
+            <h3 class="pomo-popup-title">🍅 Focus Sprints</h3>
+            <button id="close-pomo-popup" class="pomo-close-btn" title="Close Panel">✕</button>
+        </div>
+        
+        <!-- Timer Display Section -->
+        <div class="pomo-timer-display-section">
+            <div class="pomo-circle-container">
+                <svg class="pomo-circle-svg" viewBox="0 0 100 100">
+                    <circle class="pomo-circle-bg" cx="50" cy="50" r="45"></circle>
+                    <circle class="pomo-circle-progress" id="pomoProgressRing" cx="50" cy="50" r="45" stroke-dasharray="282.7" stroke-dashoffset="0"></circle>
+                </svg>
+                <div class="pomo-timer-text" id="pomoTimerText">25:00</div>
+            </div>
+            <div class="pomo-session-status" id="pomoSessionStatus">Ready to focus?</div>
+        </div>
+
+        <!-- Controls Section (Visible when timer is NOT running) -->
+        <div class="pomo-setup-controls" id="pomoSetupControls">
+            <div class="pomo-section-label">Select Sprint Duration:</div>
+            <div class="pomo-presets-grid">
+                <button class="btn btn-secondary pomo-preset-btn" data-mins="25">25 min</button>
+                <button class="btn btn-secondary pomo-preset-btn" data-mins="45">45 min</button>
+                <button class="btn btn-secondary pomo-preset-btn" data-mins="5">5 min</button>
+            </div>
+            <div class="pomo-custom-input-group">
+                <input type="number" id="pomoCustomMins" class="inline-input pomo-custom-input" placeholder="Custom..." min="1" max="180">
+                <button id="pomoStartCustomBtn" class="btn pomo-custom-add-btn">+ Custom Time</button>
+            </div>
+        </div>
+
+        <!-- Controls Section (Visible when timer IS running) -->
+        <div class="pomo-running-controls" id="pomoRunningControls" style="display: none;">
+            <button id="pomoCancelBtn" class="btn btn-danger" style="width: 100%; padding: 10px; border-radius: 12px; font-weight: 600;">Cancel Focus Sprint</button>
+        </div>
+
+        <!-- Today's Focus Logs Section -->
+        <div class="pomo-logs-section">
+            <div class="pomo-section-label" style="display: flex; justify-content: space-between; align-items: center;">
+                <span>Today's Focus Log</span>
+                <span id="pomo-log-count" style="font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #2dd4bf; background: rgba(45, 212, 191, 0.1); padding: 2px 6px; border-radius: 4px;">0 done</span>
+            </div>
+            <div class="pomo-logs-list" id="pomoLogsList">
+                <!-- Log entries will be populated dynamically -->
+            </div>
+        </div>
+    </div>
+
+    <!-- ── Pomodoro Accomplishment Log Popup (The Prompt Modal) ── -->
+    <div class="pomo-prompt-overlay" id="pomoPromptOverlay"></div>
+    <div class="glass-panel pomo-prompt-modal" id="pomoPromptModal">
+        <div class="pomo-prompt-header">
+            <h3>🍅 Focus Completed!</h3>
+        </div>
+        <div class="pomo-prompt-body">
+            <p>Excellent focus session. What did you accomplish during these <span id="promptSessionMins">25</span> minutes?</p>
+            <textarea id="pomoPromptLogInput" class="pomo-prompt-textarea" placeholder="e.g. Drafted introduction, refactored models, reviewed slides..."></textarea>
+        </div>
+        <div class="pomo-prompt-actions">
+            <button id="pomoPromptSkipBtn" class="btn btn-secondary">Skip Log</button>
+            <button id="pomoPromptSaveBtn" class="btn">Save Log</button>
+        </div>
+    </div>
+
+    <!-- Audio notification element -->
+    <audio id="pomoAlertSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-200.wav" preload="auto"></audio>
+
+    <script src="{% static 'js/pomodoro.js' %}?v=6"></script>
     
     {% block extra_js %}{% endblock %}
 </body>

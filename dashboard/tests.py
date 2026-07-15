@@ -121,8 +121,8 @@ class AuthenticationAndAccessTestCase(TestCase):
         # Staff access allowed
         self.client.login(username='officer', password='password123')
         response = self.client.get('/ops/dashboard/')
-        self.assertEqual(response.status_code, 200)
-        self.assertTemplateUsed(response, 'dashboard/ops_dashboard.html')
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue('/profile/?tab=ops' in response.url)
 
     def test_api_requires_login_json(self):
         response = self.client.post('/api/todo/add/', content_type='application/json')
@@ -185,5 +185,91 @@ class BrainDumpApiTestCase(TestCase):
         bd = BrainDump.objects.filter(user=self.user, date=self.today).first()
         self.assertIsNotNone(bd)
         self.assertEqual(bd.content, 'This is a clean brain dump.')
+
+
+class PomodoroApiTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='pomouser', password='password123')
+        self.client.login(username='pomouser', password='password123')
+        self.today = timezone.localdate()
+
+    def test_start_pomodoro_clears_existing_active(self):
+        # Create an incomplete session
+        old_session = PomodoroSession.objects.create(
+            user=self.user,
+            duration_minutes=25,
+            completed=False,
+            date=self.today
+        )
+        
+        # Start a new one
+        response = self.client.post('/api/pomodoro/start/', data=json.dumps({
+            'duration_minutes': 45,
+            'date': self.today.strftime('%Y-%m-%d')
+        }), content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json()['status'], 'success')
+        
+        # Check that old one is deleted
+        self.assertFalse(PomodoroSession.objects.filter(id=old_session.id).exists())
+        # Check new one exists
+        new_session = PomodoroSession.objects.get(user=self.user, completed=False)
+        self.assertEqual(new_session.duration_minutes, 45)
+
+    def test_pomodoro_status_syncs_expired_timer(self):
+        # Create a session that started 30 mins ago for 25 min duration
+        started_at = timezone.now() - timezone.timedelta(minutes=30)
+        session = PomodoroSession.objects.create(
+            user=self.user,
+            duration_minutes=25,
+            completed=False,
+            date=self.today
+        )
+        # Manually force started_at back in time (auto_now_add makes it hard to set on create)
+        PomodoroSession.objects.filter(id=session.id).update(started_at=started_at)
+        
+        # Call status view
+        response = self.client.get('/api/pomodoro/status/')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertIsNone(data.get('active_session'))
+        
+        # Check that it is now marked completed
+        session.refresh_from_db()
+        self.assertTrue(session.completed)
+        
+        # Check that it flags it for prompt log since focus_log is empty
+        self.assertEqual(data['prompt_log_session']['id'], session.id)
+
+    def test_save_pomodoro_log(self):
+        session = PomodoroSession.objects.create(
+            user=self.user,
+            duration_minutes=25,
+            completed=True,
+            date=self.today
+        )
+        
+        response = self.client.post('/api/pomodoro/save-log/', data=json.dumps({
+            'session_id': session.id,
+            'focus_log': 'Implemented nice feature'
+        }), content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        session.refresh_from_db()
+        self.assertEqual(session.focus_log, 'Implemented nice feature')
+
+    def test_cancel_pomodoro(self):
+        session = PomodoroSession.objects.create(
+            user=self.user,
+            duration_minutes=25,
+            completed=False,
+            date=self.today
+        )
+        
+        response = self.client.post('/api/pomodoro/cancel/')
+        self.assertEqual(response.status_code, 200)
+        self.assertFalse(PomodoroSession.objects.filter(id=session.id).exists())
 
 
