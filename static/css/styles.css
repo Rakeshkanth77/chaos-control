@@ -2940,6 +2940,12 @@ body {
     align-items: center;
 }
 
+@media (min-width: 769px) {
+    .pomo-mini-widget {
+        display: none !important;
+    }
+}
+
 .pomo-mini-widget:hover {
     background: rgba(10, 32, 30, 0.95);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 16px rgba(45, 212, 191, 0.3);

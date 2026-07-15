@@ -183,7 +183,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pomoMiniTimerText) {
             pomoMiniTimerText.textContent = formatTime(remaining);
         }
-        if (pomoMiniWidget && pomoMiniWidget.style.display !== 'flex') {
+        if (pomoMiniWidget && window.innerWidth <= 768 && pomoMiniWidget.style.display !== 'flex') {
             pomoMiniWidget.style.display = 'flex';
         }
 
@@ -356,7 +356,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const rem = data.active_session.remaining_seconds;
                     const tot = data.active_session.duration_minutes * 60;
                     startLocalTimer(rem, tot);
-                    if (pomoMiniWidget) {
+                    if (pomoMiniWidget && window.innerWidth <= 768) {
                         pomoMiniWidget.style.display = 'flex';
                     }
                 } else {
