@@ -264,5 +264,106 @@ document.addEventListener('DOMContentLoaded', () => {
         return 4;
     }
 
+    async function loadPomodoroAnalytics() {
+        if (!document.getElementById('pomo-hourly-chart')) return;
+        
+        try {
+            const response = await fetch('/analytics/api/pomodoro/');
+            const res = await response.json();
+            
+            if (res.status === 'success') {
+                // 1. Render Hourly Chart
+                const ctxHourly = document.getElementById('pomo-hourly-chart').getContext('2d');
+                
+                const hourLabels = Array.from({ length: 24 }, (_, i) => {
+                    const ampm = i >= 12 ? 'PM' : 'AM';
+                    const hour = i % 12 || 12;
+                    return `${hour} ${ampm}`;
+                });
+                
+                new Chart(ctxHourly, {
+                    type: 'bar',
+                    data: {
+                        labels: hourLabels,
+                        datasets: [{
+                            label: 'Sprints Completed',
+                            data: res.hourly_peak,
+                            backgroundColor: 'rgba(45, 212, 191, 0.6)',
+                            borderColor: 'rgba(45, 212, 191, 1)',
+                            borderRadius: 4,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...commonChartOptions,
+                        plugins: {
+                            ...commonChartOptions.plugins,
+                            legend: { display: false }
+                        }
+                    }
+                });
+                
+                // 2. Render Daily Chart
+                const ctxDaily = document.getElementById('pomo-daily-chart').getContext('2d');
+                const dayLabels = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
+                
+                new Chart(ctxDaily, {
+                    type: 'bar',
+                    data: {
+                        labels: dayLabels,
+                        datasets: [{
+                            label: 'Sprints Completed',
+                            data: res.daily_peak,
+                            backgroundColor: 'rgba(139, 92, 246, 0.6)',
+                            borderColor: 'rgba(139, 92, 246, 1)',
+                            borderRadius: 6,
+                            borderWidth: 1
+                        }]
+                    },
+                    options: {
+                        ...commonChartOptions,
+                        plugins: {
+                            ...commonChartOptions.plugins,
+                            legend: { display: false }
+                        }
+                    }
+                });
+                
+                // 3. Render Tag Cloud
+                const wordCloudContainer = document.getElementById('pomo-word-cloud');
+                if (wordCloudContainer && res.word_cloud && res.word_cloud.length > 0) {
+                    wordCloudContainer.innerHTML = '';
+                    
+                    const maxVal = Math.max(...res.word_cloud.map(w => w.value));
+                    
+                    res.word_cloud.forEach(tag => {
+                        const score = maxVal > 0 ? tag.value / maxVal : 1;
+                        const size = 0.85 + (score * 0.7);
+                        const opacity = 0.6 + (score * 0.4);
+                        const bgOpacity = 0.05 + (score * 0.15);
+                        
+                        const tagEl = document.createElement('span');
+                        tagEl.className = 'pomo-analytic-tag';
+                        tagEl.style.fontSize = `${size}rem`;
+                        tagEl.style.opacity = opacity;
+                        tagEl.style.background = `rgba(45, 212, 191, ${bgOpacity})`;
+                        tagEl.style.color = '#2dd4bf';
+                        tagEl.style.padding = '4px 10px';
+                        tagEl.style.borderRadius = '20px';
+                        tagEl.style.fontWeight = 'bold';
+                        tagEl.style.border = '1px solid rgba(45, 212, 191, 0.2)';
+                        tagEl.style.whiteSpace = 'nowrap';
+                        tagEl.innerHTML = `${tag.text} <span style="font-size: 0.75em; opacity: 0.6; font-weight: normal; margin-left: 2px;">(${tag.value})</span>`;
+                        
+                        wordCloudContainer.appendChild(tagEl);
+                    });
+                }
+            }
+        } catch (e) {
+            console.error('Failed to load Pomodoro analytics charts:', e);
+        }
+    }
+
     loadAnalytics();
+    loadPomodoroAnalytics();
 });

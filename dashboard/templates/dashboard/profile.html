@@ -571,6 +571,38 @@
                 </p>
             </div>
         </div>
+
+        <!-- Pomodoro Focus Sprints Deep Analytics (Cognitive Peak Mapping & NLP Word Tags) -->
+        <h3 style="margin-top: 35px; margin-bottom: 15px; font-family: 'Outfit', sans-serif; color: var(--text-primary); font-size: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+            <span>Focus Sprints Cognitive Profiling</span>
+        </h3>
+        
+        <div class="analytics-grid" style="margin-top: 15px; margin-bottom: 25px;">
+            <!-- Hourly Focus Peak -->
+            <div class="glass-panel analytics-chart-panel" style="height: 280px;">
+                <h3 class="panel-title">Hourly Focus Peak (Daily Distribution)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="pomo-hourly-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Daily Focus Peak -->
+            <div class="glass-panel analytics-chart-panel" style="height: 280px;">
+                <h3 class="panel-title">Daily Focus Peak (Weekly Distribution)</h3>
+                <div class="chart-wrapper">
+                    <canvas id="pomo-daily-chart"></canvas>
+                </div>
+            </div>
+            
+            <!-- Top Accomplishment Tags -->
+            <div class="glass-panel analytics-chart-panel" style="height: 280px; display: flex; flex-direction: column;">
+                <h3 class="panel-title">Focus Accomplishment Keyword Tags</h3>
+                <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-content: center; align-items: center; padding: 15px; overflow-y: auto;" id="pomo-word-cloud">
+                    <span style="color: var(--text-secondary); font-size: 0.9rem;">No tags extracted yet. Start completing focus sessions and log details!</span>
+                </div>
+            </div>
+        </div>
     </div>
 </div>
 

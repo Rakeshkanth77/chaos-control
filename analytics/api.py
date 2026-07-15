@@ -162,3 +162,52 @@ def get_summary_stats(request):
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@login_required
+def get_pomodoro_analytics(request):
+    try:
+        user = request.user
+        sessions = PomodoroSession.objects.filter(user=user, completed=True)
+        
+        # 1. Hourly Peak (0-23)
+        hourly_counts = [0] * 24
+        # 2. Daily Peak (0-6 representing Mon-Sun)
+        daily_counts = [0] * 7
+        
+        # 3. Word frequencies for tagging (stop words filtered)
+        stop_words = {
+            'the', 'and', 'a', 'of', 'to', 'in', 'is', 'that', 'it', 'on', 'for', 'with', 'as', 'at', 'by', 'an', 'this', 'my', 'focus', 'sprint', 'session', 'completed', 'doing', 'done', 'about', 'some', 'any', 'from', 'or', 'but', 'not', 'have', 'be', 'was', 'were', 'had', 'do', 'did', 'does', 'i', 'we', 'our', 'you', 'your', 'he', 'she', 'they', 'them', 'work', 'worked', 'project', 'tasks', 'task', 'some', 'ran', 'run', 'using', 'used'
+        }
+        
+        word_freq = {}
+        
+        for s in sessions:
+            local_time = timezone.localtime(s.started_at)
+            
+            # Hourly peak
+            hourly_counts[local_time.hour] += 1
+            
+            # Daily peak (0 = Monday, 6 = Sunday)
+            daily_counts[local_time.weekday()] += 1
+            
+            # Word frequencies from focus_log
+            log_text = s.focus_log or ''
+            # Clean punctuation and tokenize words
+            words = ''.join(c if c.isalnum() or c.isspace() else ' ' for c in log_text.lower()).split()
+            for w in words:
+                if len(w) > 2 and w not in stop_words:
+                    word_freq[w] = word_freq.get(w, 0) + 1
+                    
+        # Sort word frequencies and get top 15 tags
+        top_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:15]
+        word_cloud_data = [{'text': w, 'value': c} for w, c in top_words]
+        
+        return JsonResponse({
+            'status': 'success',
+            'hourly_peak': hourly_counts,
+            'daily_peak': daily_counts,
+            'word_cloud': word_cloud_data
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

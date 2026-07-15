@@ -3029,6 +3029,19 @@ body {
     font-weight: 600 !important;
 }
 
+.pomo-analytic-tag {
+    cursor: default;
+    display: inline-block;
+    transition: transform 0.2s, box-shadow 0.2s, border-color 0.2s, background-color 0.2s;
+}
+
+.pomo-analytic-tag:hover {
+    transform: scale(1.06) translateY(-1px);
+    box-shadow: 0 4px 12px rgba(45, 212, 191, 0.25);
+    border-color: rgba(45, 212, 191, 0.5) !important;
+    background: rgba(45, 212, 191, 0.2) !important;
+}
+
 
 
 

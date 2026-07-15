@@ -7,4 +7,5 @@ app_name = 'analytics'
 urlpatterns = [
     path('', views.analytics_dashboard, name='dashboard'),
     path('api/summary/', api.get_summary_stats, name='api_summary'),
+    path('api/pomodoro/', api.get_pomodoro_analytics, name='api_pomodoro'),
 ]
