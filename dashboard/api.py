@@ -340,9 +340,18 @@ def pomodoro_status(request):
         prompt_log_session = None
         
         for s in completed_sessions:
+            local_start = timezone.localtime(s.started_at)
+            local_end = timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes))
+            started_at_minutes = local_start.hour * 60 + local_start.minute
+            # Cap at 1439 (23:59) in case a session spills past midnight
+            ended_at_minutes = min(local_end.hour * 60 + local_end.minute, 1439)
+            
             logs_list.append({
                 'id': s.id,
-                'started_at': timezone.localtime(s.started_at).strftime('%I:%M %p'),
+                'started_at': local_start.strftime('%I:%M %p'),
+                'ended_at': local_end.strftime('%I:%M %p'),
+                'started_at_minutes': started_at_minutes,
+                'ended_at_minutes': ended_at_minutes,
                 'duration_minutes': s.duration_minutes,
                 'focus_log': s.focus_log
             })
@@ -351,7 +360,7 @@ def pomodoro_status(request):
                 prompt_log_session = {
                     'id': s.id,
                     'duration_minutes': s.duration_minutes,
-                    'started_at': timezone.localtime(s.started_at).strftime('%I:%M %p')
+                    'started_at': local_start.strftime('%I:%M %p')
                 }
                 
         return JsonResponse({

@@ -34,6 +34,21 @@ document.addEventListener('DOMContentLoaded', () => {
     const pomoPromptSaveBtn = document.getElementById('pomoPromptSaveBtn');
     const pomoPromptSkipBtn = document.getElementById('pomoPromptSkipBtn');
 
+    // Day-view modal DOM refs
+    const dayViewOverlay = document.getElementById('dayViewOverlay');
+    const dayViewModal = document.getElementById('dayViewModal');
+    const dayViewDateEl = document.getElementById('dayViewDate');
+    const dayRuler = document.getElementById('dayRuler');
+    const dayTrack = document.getElementById('dayTrack');
+    const dayNowLine = document.getElementById('dayNowLine');
+    const dayDetailEmpty = document.getElementById('dayDetailEmpty');
+    const dayDetailContent = document.getElementById('dayDetailContent');
+    const dayDetailTime = document.getElementById('dayDetailTime');
+    const dayDetailDuration = document.getElementById('dayDetailDuration');
+    const dayDetailLog = document.getElementById('dayDetailLog');
+    const openDayViewBtn = document.getElementById('openDayViewBtn');
+    const closeDayViewBtn = document.getElementById('closeDayViewBtn');
+
     // Circle progress ring math
     const ringCircumference = 282.7; // 2 * pi * 45
 
@@ -47,6 +62,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let xOffset = 0;
     let yOffset = 0;
     let pipWindowInstance = null;
+    let completedLogs = []; // cached from last syncStatus
+    let dayViewNowInterval = null;
     const isPipSupported = 'documentPictureInPicture' in window;
 
     // Helper to post API data
@@ -391,6 +408,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderCompletedLogs(logs) {
         if (!pomoLogsList) return;
         pomoLogsList.innerHTML = '';
+        completedLogs = logs; // cache for day-view
         
         if (pomoLogCount) {
             pomoLogCount.textContent = `${logs.length} done`;
@@ -406,9 +424,11 @@ document.addEventListener('DOMContentLoaded', () => {
             item.className = 'pomo-log-item';
             
             const logText = log.focus_log ? log.focus_log : '<em style="opacity: 0.5;">No details logged (click to add)</em>';
+            // Show start → end time range
+            const timeRange = log.ended_at ? `${log.started_at} → ${log.ended_at}` : log.started_at;
             
             item.innerHTML = `
-                <div class="pomo-log-time">${log.started_at}</div>
+                <div class="pomo-log-time">${timeRange}</div>
                 <div class="pomo-log-details">
                     <span class="pomo-log-desc" style="cursor: pointer;" data-id="${log.id}">${escapeHtml(logText)}</span>
                     <span class="pomo-log-meta">${log.duration_minutes} min focus session</span>
@@ -424,6 +444,117 @@ document.addEventListener('DOMContentLoaded', () => {
             pomoLogsList.appendChild(item);
         });
     }
+
+    // ─── 24-Hour Day View ───────────────────────────────────────────────
+
+    function buildRuler() {
+        if (!dayRuler) return;
+        dayRuler.innerHTML = '';
+        for (let h = 0; h <= 23; h++) {
+            const mark = document.createElement('div');
+            mark.className = 'day-ruler-mark';
+            mark.textContent = `${String(h).padStart(2, '0')}:00`;
+            dayRuler.appendChild(mark);
+        }
+    }
+
+    function updateNowLine() {
+        if (!dayNowLine) return;
+        const now = new Date();
+        const totalMins = now.getHours() * 60 + now.getMinutes();
+        const pct = (totalMins / 1440) * 100;
+        dayNowLine.style.left = `${pct}%`;
+        dayNowLine.style.display = 'block';
+    }
+
+    function renderDayTimeline(logs) {
+        if (!dayTrack) return;
+        // Remove old session blocks (keep the now-line)
+        dayTrack.querySelectorAll('.day-session-block').forEach(el => el.remove());
+
+        logs.forEach(log => {
+            const startPct = ((log.started_at_minutes ?? 0) / 1440) * 100;
+            const endMins = log.ended_at_minutes ?? (log.started_at_minutes + log.duration_minutes);
+            const widthPct = Math.max(((endMins - (log.started_at_minutes ?? 0)) / 1440) * 100, 0.4);
+
+            const block = document.createElement('div');
+            block.className = 'day-session-block';
+            block.style.left = `${startPct}%`;
+            block.style.width = `${widthPct}%`;
+            block.title = `${log.started_at} → ${log.ended_at || ''} (${log.duration_minutes} min)`;
+
+            // Show duration label only if block is wide enough
+            if (widthPct > 3) {
+                const label = document.createElement('span');
+                label.className = 'day-session-block-label';
+                label.textContent = `${log.duration_minutes}m`;
+                block.appendChild(label);
+            }
+
+            block.addEventListener('click', () => selectDayBlock(block, log));
+            dayTrack.appendChild(block);
+        });
+
+        updateNowLine();
+    }
+
+    function selectDayBlock(blockEl, log) {
+        // Deselect any previously selected block
+        dayTrack.querySelectorAll('.day-session-block.selected').forEach(el => el.classList.remove('selected'));
+        blockEl.classList.add('selected');
+
+        // Populate detail panel
+        if (dayDetailEmpty) dayDetailEmpty.style.display = 'none';
+        if (dayDetailContent) dayDetailContent.style.display = 'flex';
+
+        if (dayDetailTime) dayDetailTime.textContent = `${log.started_at} → ${log.ended_at || '?'}`;
+        if (dayDetailDuration) dayDetailDuration.textContent = `${log.duration_minutes} minutes`;
+        if (dayDetailLog) {
+            dayDetailLog.textContent = log.focus_log && log.focus_log !== 'Focus Session'
+                ? log.focus_log
+                : '(No log details recorded)';
+        }
+    }
+
+    function openDayView() {
+        if (!dayViewModal || !dayViewOverlay) return;
+        // Set date subtitle
+        if (dayViewDateEl) {
+            const today = new Date();
+            dayViewDateEl.textContent = today.toLocaleDateString('en-GB', {
+                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
+            });
+        }
+        // Reset detail panel
+        if (dayDetailEmpty) dayDetailEmpty.style.display = 'flex';
+        if (dayDetailContent) dayDetailContent.style.display = 'none';
+
+        buildRuler();
+        renderDayTimeline(completedLogs);
+
+        dayViewOverlay.classList.add('open');
+        dayViewModal.classList.add('open');
+        document.body.style.overflow = 'hidden';
+
+        // Refresh now-line every minute
+        clearInterval(dayViewNowInterval);
+        dayViewNowInterval = setInterval(updateNowLine, 60000);
+    }
+
+    function closeDayView() {
+        if (!dayViewModal || !dayViewOverlay) return;
+        dayViewOverlay.classList.remove('open');
+        dayViewModal.classList.remove('open');
+        document.body.style.overflow = '';
+        clearInterval(dayViewNowInterval);
+        dayViewNowInterval = null;
+    }
+
+    if (openDayViewBtn) openDayViewBtn.addEventListener('click', openDayView);
+    if (closeDayViewBtn) closeDayViewBtn.addEventListener('click', closeDayView);
+    if (dayViewOverlay) dayViewOverlay.addEventListener('click', closeDayView);
+
+    // ────────────────────────────────────────────────────────────────────
 
     // Edit Log Details Inline Prompt
     async function editLogDetails(id, currentText) {
