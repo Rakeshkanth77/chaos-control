@@ -193,7 +193,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }
             playChime();
             if (window.showToast) {
-                window.showToast('🍅 Focus session complete! Log your accomplishment.');
+                window.showToast('Focus session complete! Log your accomplishment.');
             }
         } catch (e) {
             console.error('Failed to complete session on server:', e);
