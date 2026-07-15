@@ -439,11 +439,36 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Prompt Logging Handlers
+    let pomoPromptDebounceTimer;
+    const autoSaveFocusLog = async () => {
+        clearTimeout(pomoPromptDebounceTimer);
+        const logText = pomoPromptLogInput.value.trim();
+        if (promptSessionId) {
+            try {
+                await apiPost('/api/pomodoro/save-log/', { 
+                    session_id: promptSessionId, 
+                    focus_log: logText || 'Focus Session' 
+                });
+            } catch (e) {
+                console.error('Failed to auto-save focus log:', e);
+            }
+        }
+    };
+
+    if (pomoPromptLogInput) {
+        pomoPromptLogInput.addEventListener('input', () => {
+            clearTimeout(pomoPromptDebounceTimer);
+            pomoPromptDebounceTimer = setTimeout(autoSaveFocusLog, 800);
+        });
+        pomoPromptLogInput.addEventListener('blur', autoSaveFocusLog);
+    }
+
     if (pomoPromptSaveBtn) {
         pomoPromptSaveBtn.addEventListener('click', async () => {
             const logText = pomoPromptLogInput.value.trim();
             if (promptSessionId) {
                 try {
+                    clearTimeout(pomoPromptDebounceTimer);
                     await apiPost('/api/pomodoro/save-log/', { 
                         session_id: promptSessionId, 
                         focus_log: logText || 'Focus Session' 
@@ -476,6 +501,7 @@ document.addEventListener('DOMContentLoaded', () => {
         pomoPromptSkipBtn.addEventListener('click', async () => {
             if (promptSessionId) {
                 try {
+                    clearTimeout(pomoPromptDebounceTimer);
                     await apiPost('/api/pomodoro/save-log/', { 
                         session_id: promptSessionId, 
                         focus_log: 'Focus Session' 
