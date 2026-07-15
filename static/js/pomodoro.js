@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const mobilePomoNavBadge = document.getElementById('mobile-pomo-nav-badge');
     const pomoMiniWidget = document.getElementById('pomoMiniWidget');
     const pomoMiniTimerText = document.getElementById('pomoMiniTimerText');
+    const pomoPipBtn = document.getElementById('pomoPipBtn');
     
     const pomoPopup = document.getElementById('pomoPopup');
     const pomoPopupOverlay = document.getElementById('pomoPopupOverlay');
@@ -45,6 +46,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let isStatusPollingActive = false;
     let xOffset = 0;
     let yOffset = 0;
+    let pipWindowInstance = null;
+    const isPipSupported = 'documentPictureInPicture' in window;
 
     // Helper to post API data
     async function apiPost(url, data = {}) {
@@ -184,6 +187,14 @@ document.addEventListener('DOMContentLoaded', () => {
             pomoMiniWidget.style.display = 'flex';
         }
 
+        // System PiP window update
+        if (pipWindowInstance) {
+            const pipTimeEl = pipWindowInstance.document.getElementById('pomoPipTime');
+            if (pipTimeEl) {
+                pipTimeEl.textContent = formatTime(remaining);
+            }
+        }
+
         // Timer finished
         if (remaining <= 0) {
             clearInterval(countdownInterval);
@@ -238,6 +249,12 @@ document.addEventListener('DOMContentLoaded', () => {
             xOffset = 0;
             yOffset = 0;
         }
+
+        // Close system PiP window
+        if (pipWindowInstance) {
+            pipWindowInstance.close();
+            pipWindowInstance = null;
+        }
         
         pomoSetupControls.style.display = 'block';
         pomoRunningControls.style.display = 'none';
@@ -260,6 +277,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 currentSessionId = data.session_id;
                 pomoSetupControls.style.display = 'none';
                 pomoRunningControls.style.display = 'block';
+                if (pomoPipBtn && isPipSupported) {
+                    pomoPipBtn.style.display = 'block';
+                }
                 pomoSessionStatus.textContent = 'Deep Focus Active';
                 
                 // Start local timer
@@ -328,6 +348,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     currentSessionId = data.active_session.id;
                     pomoSetupControls.style.display = 'none';
                     pomoRunningControls.style.display = 'block';
+                    if (pomoPipBtn && isPipSupported) {
+                        pomoPipBtn.style.display = 'block';
+                    }
                     pomoSessionStatus.textContent = 'Deep Focus Active';
                     
                     const rem = data.active_session.remaining_seconds;
@@ -475,6 +498,60 @@ document.addEventListener('DOMContentLoaded', () => {
         const div = document.createElement('div');
         div.innerHTML = str;
         return div.innerText;
+    }
+
+    // System-level Picture-in-Picture window launcher
+    async function openPipWindow() {
+        if (!isPipSupported || pipWindowInstance) return;
+        
+        try {
+            pipWindowInstance = await window.documentPictureInPicture.requestWindow({
+                width: 240,
+                height: 120
+            });
+            
+            const pipDoc = pipWindowInstance.document;
+            pipDoc.body.className = 'pomo-pip-body';
+            
+            // Inject app stylesheets so the PiP window loads CSS rules
+            [...document.styleSheets].forEach((styleSheet) => {
+                try {
+                    const cssRules = [...styleSheet.cssRules].map((rule) => rule.cssText).join('');
+                    const style = pipDoc.createElement('style');
+                    style.textContent = cssRules;
+                    pipDoc.head.appendChild(style);
+                } catch (e) {
+                    const link = pipDoc.createElement('link');
+                    link.rel = 'stylesheet';
+                    link.type = styleSheet.type;
+                    link.media = styleSheet.media.mediaText;
+                    link.href = styleSheet.href;
+                    pipDoc.head.appendChild(link);
+                }
+            });
+            
+            const container = pipDoc.createElement('div');
+            container.style.textAlign = 'center';
+            
+            const remaining = Math.max(0, Math.ceil((endTimestamp - Date.now()) / 1000));
+            container.innerHTML = `
+                <div class="pomo-pip-time" id="pomoPipTime">${formatTime(remaining)}</div>
+                <div class="pomo-pip-label">Focus Sprint</div>
+            `;
+            
+            pipDoc.body.appendChild(container);
+            
+            // Handle native window closing
+            pipWindowInstance.addEventListener('pagehide', () => {
+                pipWindowInstance = null;
+            });
+        } catch (e) {
+            console.error('Failed to launch Picture-in-Picture window:', e);
+        }
+    }
+
+    if (pomoPipBtn) {
+        pomoPipBtn.addEventListener('click', openPipWindow);
     }
 
     // Periodic synchronization check (when page is active)

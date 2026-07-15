@@ -482,7 +482,10 @@
 
         <!-- Controls Section (Visible when timer IS running) -->
         <div class="pomo-running-controls" id="pomoRunningControls" style="display: none;">
-            <button id="pomoCancelBtn" class="btn btn-danger" style="width: 100%; padding: 10px; border-radius: 12px; font-weight: 600;">Cancel Focus Sprint</button>
+            <div style="display: flex; gap: 10px; width: 100%;">
+                <button id="pomoCancelBtn" class="btn btn-danger" style="flex: 1; padding: 10px; border-radius: 12px; font-weight: 600;">Cancel Focus</button>
+                <button id="pomoPipBtn" class="btn pomo-pip-btn" style="flex: 1; padding: 10px; border-radius: 12px; font-weight: 600; display: none; background: linear-gradient(135deg, #0c5855, #2dd4bf); border: none; color: #fff; cursor: pointer;">Pop Out</button>
+            </div>
         </div>
 
         <!-- Today's Focus Logs Section -->
