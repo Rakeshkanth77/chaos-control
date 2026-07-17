@@ -42,7 +42,6 @@ INSTALLED_APPS = [
     
     # Custom apps
     'dashboard',
-    'flashcards',
     'analytics',
 
     # Authentication apps

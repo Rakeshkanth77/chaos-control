@@ -3,7 +3,6 @@ from django.utils import timezone
 from django.db.models import Count, Q
 from datetime import timedelta, datetime
 from dashboard.models import Todo, PomodoroSession, DailyReflection
-from flashcards.models import FlashCard
 
 from django.contrib.auth.decorators import login_required
 
@@ -73,35 +72,21 @@ def get_summary_stats(request):
             count=Count('id')
         )
 
-        flashcard_data = FlashCard.objects.filter(last_reviewed__date__gte=start_date, last_reviewed__date__lte=today, user=request.user).values('last_reviewed__date').annotate(
-            count=Count('id')
-        )
-
         # Map datasets into dictionary by date
         todo_dict = {item['date']: item for item in todo_data}
         pomodoro_dict = {item['date']: item['count'] for item in pomodoro_data}
-        
-        # Convert date to date object if it's datetime
-        flashcard_dict = {}
-        for item in flashcard_data:
-            d = item['last_reviewed__date']
-            if isinstance(d, datetime):
-                d = d.date()
-            flashcard_dict[d] = item['count']
 
         # Construct daily trend arrays
         todos_created = []
         todos_completed = []
         pomodoros_done = []
-        flashcards_reviewed = []
 
         for d in date_list:
             t_info = todo_dict.get(d, {'total': 0, 'completed': 0})
             todos_created.append(t_info['total'])
             todos_completed.append(t_info['completed'])
-            
+
             pomodoros_done.append(pomodoro_dict.get(d, 0))
-            flashcards_reviewed.append(flashcard_dict.get(d, 0))
 
         # Eisenhower distribution (all-time or active todos)
         eisenhower_distribution = Todo.objects.filter(is_completed=False, user=request.user).values('priority').annotate(count=Count('id'))
@@ -151,7 +136,6 @@ def get_summary_stats(request):
             'todos_created': todos_created,
             'todos_completed': todos_completed,
             'pomodoros': pomodoros_done,
-            'flashcards_reviewed': flashcards_reviewed,
             'eisenhower_distribution': dist_data,
             'streak': streak,
             'totals': {
@@ -159,55 +143,6 @@ def get_summary_stats(request):
                 'pomodoros_completed': total_pomodoros,
             },
             'contribution_grid': grid_list
-        })
-    except Exception as e:
-        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
-
-
-@login_required
-def get_pomodoro_analytics(request):
-    try:
-        user = request.user
-        sessions = PomodoroSession.objects.filter(user=user, completed=True)
-        
-        # 1. Hourly Peak (0-23)
-        hourly_counts = [0] * 24
-        # 2. Daily Peak (0-6 representing Mon-Sun)
-        daily_counts = [0] * 7
-        
-        # 3. Word frequencies for tagging (stop words filtered)
-        stop_words = {
-            'the', 'and', 'a', 'of', 'to', 'in', 'is', 'that', 'it', 'on', 'for', 'with', 'as', 'at', 'by', 'an', 'this', 'my', 'focus', 'sprint', 'session', 'completed', 'doing', 'done', 'about', 'some', 'any', 'from', 'or', 'but', 'not', 'have', 'be', 'was', 'were', 'had', 'do', 'did', 'does', 'i', 'we', 'our', 'you', 'your', 'he', 'she', 'they', 'them', 'work', 'worked', 'project', 'tasks', 'task', 'some', 'ran', 'run', 'using', 'used'
-        }
-        
-        word_freq = {}
-        
-        for s in sessions:
-            local_time = timezone.localtime(s.started_at)
-            
-            # Hourly peak
-            hourly_counts[local_time.hour] += 1
-            
-            # Daily peak (0 = Monday, 6 = Sunday)
-            daily_counts[local_time.weekday()] += 1
-            
-            # Word frequencies from focus_log
-            log_text = s.focus_log or ''
-            # Clean punctuation and tokenize words
-            words = ''.join(c if c.isalnum() or c.isspace() else ' ' for c in log_text.lower()).split()
-            for w in words:
-                if len(w) > 2 and w not in stop_words:
-                    word_freq[w] = word_freq.get(w, 0) + 1
-                    
-        # Sort word frequencies and get top 15 tags
-        top_words = sorted(word_freq.items(), key=lambda x: x[1], reverse=True)[:15]
-        word_cloud_data = [{'text': w, 'value': c} for w, c in top_words]
-        
-        return JsonResponse({
-            'status': 'success',
-            'hourly_peak': hourly_counts,
-            'daily_peak': daily_counts,
-            'word_cloud': word_cloud_data
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

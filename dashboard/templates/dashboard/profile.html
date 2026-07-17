@@ -270,111 +270,6 @@
         justify-content: flex-end;
     }
 
-    /* ── Operations Control Tab Styles ── */
-    .ops-container {
-        display: flex;
-        flex-direction: column;
-        gap: 24px;
-        width: 100%;
-        max-width: 1200px;
-        margin: 0 auto;
-        padding-bottom: 60px;
-    }
-    .ops-title-bar {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    .ops-title-bar h2 {
-        font-family: 'Outfit', sans-serif;
-        font-size: 1.6rem;
-        font-weight: 800;
-        letter-spacing: -0.5px;
-        color: var(--text-primary);
-        text-transform: uppercase;
-    }
-    .ops-title-bar h2 span { color: var(--accent-color); }
-    
-    .metrics-row {
-        display: grid;
-        grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-        gap: 20px;
-    }
-    .metric-box { display: flex; flex-direction: column; gap: 6px; padding: 24px; }
-    .metric-label {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.75rem;
-        font-weight: 700;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    .metric-number {
-        font-family: 'Outfit', sans-serif;
-        font-size: 2.2rem;
-        font-weight: 800;
-        color: var(--text-primary);
-        line-height: 1;
-    }
-    .metric-sub { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
-
-    .charts-grid {
-        display: grid;
-        grid-template-columns: 1.5fr 1fr;
-        gap: 20px;
-    }
-    @media (max-width: 768px) {
-        .charts-grid { grid-template-columns: 1fr; }
-    }
-    .chart-panel { display: flex; flex-direction: column; gap: 16px; padding: 24px; height: 350px; }
-    .chart-container-el { position: relative; flex-grow: 1; width: 100%; height: 100%; min-height: 0; }
-
-    .user-table-panel { display: flex; flex-direction: column; gap: 16px; padding: 24px; }
-    .table-header-row {
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
-        margin-bottom: 12px;
-        flex-wrap: wrap;
-        gap: 8px;
-    }
-    .search-form { display: flex; gap: 8px; flex-wrap: wrap; }
-    .search-input {
-        background: rgba(255, 255, 255, 0.25);
-        border: var(--card-border);
-        border-radius: 10px;
-        padding: 6px 14px;
-        font-size: 0.85rem;
-        color: var(--text-primary);
-        outline: none;
-        width: 200px;
-        transition: width 0.2s;
-    }
-    .search-input:focus { width: 250px; background: rgba(255, 255, 255, 0.45); }
-
-    .ops-table-container { width: 100%; overflow-x: auto; }
-    .ops-table { width: 100%; border-collapse: collapse; text-align: left; }
-    .ops-table th {
-        font-family: 'JetBrains Mono', monospace;
-        font-size: 0.72rem;
-        font-weight: 700;
-        color: var(--text-secondary);
-        text-transform: uppercase;
-        letter-spacing: 0.5px;
-        padding: 12px 16px;
-        border-bottom: 1px solid rgba(0, 0, 0, 0.06);
-    }
-    .ops-table td { padding: 12px 16px; font-size: 0.88rem; color: var(--text-primary); border-bottom: 1px solid rgba(0, 0, 0, 0.04); }
-    .ops-table tr:hover { background: rgba(255, 255, 255, 0.2); }
-
-    .plan-pill { display: inline-block; padding: 2px 8px; font-size: 0.72rem; font-weight: 600; border-radius: 8px; text-transform: uppercase; }
-    .plan-pill.free { background: rgba(90, 90, 117, 0.1); color: var(--text-secondary); }
-    .plan-pill.pro { background: rgba(12, 88, 85, 0.15); color: var(--accent-color); }
-    .plan-pill.ultimate { background: rgba(245, 158, 11, 0.15); color: #b45309; }
-
     #status-toast {
         position: fixed;
         bottom: 24px;
@@ -400,9 +295,6 @@
 <div class="profile-tabs-nav">
     <button class="profile-tab-btn active" data-profile-tab="settings">Profile & Settings</button>
     <button class="profile-tab-btn" data-profile-tab="analytics">Productivity Analytics</button>
-    {% if request.user.is_staff %}
-        <button class="profile-tab-btn" data-profile-tab="ops">Operations Control</button>
-    {% endif %}
 </div>
 
 <!-- TAB 1: PROFILE & SETTINGS -->
@@ -515,17 +407,6 @@
                 </div>
             </div>
 
-            <!-- Spaced Repetition Info Card -->
-            <div class="glass-panel totals-card">
-                <div class="total-stat-item">
-                    <span class="total-stat-label">Total Flashcards Created</span>
-                    <span class="total-stat-value" id="fc-total">--</span>
-                </div>
-                <div class="total-stat-item" style="border-top: 1px solid rgba(0,0,0,0.04); padding-top: 10px; margin-top: 10px;">
-                    <span class="total-stat-label">Reviewed Today</span>
-                    <span class="total-stat-value" id="fc-reviewed-today">--</span>
-                </div>
-            </div>
         </div>
 
         <!-- Charts Grid -->
@@ -555,15 +436,8 @@
             </div>
         </div>
 
-        <!-- Row for Flashcards & Tips -->
+        <!-- Productivity Tip -->
         <div class="analytics-grid" style="margin-top: 20px;">
-            <div class="glass-panel analytics-chart-panel" style="height: 250px;">
-                <h3 class="panel-title">Vocabulary Practice Progress</h3>
-                <div class="chart-wrapper">
-                    <canvas id="vocabulary-chart"></canvas>
-                </div>
-            </div>
-            
             <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; height: 250px; padding: 20px;">
                 <h3 class="panel-title" style="margin-bottom: 8px; justify-content: center;">Productivity Tip</h3>
                 <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); max-width: 280px; margin: 0 auto;" id="random-tip">
@@ -572,175 +446,8 @@
             </div>
         </div>
 
-        <!-- Pomodoro Focus Sprints Deep Analytics (Cognitive Peak Mapping & NLP Word Tags) -->
-        <h3 style="margin-top: 35px; margin-bottom: 15px; font-family: 'Outfit', sans-serif; color: var(--text-primary); font-size: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-            <span>Focus Sprints Cognitive Profiling</span>
-        </h3>
-        
-        <div class="analytics-grid" style="margin-top: 15px; margin-bottom: 25px;">
-            <!-- Hourly Focus Peak -->
-            <div class="glass-panel analytics-chart-panel" style="height: 280px;">
-                <h3 class="panel-title">Hourly Focus Peak (Daily Distribution)</h3>
-                <div class="chart-wrapper">
-                    <canvas id="pomo-hourly-chart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Daily Focus Peak -->
-            <div class="glass-panel analytics-chart-panel" style="height: 280px;">
-                <h3 class="panel-title">Daily Focus Peak (Weekly Distribution)</h3>
-                <div class="chart-wrapper">
-                    <canvas id="pomo-daily-chart"></canvas>
-                </div>
-            </div>
-            
-            <!-- Top Accomplishment Tags -->
-            <div class="glass-panel analytics-chart-panel" style="height: 280px; display: flex; flex-direction: column;">
-                <h3 class="panel-title">Focus Accomplishment Keyword Tags</h3>
-                <div style="flex: 1; display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; align-content: center; align-items: center; padding: 15px; overflow-y: auto;" id="pomo-word-cloud">
-                    <span style="color: var(--text-secondary); font-size: 0.9rem;">No tags extracted yet. Start completing focus sessions and log details!</span>
-                </div>
-            </div>
-        </div>
-
-        <!-- Daily Capacity Average -->
-        <h3 style="margin-top: 30px; margin-bottom: 15px; font-family: 'Outfit', sans-serif; color: var(--text-primary); font-size: 1.25rem; border-bottom: 1px solid rgba(255, 255, 255, 0.08); padding-bottom: 10px; display: flex; align-items: center; gap: 8px;">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#fbbf24" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"></polyline></svg>
-            <span>Daily Capacity Profiling</span>
-        </h3>
-        <div class="analytics-grid" style="margin-top: 15px; margin-bottom: 25px;">
-            <div class="glass-panel analytics-chart-panel" style="height: 280px;">
-                <h3 class="panel-title">Avg Sprints Per Weekday <span style="font-size:0.7rem; color: rgba(255,255,255,0.35); font-weight:400; margin-left:6px;">(last 30 days)</span></h3>
-                <div class="chart-wrapper">
-                    <canvas id="capacity-weekday-chart"></canvas>
-                </div>
-            </div>
-            <div class="glass-panel analytics-chart-panel" style="height: 280px; display: flex; flex-direction: column; justify-content: center; padding: 24px;">
-                <h3 class="panel-title" style="margin-bottom: 18px;">Today's Capacity</h3>
-                <div id="capacity-today-panel" style="display: flex; flex-direction: column; gap: 12px;">
-                    <div style="font-size: 0.8rem; color: rgba(255,255,255,0.3); text-align:center;">Loading…</div>
-                </div>
-            </div>
-        </div>
     </div>
 </div>
-
-<!-- TAB 3: SAAS OPERATIONS CONTROL -->
-{% if request.user.is_staff %}
-<div class="profile-tab-content" id="profile-tab-ops">
-    <div class="ops-container">
-        
-        <!-- Title Bar -->
-        <div class="ops-title-bar">
-            <h2>SaaS Operations <span>Command Panel</span></h2>
-            <div style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem; color: var(--text-secondary);">
-                STATUS: ACTIVE // ALL SYSTEM METRICS NOMINAL
-            </div>
-        </div>
-
-        <!-- Core Metrics Cards -->
-        <div class="metrics-row">
-            <div class="glass-panel metric-box">
-                <span class="metric-label">TOTAL_USERS</span>
-                <span class="metric-number">{{ total_users }}</span>
-                <span class="metric-sub">Registered command accounts</span>
-            </div>
-            <div class="glass-panel metric-box">
-                <span class="metric-label">TOTAL_TASKS</span>
-                <span class="metric-number">{{ system_total_todos }}</span>
-                <span class="metric-sub">Objectives parsed in operations</span>
-            </div>
-            <div class="glass-panel metric-box">
-                <span class="metric-label">SECURED_TASKS</span>
-                <span class="metric-number">{{ system_completed_todos }}</span>
-                <span class="metric-sub">Structured goals achieved</span>
-            </div>
-            <div class="glass-panel metric-box">
-                <span class="metric-label">FOCUS_SPRINTS</span>
-                <span class="metric-number">{{ system_completed_pomodoros }}</span>
-                <span class="metric-sub">Completed Pomodoro focus blocks</span>
-            </div>
-        </div>
-
-        <!-- System Charts -->
-        <div class="charts-grid">
-            <div class="glass-panel chart-panel">
-                <span class="metric-label">SYSTEM_ACTIVITY_DIAGNOSTICS</span>
-                <div class="chart-container-el">
-                    <canvas id="activityChart"></canvas>
-                </div>
-            </div>
-            <div class="glass-panel chart-panel">
-                <span class="metric-label">PLAN_CLEARANCE_DISTRIBUTION</span>
-                <div class="chart-container-el">
-                    <canvas id="planChart"></canvas>
-                </div>
-            </div>
-        </div>
-
-        <!-- Operators Table panel -->
-        <div class="glass-panel user-table-panel">
-            <div class="table-header-row">
-                <span class="metric-label">REGISTERED_OPERATORS</span>
-                <form method="GET" class="search-form" action="/profile/">
-                    <!-- Make sure search parameter stays in the tab=ops context -->
-                    <input type="hidden" name="tab" value="ops">
-                    <input 
-                        type="text" 
-                        name="q" 
-                        class="search-input" 
-                        placeholder="Search by name/email..." 
-                        value="{{ search_query }}"
-                    >
-                    <button type="submit" class="btn">Search</button>
-                    {% if search_query %}
-                        <a href="/profile/?tab=ops" class="btn btn-secondary">Clear</a>
-                    {% endif %}
-                </form>
-            </div>
-
-            <div class="ops-table-container">
-                <table class="ops-table">
-                    <thead>
-                        <tr>
-                            <th>Operator</th>
-                            <th>Email</th>
-                            <th>Plan Clearance</th>
-                            <th>Joined Date</th>
-                            <th>Clearance Level</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for user in users_list %}
-                            <tr>
-                                <td style="font-weight: 600;">{% firstof user.first_name user.username %}</td>
-                                <td style="color: var(--text-secondary);">{{ user.email }}</td>
-                                <td>
-                                    <span class="plan-pill {{ user.profile.plan }}">
-                                        {{ user.profile.get_plan_display }}
-                                    </span>
-                                </td>
-                                <td>{{ user.date_joined|date:"Y-m-d" }}</td>
-                                <td style="font-family: 'JetBrains Mono', monospace; font-size: 0.8rem;">
-                                    {% if user.is_staff %}STAFF_OFFICER{% else %}OPERATOR{% endif %}
-                                </td>
-                            </tr>
-                        {% empty %}
-                            <tr>
-                                <td colspan="5" style="text-align: center; color: var(--text-secondary); padding: 30px;">
-                                    No operators matching query.
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-
-    </div>
-</div>
-{% endif %}
 
 <!-- status notifications toast -->
 <div id="status-toast">Saved updates successfully</div>
@@ -789,7 +496,10 @@
 
     // Initialize active tab from URL query param, default to 'settings'
     const urlParams = new URLSearchParams(window.location.search);
-    const activeTab = urlParams.get('tab') || 'settings';
+    let activeTab = urlParams.get('tab') || 'settings';
+    if (!document.getElementById(`profile-tab-${activeTab}`)) {
+        activeTab = 'settings';
+    }
     switchTab(activeTab);
 
     // ── Toast Helper ──
@@ -854,91 +564,5 @@
             });
         });
     }
-
-    // ── Ops Panel Charts (render only if staff and tab is active) ──
-    {% if request.user.is_staff %}
-    document.addEventListener('DOMContentLoaded', () => {
-        const activityCanvas = document.getElementById('activityChart');
-        const planCanvas = document.getElementById('planChart');
-        if (!activityCanvas || !planCanvas) return;
-
-        // Plan Clearance Doughnut Chart
-        const ctxPlan = planCanvas.getContext('2d');
-        new Chart(ctxPlan, {
-            type: 'doughnut',
-            data: {
-                labels: ['Free Protocol', 'Pro Protocol', 'Ultimate Protocol'],
-                datasets: [{
-                    data: [{{ free_plans }}, {{ pro_plans }}, {{ ultimate_plans }}],
-                    backgroundColor: [
-                        'rgba(90, 90, 117, 0.45)',
-                        'rgba(12, 88, 85, 0.65)',
-                        'rgba(245, 158, 11, 0.65)'
-                    ],
-                    borderColor: [
-                        'rgba(255, 255, 255, 0.8)',
-                        'rgba(255, 255, 255, 0.8)',
-                        'rgba(255, 255, 255, 0.8)'
-                    ],
-                    borderWidth: 1
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            color: '#4a6b6a',
-                            font: { family: 'Inter', size: 11 }
-                        }
-                    }
-                }
-            }
-        });
-
-        // Aggregate Accomplishments Bar Chart
-        const ctxActivity = activityCanvas.getContext('2d');
-        new Chart(ctxActivity, {
-            type: 'bar',
-            data: {
-                labels: ['Tasks Intercepted', 'Objectives Secured', 'Focus Sprints'],
-                datasets: [{
-                    label: 'System Achievements',
-                    data: [{{ system_total_todos }}, {{ system_completed_todos }}, {{ system_completed_pomodoros }}],
-                    backgroundColor: [
-                        'rgba(12, 88, 85, 0.55)',
-                        'rgba(16, 185, 129, 0.55)',
-                        'rgba(239, 68, 68, 0.55)'
-                    ],
-                    borderColor: [
-                        'rgba(12, 88, 85, 0.85)',
-                        'rgba(16, 185, 129, 0.85)',
-                        'rgba(239, 68, 68, 0.85)'
-                    ],
-                    borderWidth: 1,
-                    borderRadius: 8
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        grid: { color: 'rgba(0,0,0,0.03)' },
-                        ticks: { color: '#4a6b6a' }
-                    },
-                    x: {
-                        grid: { display: false },
-                        ticks: { color: '#4a6b6a' }
-                    }
-                },
-                plugins: { legend: { display: false } }
-            }
-        });
-    });
-    {% endif %}
 </script>
 {% endblock %}

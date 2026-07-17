@@ -9,7 +9,6 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('projects/', views.projects_view, name='projects'),
     path('bible-memory/', views.bible_memory_view, name='bible_memory'),
-    path('ops/dashboard/', views.ops_dashboard, name='ops_dashboard'),
     
     # API endpoints
     path('api/braindump/save/', api.save_braindump, name='api_save_braindump'),

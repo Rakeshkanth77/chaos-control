@@ -683,106 +683,6 @@ body {
 }
 
 
-/* COLUMN 4: Flashcards & Pomodoro Timer */
-.flashcards-card {
-    display: flex;
-    flex-direction: column;
-    min-height: 280px;
-    perspective: 1000px; /* Crucial for 3D card flip */
-}
-
-/* Card Container with Flip Animation */
-.flashcard-wrapper {
-    position: relative;
-    flex-grow: 1;
-    width: 100%;
-    height: 140px;
-    transform-style: preserve-3d;
-    transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1);
-    cursor: pointer;
-}
-
-.flashcards-card.flipped .flashcard-wrapper {
-    transform: rotateY(180deg);
-}
-
-.flashcard-face {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    backface-visibility: hidden;
-    -webkit-backface-visibility: hidden;
-    border-radius: 14px;
-    padding: 16px;
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    border: 1px solid rgba(12, 88, 85, 0.12);
-}
-
-.flashcard-front {
-    background: rgba(255, 255, 255, 0.4);
-}
-
-.flashcard-back {
-    background: rgba(255, 255, 255, 0.65);
-    transform: rotateY(180deg);
-}
-
-.word-display {
-    font-size: 1.4rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    text-align: center;
-    letter-spacing: -0.5px;
-}
-
-.word-definition {
-    font-size: 0.9rem;
-    text-align: center;
-    color: var(--text-primary);
-    margin-bottom: 8px;
-    line-height: 1.4;
-}
-
-.word-example {
-    font-size: 0.8rem;
-    font-style: italic;
-    color: var(--text-secondary);
-    text-align: center;
-}
-
-.flashcard-actions {
-    display: flex;
-    justify-content: center;
-    gap: 8px;
-    margin-top: 14px;
-}
-
-.flashcard-action-bar-back {
-    display: flex;
-    gap: 8px;
-    width: 100%;
-    justify-content: center;
-}
-
-/* Card Create Panel */
-.flashcard-creator {
-    background: rgba(255, 255, 255, 0.3);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    border-radius: 14px;
-    padding: 12px;
-    margin-top: 12px;
-    display: none; /* Toggleable in JS */
-}
-
-.flashcard-creator.active {
-    display: block;
-}
-
 .form-group {
     margin-bottom: 8px;
 }
@@ -1053,53 +953,6 @@ body {
 }
 
 
-/* ===== Anki Link Card Styles ===== */
-.anki-link-card {
-    display: flex;
-    flex-direction: column;
-    min-height: 180px;
-}
-
-.anki-link-content {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    flex-grow: 1;
-    gap: 14px;
-    text-align: center;
-    padding: 12px 0;
-}
-
-.anki-icon {
-    font-size: 2.5rem;
-    line-height: 1;
-}
-
-.anki-description {
-    font-size: 0.88rem;
-    color: var(--text-secondary);
-    line-height: 1.5;
-    max-width: 260px;
-}
-
-.anki-btn {
-    padding: 10px 28px;
-    font-size: 0.9rem;
-    font-weight: 600;
-    border-radius: 14px;
-    display: inline-flex;
-    align-items: center;
-    gap: 6px;
-    text-decoration: none;
-    transition: background 0.2s, transform 0.1s, box-shadow 0.2s;
-}
-
-.anki-btn:hover {
-    box-shadow: 0 6px 20px rgba(99, 91, 143, 0.25);
-}
-
-
 /* ===== Touch Drag Clone Styles ===== */
 .touch-drag-clone {
     background: var(--card-bg);
@@ -1326,12 +1179,6 @@ body {
         min-height: 0;
     }
 
-    /* Column 4 (Anki & Reflection Insights) Sizing */
-    .dashboard-page .anki-link-card {
-        flex: 0 0 auto;
-        min-height: 180px;
-    }
-
     .dashboard-page .reflection-insights-card {
         flex: 1;
         min-height: 0;
@@ -1503,8 +1350,6 @@ body {
 
     .profile-grid { padding: 0 !important; }
     .pomodoro-card { min-height: auto !important; }
-    .flashcards-card { min-height: auto !important; }
-    .flashcard-wrapper { height: 120px !important; }
 }
 
 /* Tablet 769-1024 */

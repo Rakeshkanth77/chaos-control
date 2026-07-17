@@ -1,10 +1,8 @@
-from django.shortcuts import render, redirect
+from django.shortcuts import render
 from django.utils import timezone
-from django.contrib.auth.decorators import login_required, user_passes_test
-from django.contrib.auth.models import User
+from django.contrib.auth.decorators import login_required
 from datetime import datetime
 from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project
-from flashcards.models import FlashCard
 from analytics.api import calculate_streak
 
 def index(request):
@@ -56,14 +54,6 @@ def index(request):
         user=request.user
     ).count()
 
-    # Get flashcard review stats owned by request.user
-    now = timezone.now()
-    total_flashcards = FlashCard.objects.filter(user=request.user).count()
-    due_flashcards = FlashCard.objects.filter(
-        user=request.user,
-        next_review__lte=now
-    ).count()
-
     from datetime import timedelta
     previous_date = selected_date - timedelta(days=1)
     next_date = selected_date + timedelta(days=1)
@@ -79,8 +69,6 @@ def index(request):
         'pending_todos': pending_todos,
         'reflection': reflection,
         'pomodoros_completed': pomodoros_completed,
-        'total_flashcards': total_flashcards,
-        'due_flashcards': due_flashcards,
         'profile': profile,
         'projects': Project.objects.filter(user=request.user),
     }
@@ -104,36 +92,7 @@ def profile_view(request):
         'total_pomodoros': total_pomodoros,
         'plans': UserProfile.PLAN_CHOICES,
     }
-    
-    # Retrieve system stats for SaaS corporate metrics if user is staff
-    if request.user.is_staff:
-        total_users = User.objects.count()
-        system_total_todos = Todo.objects.count()
-        system_completed_todos = Todo.objects.filter(is_completed=True).count()
-        system_completed_pomodoros = PomodoroSession.objects.filter(completed=True).count()
-        
-        free_plans = UserProfile.objects.filter(plan='free').count()
-        pro_plans = UserProfile.objects.filter(plan='pro').count()
-        ultimate_plans = UserProfile.objects.filter(plan='ultimate').count()
-        
-        search_query = request.GET.get('q', '')
-        if search_query:
-            users_list = User.objects.filter(username__icontains=search_query) | User.objects.filter(email__icontains=search_query)
-        else:
-            users_list = User.objects.all().order_by('-date_joined')[:50]
-            
-        context.update({
-            'total_users': total_users,
-            'system_total_todos': system_total_todos,
-            'system_completed_todos': system_completed_todos,
-            'system_completed_pomodoros': system_completed_pomodoros,
-            'free_plans': free_plans,
-            'pro_plans': pro_plans,
-            'ultimate_plans': ultimate_plans,
-            'users_list': users_list,
-            'search_query': search_query,
-        })
-        
+
     return render(request, 'dashboard/profile.html', context)
 
 
@@ -153,13 +112,3 @@ def bible_memory_view(request):
         'profile': profile,
     }
     return render(request, 'dashboard/bible_memory.html', context)
-
-
-@user_passes_test(lambda u: u.is_staff, login_url='/')
-def ops_dashboard(request):
-    # Redirect to the integrated ops tab on profile, passing forward search params
-    query = request.GET.urlencode()
-    url = '/profile/?tab=ops'
-    if query:
-        url += '&' + query
-    return redirect(url)

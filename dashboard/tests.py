@@ -108,22 +108,6 @@ class AuthenticationAndAccessTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertTemplateUsed(response, 'dashboard/profile.html')
 
-    def test_ops_dashboard_restricted_to_staff(self):
-        # Anonymous redirect
-        response = self.client.get('/ops/dashboard/')
-        self.assertEqual(response.status_code, 302)
-
-        # Operator redirect (not staff)
-        self.client.login(username='operator', password='password123')
-        response = self.client.get('/ops/dashboard/')
-        self.assertEqual(response.status_code, 302)
-
-        # Staff access allowed
-        self.client.login(username='officer', password='password123')
-        response = self.client.get('/ops/dashboard/')
-        self.assertEqual(response.status_code, 302)
-        self.assertTrue('/profile/?tab=ops' in response.url)
-
     def test_api_requires_login_json(self):
         response = self.client.post('/api/todo/add/', content_type='application/json')
         self.assertEqual(response.status_code, 401)
