@@ -1,3 +1,4 @@
+from django.conf import settings
 from django.shortcuts import render
 from django.utils import timezone
 from django.contrib.auth.decorators import login_required
@@ -58,6 +59,12 @@ def index(request):
     previous_date = selected_date - timedelta(days=1)
     next_date = selected_date + timedelta(days=1)
 
+    # First-run onboarding: user has never written a dump or created a task
+    is_new_user = (
+        not Todo.objects.filter(user=request.user).exists()
+        and not BrainDump.objects.filter(user=request.user).exists()
+    )
+
     context = {
         'selected_date': selected_date,
         'selected_date_formatted': selected_date.strftime('%Y-%m-%d'),
@@ -69,6 +76,7 @@ def index(request):
         'pending_todos': pending_todos,
         'reflection': reflection,
         'pomodoros_completed': pomodoros_completed,
+        'is_new_user': is_new_user,
         'profile': profile,
         'projects': Project.objects.filter(user=request.user),
     }
@@ -91,6 +99,7 @@ def profile_view(request):
         'total_todos': total_todos,
         'total_pomodoros': total_pomodoros,
         'plans': UserProfile.PLAN_CHOICES,
+        'support_url': settings.SUPPORT_URL,
     }
 
     return render(request, 'dashboard/profile.html', context)

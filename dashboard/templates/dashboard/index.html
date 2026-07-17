@@ -515,6 +515,45 @@
     <span class="capacity-bar-detail" id="capacityBarDetail"></span>
 </div>
 
+{% if is_new_user %}
+<!-- First-run onboarding banner -->
+<div class="glass-panel" id="onboarding-banner" style="margin-bottom: 20px; padding: 24px; position: relative;">
+    <button id="onboarding-dismiss" title="Dismiss" style="position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 1.1rem; color: var(--text-secondary); cursor: pointer;">✕</button>
+    <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">👋 Welcome! Here's how this works</h2>
+    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">This isn't another to-do list — you don't have to arrive organized. Dump the chaos, we'll sort it.</p>
+    <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px;">
+        <div style="flex: 1; min-width: 180px; background: rgba(12,88,85,0.04); border: 1px solid rgba(12,88,85,0.1); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-color); margin-bottom: 4px;">1 · Brain dump</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Type (or 🎤 speak) everything on your mind into the box below — messy is fine.</div>
+        </div>
+        <div style="flex: 1; min-width: 180px; background: rgba(12,88,85,0.04); border: 1px solid rgba(12,88,85,0.1); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-color); margin-bottom: 4px;">2 · Extract tasks</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Hit <strong>Extract Tasks</strong> — AI turns your ramble into a clean to-do list.</div>
+        </div>
+        <div style="flex: 1; min-width: 180px; background: rgba(12,88,85,0.04); border: 1px solid rgba(12,88,85,0.1); border-radius: 12px; padding: 12px 14px;">
+            <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-color); margin-bottom: 4px;">3 · Prioritize &amp; focus</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Sort tasks into the priority matrix, then start a Pomodoro and execute.</div>
+        </div>
+    </div>
+    <button id="onboarding-example-btn" class="btn">✨ Try an example dump</button>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const banner = document.getElementById('onboarding-banner');
+    if (!banner) return;
+    document.getElementById('onboarding-dismiss').addEventListener('click', () => banner.remove());
+    document.getElementById('onboarding-example-btn').addEventListener('click', () => {
+        const input = document.getElementById('braindump-input');
+        if (input && !input.value.trim()) {
+            input.value = "need to finish the report for work by friday, also gotta call the dentist about that appointment. buy groceries - milk, eggs, bread. should really start going to the gym again. reply to mum's message";
+            input.dispatchEvent(new Event('input', { bubbles: true }));
+        }
+        input?.focus();
+        input?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    });
+});
+</script>
+{% endif %}
 <div class="dashboard-grid">
     
     <!-- COLUMN 1: Brain Dump & Auto-Generated Todos -->

@@ -28,6 +28,10 @@ csrf_origins = os.getenv('CSRF_TRUSTED_ORIGINS')
 if csrf_origins:
     CSRF_TRUSTED_ORIGINS.extend([origin.strip() for origin in csrf_origins.split(',') if origin.strip()])
 
+# Optional donation/support page (e.g. https://ko-fi.com/yourname).
+# Shown on the profile page when set.
+SUPPORT_URL = os.getenv('SUPPORT_URL', '')
+
 
 # Application definition
 

@@ -2,7 +2,6 @@ import json
 from functools import wraps
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
-from django.views.decorators.csrf import csrf_exempt
 from django.utils import timezone
 from datetime import datetime
 from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project, TaskBreakdown
@@ -28,7 +27,6 @@ def api_login_required(view_func):
         return view_func(request, *args, **kwargs)
     return _wrapped_view
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def save_braindump(request):
@@ -50,7 +48,6 @@ def save_braindump(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def generate_todos(request):
@@ -99,7 +96,6 @@ def generate_todos(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def add_todo(request):
@@ -134,7 +130,6 @@ def add_todo(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def update_todo_priority(request):
@@ -170,7 +165,6 @@ def update_todo_priority(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def toggle_todo(request):
@@ -186,7 +180,6 @@ def toggle_todo(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def delete_todo(request):
@@ -201,7 +194,6 @@ def delete_todo(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def save_reflection(request):
@@ -223,7 +215,6 @@ def save_reflection(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def generate_suggestions_view(request):
@@ -267,7 +258,6 @@ def sync_user_pomodoros(user):
             synced_count += 1
     return synced_count
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def start_pomodoro(request):
@@ -290,7 +280,6 @@ def start_pomodoro(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def complete_pomodoro(request):
@@ -372,7 +361,6 @@ def pomodoro_status(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def save_pomodoro_log(request):
@@ -396,7 +384,6 @@ def save_pomodoro_log(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def cancel_pomodoro(request):
@@ -406,7 +393,6 @@ def cancel_pomodoro(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def update_plan(request):
@@ -424,7 +410,6 @@ def update_plan(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def update_avatar(request):
@@ -451,7 +436,6 @@ def update_avatar(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def update_todo_title(request):
@@ -474,7 +458,6 @@ def update_todo_title(request):
 
 # ========== PROJECT CRUD API ==========
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def add_project(request):
@@ -509,7 +492,6 @@ def add_project(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def update_project(request):
@@ -543,7 +525,6 @@ def update_project(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def delete_project(request):
@@ -561,7 +542,6 @@ def delete_project(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def clean_ramble(request):
@@ -728,7 +708,6 @@ def seed_user_default_verses(user):
             created_count += 1
     return created_count
 
-@csrf_exempt
 @api_login_required
 def get_bible_verses(request):
     try:
@@ -765,7 +744,6 @@ def get_bible_verses(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def add_bible_verse(request):
@@ -812,7 +790,6 @@ def add_bible_verse(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def update_bible_verse(request):
@@ -853,7 +830,6 @@ def update_bible_verse(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def delete_bible_verse(request):
@@ -870,7 +846,6 @@ def delete_bible_verse(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def rate_bible_verse(request):
@@ -927,7 +902,6 @@ def rate_bible_verse(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def update_bible_goal(request):
@@ -946,7 +920,6 @@ def update_bible_goal(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def seed_bible_verses(request):
@@ -956,7 +929,6 @@ def seed_bible_verses(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def fetch_daily_vocab(request):
@@ -971,7 +943,6 @@ def fetch_daily_vocab(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-@csrf_exempt
 @api_login_required
 def word_of_the_day(request):
     """
@@ -1076,7 +1047,6 @@ def word_of_the_day(request):
 
 from django.views.decorators.http import require_http_methods
 
-@csrf_exempt
 @require_http_methods(["GET"])
 @api_login_required
 def get_task_breakdown(request, todo_id):
@@ -1102,7 +1072,6 @@ def get_task_breakdown(request, todo_id):
     })
 
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def save_task_breakdown(request):
@@ -1137,7 +1106,6 @@ def save_task_breakdown(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-@csrf_exempt
 @require_POST
 @api_login_required
 def reorder_projects(request):
@@ -1150,3 +1118,26 @@ def reorder_projects(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
+
+
+@api_login_required
+def today_summary(request):
+    """
+    GET /api/todo/today-summary/
+    Lightweight counts for reminder notifications.
+    """
+    try:
+        today = timezone.localdate()
+        todos = Todo.objects.filter(user=request.user, date=today)
+        total = todos.count()
+        completed = todos.filter(is_completed=True).count()
+        missed = Todo.objects.filter(user=request.user, is_completed=False, date__lt=today).count()
+        return JsonResponse({
+            'status': 'success',
+            'total': total,
+            'completed': completed,
+            'pending': total - completed,
+            'missed': missed,
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)

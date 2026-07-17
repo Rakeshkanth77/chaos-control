@@ -2369,6 +2369,25 @@ body {
     .pomo-btn-text {
         display: none !important;
     }
+    .mobile-reminder-btn {
+        display: flex !important;
+        background: rgba(255, 255, 255, 0.6);
+        border: 1px solid rgba(255, 255, 255, 0.7);
+        color: var(--text-primary);
+        cursor: pointer;
+        order: 1 !important;
+    }
+    .mobile-reminder-btn:hover {
+        background: rgba(255, 255, 255, 0.9);
+    }
+}
+
+/* Reminders bell — active (enabled) state */
+.reminder-toggle-btn.active {
+    color: var(--accent-color) !important;
+}
+.reminder-toggle-btn.active svg {
+    fill: rgba(45, 212, 191, 0.2);
 }
 
 /* Pomodoro Popup Overlay */
