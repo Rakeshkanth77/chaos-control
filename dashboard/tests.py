@@ -1,5 +1,5 @@
 import json
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.utils import timezone
 from django.contrib.auth.models import User
 import unittest.mock as mock
@@ -111,6 +111,57 @@ class AuthenticationAndAccessTestCase(TestCase):
     def test_api_requires_login_json(self):
         response = self.client.post('/api/todo/add/', content_type='application/json')
         self.assertEqual(response.status_code, 401)
+
+
+class PwaAndLegalTestCase(TestCase):
+    def test_service_worker_served_at_root(self):
+        response = self.client.get('/sw.js')
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response['Service-Worker-Allowed'], '/')
+        self.assertIn('javascript', response['Content-Type'])
+
+    def test_offline_page(self):
+        self.assertEqual(self.client.get('/offline/').status_code, 200)
+
+    def test_privacy_page_discloses_ai_sharing(self):
+        response = self.client.get('/privacy/')
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, 'Gemini')
+
+
+class AccountDeletionTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='doomed', password='pw123', email='doomed@t.local')
+
+    def test_delete_requires_login(self):
+        self.assertEqual(self.client.post('/account/delete/').status_code, 302)
+
+    def test_delete_rejects_get(self):
+        self.client.login(username='doomed', password='pw123')
+        self.assertEqual(self.client.get('/account/delete/').status_code, 405)
+
+    def test_delete_removes_user_and_data(self):
+        Todo.objects.create(user=self.user, title='doomed task', date=timezone.localdate())
+        self.client.login(username='doomed', password='pw123')
+        response = self.client.post('/account/delete/')
+        self.assertEqual(response.status_code, 302)
+        self.assertFalse(User.objects.filter(username='doomed').exists())
+        self.assertEqual(Todo.objects.filter(title='doomed task').count(), 0)
+
+
+class AIRateLimitTestCase(TestCase):
+    @override_settings(DAILY_AI_LIMIT=2)
+    def test_quota_blocks_after_limit(self):
+        from dashboard.api import consume_ai_quota
+        user = User.objects.create_user(username='heavy', password='pw123')
+        results = [consume_ai_quota(user)[0] for _ in range(3)]
+        self.assertEqual(results, [True, True, False])
+
+    @override_settings(DAILY_AI_LIMIT=1)
+    def test_staff_exempt_from_quota(self):
+        from dashboard.api import consume_ai_quota
+        staff = User.objects.create_user(username='boss', password='pw123', is_staff=True)
+        self.assertTrue(all(consume_ai_quota(staff)[0] for _ in range(5)))
 
 
 class CleanRambleTestCase(TestCase):

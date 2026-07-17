@@ -9,7 +9,13 @@ urlpatterns = [
     path('profile/', views.profile_view, name='profile'),
     path('projects/', views.projects_view, name='projects'),
     path('bible-memory/', views.bible_memory_view, name='bible_memory'),
-    
+
+    # PWA + legal + account
+    path('sw.js', views.ServiceWorkerView.as_view(), name='service_worker'),
+    path('offline/', views.offline_view, name='offline'),
+    path('privacy/', views.privacy_view, name='privacy'),
+    path('account/delete/', views.delete_account, name='delete_account'),
+
     # API endpoints
     path('api/braindump/save/', api.save_braindump, name='api_save_braindump'),
     path('api/braindump/generate-todos/', api.generate_todos, name='api_generate_todos'),

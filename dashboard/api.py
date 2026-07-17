@@ -1,11 +1,27 @@
 import json
 from functools import wraps
+from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from datetime import datetime
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project, TaskBreakdown
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project, TaskBreakdown, AIUsage
 from .services import parse_brain_dump, generate_ai_reflection
+
+
+def consume_ai_quota(user):
+    """
+    Increment the user's daily AI-usage counter.
+    Returns (allowed: bool, remaining: int). Staff are exempt from the limit.
+    """
+    limit = settings.DAILY_AI_LIMIT
+    today = timezone.localdate()
+    usage, _ = AIUsage.objects.get_or_create(user=user, date=today)
+    if not user.is_staff and usage.count >= limit:
+        return False, 0
+    usage.count += 1
+    usage.save(update_fields=['count'])
+    return True, max(limit - usage.count, 0)
 
 def get_date_from_request(data):
     """
@@ -59,6 +75,14 @@ def generate_todos(request):
         braindump = BrainDump.objects.filter(date=target_date, user=request.user).first()
         if not braindump or not braindump.content.strip():
             return JsonResponse({'status': 'error', 'message': 'Brain dump is empty.'}, status=400)
+
+        # Enforce daily AI quota before spending an LLM call
+        allowed, remaining = consume_ai_quota(request.user)
+        if not allowed:
+            return JsonResponse({
+                'status': 'error',
+                'message': f"You've reached today's limit of {settings.DAILY_AI_LIMIT} AI actions. It resets tomorrow.",
+            }, status=429)
 
         # Run LLM or fallback parsing service
         todo_titles = parse_brain_dump(braindump.content)
@@ -226,6 +250,14 @@ def generate_suggestions_view(request):
         reflection = DailyReflection.objects.filter(date=target_date, user=request.user).first()
         if not reflection or not reflection.notes.strip():
             return JsonResponse({'status': 'error', 'message': 'Daily reflection notes are empty.'}, status=400)
+
+        # Enforce daily AI quota before spending an LLM call
+        allowed, remaining = consume_ai_quota(request.user)
+        if not allowed:
+            return JsonResponse({
+                'status': 'error',
+                'message': f"You've reached today's limit of {settings.DAILY_AI_LIMIT} AI actions. It resets tomorrow.",
+            }, status=429)
 
         # Generate mistakes & suggestions via LLM service
         mistakes, suggestions = generate_ai_reflection(reflection.notes)
@@ -552,6 +584,14 @@ def clean_ramble(request):
 
         if not content:
             return JsonResponse({'status': 'error', 'message': 'Content is empty.'}, status=400)
+
+        # Enforce daily AI quota before spending an LLM call
+        allowed, remaining = consume_ai_quota(request.user)
+        if not allowed:
+            return JsonResponse({
+                'status': 'error',
+                'message': f"You've reached today's limit of {settings.DAILY_AI_LIMIT} AI actions. It resets tomorrow.",
+            }, status=429)
 
         # Import the service function
         from .services import clean_ramble_text

@@ -1,0 +1,12 @@
+{% extends 'base.html' %}
+{% block title %}Offline | to-do{% endblock %}
+{% block content %}
+<div style="max-width: 440px; margin: 60px auto; text-align: center; padding: 0 20px;">
+    <div style="font-size: 3rem; margin-bottom: 16px;">📡</div>
+    <h1 style="font-family: 'Outfit', sans-serif; font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin-bottom: 10px;">You're offline</h1>
+    <p style="font-size: 0.95rem; color: var(--text-secondary); line-height: 1.6; margin-bottom: 24px;">
+        No internet connection right now. Your saved tasks will be here waiting once you're back online.
+    </p>
+    <button onclick="location.reload()" class="btn">Try again</button>
+</div>
+{% endblock %}

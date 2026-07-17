@@ -1,10 +1,48 @@
 from django.conf import settings
-from django.shortcuts import render
+from django.contrib import messages
+from django.contrib.auth import logout
+from django.shortcuts import render, redirect
 from django.utils import timezone
+from django.views.decorators.http import require_POST
 from django.contrib.auth.decorators import login_required
+from django.views.generic import TemplateView
 from datetime import datetime
 from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project
 from analytics.api import calculate_streak
+
+
+class ServiceWorkerView(TemplateView):
+    """Serve the service worker from the site root so its scope covers the whole origin."""
+    template_name = 'sw.js'
+    content_type = 'application/javascript'
+
+    def get(self, request, *args, **kwargs):
+        response = super().get(request, *args, **kwargs)
+        response['Service-Worker-Allowed'] = '/'
+        response['Cache-Control'] = 'no-cache'
+        return response
+
+
+def offline_view(request):
+    return render(request, 'offline.html')
+
+
+def privacy_view(request):
+    return render(request, 'legal/privacy.html', {
+        'contact_email': settings.CONTACT_EMAIL,
+        'updated': 'July 2026',
+    })
+
+
+@require_POST
+@login_required
+def delete_account(request):
+    """Permanently delete the logged-in user and all their data (cascades)."""
+    user = request.user
+    logout(request)
+    user.delete()
+    messages.success(request, 'Your account and all associated data have been permanently deleted.')
+    return redirect('/')
 
 def index(request):
     # 1. Unauthenticated users get the SaaS landing page

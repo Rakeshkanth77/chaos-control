@@ -32,6 +32,13 @@ if csrf_origins:
 # Shown on the profile page when set.
 SUPPORT_URL = os.getenv('SUPPORT_URL', '')
 
+# Max AI-powered actions (brain-dump extract, reflection insights) per user per day.
+# Protects against runaway LLM API costs. Staff are exempt.
+DAILY_AI_LIMIT = int(os.getenv('DAILY_AI_LIMIT', '25'))
+
+# Contact email shown on the privacy policy (required by app stores).
+CONTACT_EMAIL = os.getenv('CONTACT_EMAIL', '')
+
 
 # Application definition
 

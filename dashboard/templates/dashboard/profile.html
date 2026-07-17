@@ -351,8 +351,63 @@
             </a>
         </div>
         {% endif %}
+
+        <!-- Privacy & Account Card -->
+        <div class="glass-panel" style="padding: 24px; width: 100%;">
+            <a href="/privacy/" style="display: flex; align-items: center; justify-content: space-between; text-decoration: none; color: var(--text-primary); font-size: 0.9rem; font-weight: 500; padding: 6px 0;">
+                <span>Privacy Policy</span>
+                <span style="color: var(--text-secondary);">&rarr;</span>
+            </a>
+            <div style="border-top: 1px solid rgba(239,68,68,0.12); margin-top: 16px; padding-top: 16px;">
+                <div style="font-size: 0.82rem; font-weight: 700; color: #dc2626; margin-bottom: 6px;">Danger Zone</div>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); line-height: 1.5; margin-bottom: 14px;">
+                    Permanently delete your account and all your tasks, dumps, reflections, and history. This cannot be undone.
+                </p>
+                <button id="delete-account-btn" type="button" style="width: 100%; background: rgba(239,68,68,0.08); border: 1px solid rgba(239,68,68,0.25); border-radius: 12px; padding: 12px; font-family: 'Inter', sans-serif; font-size: 0.9rem; font-weight: 600; color: #dc2626; cursor: pointer; transition: background 0.2s;" onmouseover="this.style.background='rgba(239,68,68,0.14)';" onmouseout="this.style.background='rgba(239,68,68,0.08)';">
+                    Delete My Account
+                </button>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Delete account confirmation modal -->
+<div id="delete-account-overlay" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 10050; align-items: center; justify-content: center; padding: 20px;">
+    <div style="background: #fff; border-radius: 18px; max-width: 400px; width: 100%; padding: 28px; box-shadow: 0 20px 60px rgba(0,0,0,0.25);">
+        <div style="font-size: 2rem; text-align: center; margin-bottom: 10px;">⚠️</div>
+        <h3 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: var(--text-primary); text-align: center; margin-bottom: 8px;">Delete your account?</h3>
+        <p style="font-size: 0.88rem; color: var(--text-secondary); line-height: 1.6; text-align: center; margin-bottom: 18px;">
+            This permanently erases everything. To confirm, type <strong>DELETE</strong> below.
+        </p>
+        <input type="text" id="delete-confirm-input" placeholder="Type DELETE" autocomplete="off" style="width: 100%; padding: 12px 14px; border: 1px solid rgba(12,88,85,0.2); border-radius: 12px; font-size: 0.95rem; margin-bottom: 16px; outline: none; text-align: center;">
+        <div style="display: flex; gap: 10px;">
+            <button id="delete-cancel-btn" type="button" style="flex: 1; padding: 12px; border: 1px solid rgba(12,88,85,0.15); background: #fff; border-radius: 12px; font-weight: 600; font-size: 0.9rem; color: var(--text-primary); cursor: pointer;">Cancel</button>
+            <form method="POST" action="/account/delete/" style="flex: 1;">
+                {% csrf_token %}
+                <button id="delete-confirm-btn" type="submit" disabled style="width: 100%; padding: 12px; border: none; background: #dc2626; border-radius: 12px; font-weight: 600; font-size: 0.9rem; color: #fff; cursor: pointer; opacity: 0.5;">Delete Forever</button>
+            </form>
+        </div>
+    </div>
+</div>
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+    const openBtn = document.getElementById('delete-account-btn');
+    const overlay = document.getElementById('delete-account-overlay');
+    const cancelBtn = document.getElementById('delete-cancel-btn');
+    const confirmInput = document.getElementById('delete-confirm-input');
+    const confirmBtn = document.getElementById('delete-confirm-btn');
+    if (!openBtn) return;
+
+    openBtn.addEventListener('click', () => { overlay.style.display = 'flex'; confirmInput.focus(); });
+    cancelBtn.addEventListener('click', () => { overlay.style.display = 'none'; confirmInput.value = ''; confirmBtn.disabled = true; confirmBtn.style.opacity = '0.5'; });
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) cancelBtn.click(); });
+    confirmInput.addEventListener('input', () => {
+        const ok = confirmInput.value.trim() === 'DELETE';
+        confirmBtn.disabled = !ok;
+        confirmBtn.style.opacity = ok ? '1' : '0.5';
+    });
+});
+</script>
 
 <!-- TAB 2: PRODUCTIVITY ANALYTICS -->
 <div class="profile-tab-content" id="profile-tab-analytics">

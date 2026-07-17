@@ -7,7 +7,16 @@
     <!-- Favicon -->
     {% load static %}
     <link rel="icon" type="image/svg+xml" href="{% static 'images/logo_favicon.svg' %}">
-    
+
+    <!-- PWA -->
+    <link rel="manifest" href="{% static 'manifest.json' %}">
+    <meta name="theme-color" content="#0c5855">
+    <meta name="mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="to-do">
+    <link rel="apple-touch-icon" href="{% static 'images/apple-touch-icon.png' %}">
+
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -247,6 +256,7 @@
                 {% endif %}
                 Profile
             </a>
+            <a href="/privacy/" class="mobile-nav-link {% if request.path == '/privacy/' %}active{% endif %}">Privacy</a>
             <div class="mobile-nav-divider"></div>
             <a href="/accounts/logout/" class="mobile-nav-logout">Sign Out</a>
         {% else %}
@@ -617,5 +627,16 @@
     {% endif %}
 
     {% block extra_js %}{% endblock %}
+
+    <!-- Register service worker for offline support & installability -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch((err) => {
+                    console.warn('Service worker registration failed:', err);
+                });
+            });
+        }
+    </script>
 </body>
 </html>

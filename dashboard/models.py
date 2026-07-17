@@ -144,6 +144,19 @@ class BibleVerse(models.Model):
         return f"{self.reference} ({self.category})"
 
 
+class AIUsage(models.Model):
+    """Tracks per-user daily AI call counts for rate limiting."""
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='ai_usage')
+    date = models.DateField()
+    count = models.IntegerField(default=0)
+
+    class Meta:
+        unique_together = ('user', 'date')
+
+    def __str__(self):
+        return f"{self.user.username} — {self.count} calls on {self.date}"
+
+
 # Signals to automatically create UserProfile on signup and load Google avatar URL
 from django.db.models.signals import post_save
 from django.dispatch import receiver

@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Privacy Policy | to-do{% endblock %}
+{% block content %}
+<div style="max-width: 760px; margin: 0 auto; padding: 20px 20px 80px; color: var(--text-primary);">
+    <a href="/" style="color: var(--accent-color); text-decoration: none; font-size: 0.9rem;">&larr; Back to app</a>
+    <h1 style="font-family: 'Outfit', sans-serif; font-size: 2rem; font-weight: 800; margin: 16px 0 4px;">Privacy Policy</h1>
+    <p style="color: var(--text-secondary); font-size: 0.85rem; margin-bottom: 28px;">Last updated: {{ updated }}</p>
+
+    <div style="font-size: 0.95rem; line-height: 1.7; color: var(--text-secondary);">
+        <p style="margin-bottom: 20px;">This app ("to-do made by researcher") helps you capture thoughts and organize them into tasks. This policy explains what we collect, how it's used, and your rights over your data.</p>
+
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 24px 0 8px;">1. Information we collect</h2>
+        <ul style="padding-left: 20px; margin-bottom: 20px;">
+            <li><strong>Account details:</strong> your email address, and (if you sign in with Google) your name and profile picture.</li>
+            <li><strong>Content you create:</strong> brain-dump text, tasks, task breakdowns, daily reflections, focus-session logs, practice words/verses, and projects.</li>
+            <li><strong>An optional avatar</strong> if you upload one.</li>
+        </ul>
+
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 24px 0 8px;">2. How your data is used</h2>
+        <p style="margin-bottom: 12px;">We use your content solely to provide the app's features to you — storing your tasks, showing your analytics, and generating streaks. We do not sell your data or use it for advertising.</p>
+
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 24px 0 8px;">3. AI processing &amp; third parties</h2>
+        <p style="margin-bottom: 12px;">When you use AI features (extracting tasks from a brain dump, cleaning up rambling text, or generating reflection insights), the text you submit is sent to third-party AI providers — <strong>Google (Gemini)</strong> and/or <strong>OpenAI</strong> — to process that request. Please avoid entering highly sensitive personal information into these fields. These providers process the text under their own privacy terms.</p>
+        <p style="margin-bottom: 12px;">Authentication (Google sign-in) is handled via Google OAuth. Data is stored in a PostgreSQL database hosted on Railway.</p>
+
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 24px 0 8px;">4. Data retention &amp; deletion</h2>
+        <p style="margin-bottom: 12px;">Your data is kept for as long as your account exists. You can permanently delete your account and all associated data at any time from <a href="/profile/" style="color: var(--accent-color);">your profile page</a> &rarr; Delete Account. This action is immediate and irreversible.</p>
+
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 24px 0 8px;">5. Security</h2>
+        <p style="margin-bottom: 12px;">Connections are encrypted over HTTPS. We take reasonable measures to protect your data, though no method of transmission or storage is completely secure.</p>
+
+        <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 24px 0 8px;">6. Contact</h2>
+        {% if contact_email %}
+        <p style="margin-bottom: 12px;">For any privacy questions or data requests, contact us at <a href="mailto:{{ contact_email }}" style="color: var(--accent-color);">{{ contact_email }}</a>.</p>
+        {% else %}
+        <p style="margin-bottom: 12px;">For any privacy questions or data requests, please reach out through the app.</p>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
