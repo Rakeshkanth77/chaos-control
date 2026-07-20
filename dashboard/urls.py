@@ -14,6 +14,7 @@ urlpatterns = [
     path('sw.js', views.ServiceWorkerView.as_view(), name='service_worker'),
     path('offline/', views.offline_view, name='offline'),
     path('privacy/', views.privacy_view, name='privacy'),
+    path('.well-known/assetlinks.json', views.assetlinks_view, name='assetlinks'),
     path('account/delete/', views.delete_account, name='delete_account'),
 
     # API endpoints

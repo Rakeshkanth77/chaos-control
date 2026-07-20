@@ -34,6 +34,21 @@ def privacy_view(request):
     })
 
 
+def assetlinks_view(request):
+    """Serve Digital Asset Links for Android Trusted Web Activity (TWA)."""
+    from django.http import JsonResponse
+    return JsonResponse([{
+        "relation": ["delegate_permission/common.handle_all_urls"],
+        "target": {
+            "namespace": "android_app",
+            "package_name": "me.rakeshkanth.todo",
+            "sha256_cert_fingerprints": [
+                "00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00:00"
+            ]
+        }
+    }], safe=False)
+
+
 @require_POST
 @login_required
 def delete_account(request):
