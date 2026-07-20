@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     const pomoFinishEarlyBtn = document.getElementById('pomoFinishEarlyBtn');
     const pomoExtend5Btn = document.getElementById('pomoExtend5Btn');
     const pomoExtend10Btn = document.getElementById('pomoExtend10Btn');
+    const pomoTaskSelect = document.getElementById('pomoTaskSelect');
+    const pomoActiveTaskBanner = document.getElementById('pomoActiveTaskBanner');
     
     const pomoCustomMins = document.getElementById('pomoCustomMins');
     const pomoStartCustomBtn = document.getElementById('pomoStartCustomBtn');
@@ -327,6 +329,10 @@ document.addEventListener('DOMContentLoaded', () => {
         updateProgressRing(100, 100);
         pomoSessionStatus.textContent = 'Ready to focus?';
         if (pomoPauseBtn) pomoPauseBtn.style.display = 'flex';
+        if (pomoActiveTaskBanner) {
+            pomoActiveTaskBanner.style.display = 'none';
+            pomoActiveTaskBanner.textContent = '';
+        }
         
         if (pomoNavTimer) {
             pomoNavTimer.style.display = 'none';
@@ -366,17 +372,27 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         pomoSessionStatus.textContent = 'Starting session...';
+        const taskId = pomoTaskSelect ? pomoTaskSelect.value : null;
+        const selectedOptText = pomoTaskSelect && pomoTaskSelect.selectedIndex > 0 ? pomoTaskSelect.options[pomoTaskSelect.selectedIndex].textContent.replace('🎯 ', '') : '';
 
         try {
-            const data = await apiPost('/api/pomodoro/start/', { duration_minutes: mins });
+            const data = await apiPost('/api/pomodoro/start/', {
+                duration_minutes: mins,
+                task_id: taskId || null,
+                task_title: selectedOptText || ''
+            });
             if (data.status === 'success') {
                 currentSessionId = data.session_id;
                 pomoSetupControls.style.display = 'none';
-                pomoRunningControls.style.display = 'block';
+                pomoRunningControls.style.display = 'flex';
                 if (pomoPipBtn && isPipSupported) {
                     pomoPipBtn.style.display = 'block';
                 }
                 pomoSessionStatus.textContent = 'Deep Focus Active';
+                if (data.task_title && pomoActiveTaskBanner) {
+                    pomoActiveTaskBanner.textContent = `🎯 Focusing on: ${data.task_title}`;
+                    pomoActiveTaskBanner.style.display = 'block';
+                }
                 
                 // Start local timer
                 const totalSeconds = mins * 60;
@@ -515,6 +531,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await response.json();
             
             if (data.status === 'success') {
+                if (data.pending_tasks) {
+                    populateTaskSelect(data.pending_tasks);
+                }
+
                 // 1. Sync active session state
                 if (data.active_session) {
                     currentSessionId = data.active_session.id;
@@ -523,6 +543,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     pomoRunningControls.style.display = 'flex';
                     if (pomoPipBtn && isPipSupported) {
                         pomoPipBtn.style.display = 'block';
+                    }
+                    
+                    if (data.active_session.task_title && pomoActiveTaskBanner) {
+                        pomoActiveTaskBanner.textContent = `🎯 Focusing on: ${data.active_session.task_title}`;
+                        pomoActiveTaskBanner.style.display = 'block';
+                    } else if (pomoActiveTaskBanner) {
+                        pomoActiveTaskBanner.style.display = 'none';
                     }
                     
                     if (data.active_session.in_grace_period) {
@@ -1211,6 +1238,65 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
     }
+
+    function populateTaskSelect(pendingTasks) {
+        if (!pomoTaskSelect) return;
+        const currentVal = pomoTaskSelect.value;
+        pomoTaskSelect.innerHTML = '<option value="">-- General Focus Sprint --</option>';
+        if (pendingTasks && pendingTasks.length > 0) {
+            pendingTasks.forEach(t => {
+                const opt = document.createElement('option');
+                opt.value = t.id;
+                opt.textContent = `🎯 ${t.title}`;
+                pomoTaskSelect.appendChild(opt);
+            });
+        }
+        if (currentVal) {
+            pomoTaskSelect.value = currentVal;
+        }
+    }
+
+    function openPomoWithTask(taskId, taskTitle) {
+        if (typeof openPomoPopupPanel === 'function') {
+            openPomoPopupPanel();
+        } else {
+            const pomoPopup = document.getElementById('pomoPopup');
+            const pomoPopupOverlay = document.getElementById('pomoPopupOverlay');
+            if (pomoPopup) pomoPopup.classList.add('open');
+            if (pomoPopupOverlay) pomoPopupOverlay.classList.add('open');
+        }
+        if (pomoTaskSelect) {
+            let found = false;
+            for (let i = 0; i < pomoTaskSelect.options.length; i++) {
+                if (pomoTaskSelect.options[i].value == taskId) {
+                    pomoTaskSelect.selectedIndex = i;
+                    found = true;
+                    break;
+                }
+            }
+            if (!found && taskId && taskTitle) {
+                const opt = document.createElement('option');
+                opt.value = taskId;
+                opt.textContent = `🎯 ${taskTitle}`;
+                pomoTaskSelect.appendChild(opt);
+                pomoTaskSelect.value = taskId;
+            }
+        }
+        if (window.showToast) {
+            window.showToast(`Selected task: "${taskTitle}" for Focus Sprint! 🚀`);
+        }
+    }
+
+    // Global listener for "Focus" button clicks on task cards
+    document.addEventListener('click', (e) => {
+        const focusBtn = e.target.closest('.action-btn.focus-pomo');
+        if (!focusBtn) return;
+        const todoItem = focusBtn.closest('.todo-item');
+        if (!todoItem) return;
+        const taskId = todoItem.dataset.id;
+        const taskTitle = todoItem.querySelector('.todo-text') ? todoItem.querySelector('.todo-text').textContent.trim() : '';
+        openPomoWithTask(taskId, taskTitle);
+    });
 
     // Start: Perform initial sync on page load
     syncStatus();

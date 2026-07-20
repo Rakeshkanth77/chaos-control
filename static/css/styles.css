@@ -441,6 +441,18 @@ body {
     background: rgba(239, 68, 68, 0.1);
 }
 
+.action-btn.focus-pomo {
+    background: rgba(45, 212, 191, 0.08);
+    border: 1px solid rgba(45, 212, 191, 0.3) !important;
+    color: #2dd4bf;
+    font-weight: 600;
+}
+
+.action-btn.focus-pomo:hover {
+    background: rgba(45, 212, 191, 0.2);
+    color: #ffffff;
+}
+
 .action-btn.breakdown {
     background: rgba(12, 88, 85, 0.05);
     border: 1px solid rgba(45, 212, 191, 0.3) !important;

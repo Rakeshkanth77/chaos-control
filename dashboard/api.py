@@ -302,20 +302,34 @@ def start_pomodoro(request):
         data = json.loads(request.body)
         target_date = get_date_from_request(data)
         duration = int(data.get('duration_minutes', 25))
+        task_id = data.get('task_id')
+        custom_task_title = data.get('task_title', '').strip()
 
         # Clear/delete any active, unfinished sessions first to prevent concurrency clutter
         PomodoroSession.objects.filter(user=request.user, completed=False).delete()
 
+        task_obj = None
+        focus_title = custom_task_title
+        if task_id:
+            try:
+                task_obj = Todo.objects.get(id=task_id, user=request.user)
+                if not focus_title:
+                    focus_title = task_obj.title
+            except Todo.DoesNotExist:
+                pass
+
         session = PomodoroSession.objects.create(
             user=request.user,
+            task=task_obj,
             duration_minutes=duration,
             completed=False,
             is_paused=False,
             total_paused_seconds=0,
+            focus_log=focus_title,
             date=target_date
         )
 
-        return JsonResponse({'status': 'success', 'session_id': session.id})
+        return JsonResponse({'status': 'success', 'session_id': session.id, 'task_title': focus_title})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -429,6 +443,7 @@ def finish_early_pomodoro(request):
 def pomodoro_status(request):
     try:
         sync_user_pomodoros(request.user)
+        today = timezone.localdate()
         
         active_session = PomodoroSession.objects.filter(user=request.user, completed=False).order_by('-started_at').first()
         active_data = None
@@ -444,6 +459,8 @@ def pomodoro_status(request):
             in_grace = (now >= end_time) and (now < end_time + timezone.timedelta(seconds=60))
             grace_rem = max(0, int((end_time + timezone.timedelta(seconds=60) - now).total_seconds())) if in_grace else 0
             
+            task_title = active_session.task.title if active_session.task else (active_session.focus_log or "")
+
             active_data = {
                 'id': active_session.id,
                 'duration_minutes': active_session.duration_minutes,
@@ -452,10 +469,15 @@ def pomodoro_status(request):
                 'is_paused': active_session.is_paused,
                 'total_paused_seconds': curr_paused_sec,
                 'in_grace_period': in_grace,
-                'grace_remaining_seconds': grace_rem
+                'grace_remaining_seconds': grace_rem,
+                'task_id': active_session.task.id if active_session.task else None,
+                'task_title': task_title
             }
         
-        today = timezone.localdate()
+        # Get pending tasks for today
+        pending_todos = Todo.objects.filter(user=request.user, date=today, completed=False).order_by('id')
+        pending_list = [{'id': t.id, 'title': t.title} for t in pending_todos]
+
         completed_sessions = PomodoroSession.objects.filter(
             user=request.user,
             completed=True,
@@ -494,6 +516,7 @@ def pomodoro_status(request):
         return JsonResponse({
             'status': 'success',
             'active_session': active_data,
+            'pending_tasks': pending_list,
             'completed_logs': logs_list,
             'prompt_log_session': prompt_log_session
         })

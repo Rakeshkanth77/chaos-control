@@ -699,10 +699,16 @@
                 <div class="pomo-timer-text" id="pomoTimerText">25:00</div>
             </div>
             <div class="pomo-session-status" id="pomoSessionStatus">Ready to focus?</div>
+            <div id="pomoActiveTaskBanner" class="pomo-active-task-banner" style="display: none; font-size: 0.85rem; color: #2dd4bf; font-weight: 600; text-align: center; margin-top: 8px; padding: 6px 12px; background: rgba(45, 212, 191, 0.1); border-radius: 8px; border: 1px solid rgba(45, 212, 191, 0.25);"></div>
         </div>
 
         <!-- Controls Section (Visible when timer is NOT running) -->
         <div class="pomo-setup-controls" id="pomoSetupControls">
+            <div class="pomo-section-label">🎯 Select Task to Focus On:</div>
+            <select id="pomoTaskSelect" class="pomo-task-select" style="width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(45, 212, 191, 0.3); color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 0.88rem; outline: none; margin-bottom: 12px; cursor: pointer;">
+                <option value="">-- General Focus Sprint --</option>
+            </select>
+
             <div class="pomo-section-label">Select Sprint Duration:</div>
             <div class="pomo-presets-grid">
                 <button class="btn pomo-preset-btn" data-mins="25" style="background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.25); color: #2dd4bf; border-radius: 10px; font-weight: 600;">25 min</button>

@@ -66,6 +66,7 @@ class DailyReflection(models.Model):
 
 class PomodoroSession(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
+    task = models.ForeignKey(Todo, on_delete=models.SET_NULL, null=True, blank=True)
     started_at = models.DateTimeField(auto_now_add=True)
     ended_at = models.DateTimeField(null=True, blank=True)
     duration_minutes = models.IntegerField(default=25)

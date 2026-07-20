@@ -255,6 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </select>
                             </div>
                             <div class="todo-actions">
+                                <button class="action-btn focus-pomo" title="Focus on this task in Pomodoro">▶️ focus</button>
                                 <button class="action-btn edit">edit</button>
                                 <button class="action-btn delete">delete</button>
                             </div>
@@ -417,6 +418,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </select>
                             </div>
                             <div class="todo-actions">
+                                <button class="action-btn focus-pomo" title="Focus on this task in Pomodoro">▶️ focus</button>
                                 <button class="action-btn edit">edit</button>
                                 <button class="action-btn breakdown">details</button>
                                 <button class="action-btn delete">delete</button>
