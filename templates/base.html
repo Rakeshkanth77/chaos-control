@@ -33,8 +33,8 @@
         .user-profile-badge {
             display: flex;
             align-items: center;
-            gap: 10px;
-            padding: 4px 12px;
+            gap: 8px;
+            padding: 5px 12px;
             background: rgba(12, 88, 85, 0.08);
             border: 1px solid rgba(12, 88, 85, 0.18);
             border-radius: 20px;
@@ -42,10 +42,185 @@
             font-weight: 500;
             color: var(--text-primary);
             text-decoration: none;
-            transition: background 0.2s;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
             white-space: nowrap;
+            cursor: pointer;
+            outline: none;
+            user-select: none;
         }
-        .user-profile-badge:hover { background: rgba(12, 88, 85, 0.15); }
+        .user-profile-badge:hover,
+        .profile-dropdown-wrapper:hover .user-profile-badge,
+        .profile-dropdown-wrapper.open .user-profile-badge {
+            background: rgba(12, 88, 85, 0.16);
+            border-color: rgba(45, 212, 191, 0.4);
+            box-shadow: 0 4px 12px rgba(12, 88, 85, 0.12);
+        }
+
+        .dropdown-chevron {
+            transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+            color: var(--text-secondary);
+            margin-left: 2px;
+        }
+        .profile-dropdown-wrapper:hover .dropdown-chevron,
+        .profile-dropdown-wrapper.open .dropdown-chevron {
+            transform: rotate(180deg);
+            color: var(--accent-color);
+        }
+
+        /* ── Profile Dropdown Navigation ── */
+        .profile-dropdown-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .profile-dropdown-wrapper::after {
+            content: '';
+            position: absolute;
+            top: 100%;
+            left: 0; right: 0;
+            height: 12px;
+            display: block;
+        }
+
+        .profile-dropdown-menu {
+            position: absolute;
+            top: calc(100% + 10px);
+            right: 0;
+            width: 240px;
+            background: rgba(8, 28, 26, 0.95);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(45, 212, 191, 0.22);
+            border-radius: 16px;
+            padding: 8px;
+            box-shadow: 0 16px 40px rgba(0, 0, 0, 0.4), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            opacity: 0;
+            visibility: hidden;
+            transform: translateY(8px) scale(0.96);
+            transition: opacity 0.2s cubic-bezier(0.16, 1, 0.3, 1), transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), visibility 0.2s;
+            z-index: 2000;
+        }
+
+        .profile-dropdown-wrapper:hover .profile-dropdown-menu,
+        .profile-dropdown-wrapper.open .profile-dropdown-menu {
+            opacity: 1;
+            visibility: visible;
+            transform: translateY(0) scale(1);
+        }
+
+        .dropdown-user-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 10px;
+            background: rgba(255, 255, 255, 0.04);
+            border-radius: 10px;
+            margin-bottom: 4px;
+        }
+
+        .dropdown-user-info {
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .dropdown-user-name {
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.88rem;
+            font-weight: 700;
+            color: #fff;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dropdown-user-email {
+            font-size: 0.72rem;
+            color: rgba(255, 255, 255, 0.5);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .dropdown-divider {
+            height: 1px;
+            background: rgba(255, 255, 255, 0.08);
+            margin: 6px 0;
+        }
+
+        .dropdown-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            font-family: 'Outfit', sans-serif;
+            font-size: 0.84rem;
+            font-weight: 500;
+            color: rgba(255, 255, 255, 0.82);
+            text-decoration: none;
+            border-radius: 8px;
+            transition: all 0.18s ease;
+            border: none;
+            background: transparent;
+            width: 100%;
+            text-align: left;
+            cursor: pointer;
+            box-sizing: border-box;
+        }
+
+        .dropdown-item svg {
+            color: rgba(255, 255, 255, 0.5);
+            transition: color 0.18s ease;
+            flex-shrink: 0;
+        }
+
+        .dropdown-item:hover {
+            background: rgba(45, 212, 191, 0.12);
+            color: #2dd4bf;
+            transform: translateX(2px);
+        }
+
+        .dropdown-item:hover svg {
+            color: #2dd4bf;
+        }
+
+        .dropdown-item.active {
+            background: rgba(45, 212, 191, 0.18);
+            color: #2dd4bf;
+            font-weight: 600;
+        }
+
+        .dropdown-item.active svg {
+            color: #2dd4bf;
+        }
+
+        .dropdown-reminder-btn {
+            justify-content: space-between;
+        }
+
+        .reminder-status-badge {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            font-weight: 700;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(255, 255, 255, 0.08);
+            color: rgba(255, 255, 255, 0.5);
+        }
+
+        .dropdown-reminder-btn.active .reminder-status-badge {
+            background: rgba(45, 212, 191, 0.2);
+            color: #2dd4bf;
+        }
+
+        .dropdown-logout-item:hover {
+            background: rgba(239, 68, 68, 0.14);
+            color: #ef4444;
+        }
+
+        .dropdown-logout-item:hover svg {
+            color: #ef4444;
+        }
 
         .avatar-img {
             width: 26px; height: 26px;
@@ -250,12 +425,13 @@
             <a href="/" class="mobile-nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
             <a href="/bible-memory/" class="mobile-nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">Practice Portal</a>
             <div class="mobile-nav-divider"></div>
-            <a href="/profile/" class="mobile-nav-link {% if request.path == '/profile/' %}active{% endif %}">
+            <a href="/profile/" class="mobile-nav-link {% if request.path == '/profile/' and not request.GET.tab %}active{% endif %}">
                 {% if request.user.profile.avatar or request.user.profile.avatar_url %}
                     <img src="{{ request.user.profile.get_avatar_url }}" alt="Avatar" class="avatar-img" style="margin-right:10px;">
                 {% endif %}
-                Profile
+                Profile &amp; Settings
             </a>
+            <a href="/profile/?tab=analytics" class="mobile-nav-link {% if request.GET.tab == 'analytics' %}active{% endif %}">Productivity Analytics</a>
             <a href="/privacy/" class="mobile-nav-link {% if request.path == '/privacy/' %}active{% endif %}">Privacy</a>
             <div class="mobile-nav-divider"></div>
             <a href="/accounts/logout/" class="mobile-nav-logout">Sign Out</a>
@@ -302,19 +478,67 @@
                         <span class="pomo-btn-text">Pomodoro</span>
                         <span id="pomo-nav-timer" style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: bold; background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 6px; border-radius: 6px; display: none;">00:00</span>
                     </button>
-                    <button class="nav-link reminder-toggle-btn" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 12px;" title="Turn on task reminders">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                    </button>
-                    <a href="/bible-memory/" class="nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">Practice Portal</a>
-                    <a href="/profile/" class="user-profile-badge {% if request.path == '/profile/' %}active{% endif %}">
-                        {% if request.user.profile.avatar or request.user.profile.avatar_url %}
-                            <img src="{{ request.user.profile.get_avatar_url }}" alt="Avatar" class="avatar-img">
-                        {% else %}
-                            <div class="avatar-img">{{ request.user.email|slice:":1"|upper }}</div>
-                        {% endif %}
-                        <span>Profile</span>
-                    </a>
-                    <a href="/accounts/logout/" class="nav-link btn-secondary" style="padding: 6px 12px; font-size: 0.8rem; border-radius: 12px;">Logout</a>
+
+                    <!-- Profile Dropdown Menu -->
+                    <div class="profile-dropdown-wrapper" id="profileDropdownWrapper">
+                        <button type="button" class="user-profile-badge profile-dropdown-btn {% if '/profile/' in request.path %}active{% endif %}" id="profileDropdownBtn" aria-expanded="false" aria-label="User profile menu">
+                            {% if request.user.profile.avatar or request.user.profile.avatar_url %}
+                                <img src="{{ request.user.profile.get_avatar_url }}" alt="Avatar" class="avatar-img">
+                            {% else %}
+                                <div class="avatar-img">{{ request.user.email|slice:":1"|upper }}</div>
+                            {% endif %}
+                            <span>Profile</span>
+                            <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                        </button>
+
+                        <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                            <div class="dropdown-user-header">
+                                <div class="dropdown-user-avatar">
+                                    {% if request.user.profile.avatar or request.user.profile.avatar_url %}
+                                        <img src="{{ request.user.profile.get_avatar_url }}" alt="Avatar" class="avatar-img">
+                                    {% else %}
+                                        <div class="avatar-img">{{ request.user.email|slice:":1"|upper }}</div>
+                                    {% endif %}
+                                </div>
+                                <div class="dropdown-user-info">
+                                    <div class="dropdown-user-name">{% firstof request.user.first_name request.user.username %}</div>
+                                    <div class="dropdown-user-email">{{ request.user.email }}</div>
+                                </div>
+                            </div>
+                            
+                            <div class="dropdown-divider"></div>
+
+                            <a href="/profile/" class="dropdown-item {% if request.path == '/profile/' and not request.GET.tab %}active{% endif %}">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                                <span>Profile &amp; Settings</span>
+                            </a>
+
+                            <a href="/profile/?tab=analytics" class="dropdown-item {% if request.GET.tab == 'analytics' %}active{% endif %}">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                                <span>Productivity Analytics</span>
+                            </a>
+
+                            <a href="/bible-memory/" class="dropdown-item {% if '/bible-memory/' in request.path %}active{% endif %}">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                                <span>Practice Portal</span>
+                            </a>
+
+                            <button type="button" class="dropdown-item reminder-toggle-btn dropdown-reminder-btn" title="Turn on task reminders">
+                                <span style="display: flex; align-items: center; gap: 10px;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                                    <span>Task Reminders</span>
+                                </span>
+                                <span class="reminder-status-badge">OFF</span>
+                            </button>
+
+                            <div class="dropdown-divider"></div>
+
+                            <a href="/accounts/logout/" class="dropdown-item dropdown-logout-item">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
                 </nav>
 
                 <!-- Mobile projects shortcut button -->
@@ -637,6 +861,43 @@
                 });
             });
         }
+
+        // Profile Dropdown Interactivity
+        document.addEventListener('DOMContentLoaded', () => {
+            const wrapper = document.getElementById('profileDropdownWrapper');
+            const btn = document.getElementById('profileDropdownBtn');
+
+            if (wrapper && btn) {
+                btn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    wrapper.classList.toggle('open');
+                    const isOpen = wrapper.classList.contains('open');
+                    btn.setAttribute('aria-expanded', isOpen);
+                });
+
+                document.addEventListener('click', (e) => {
+                    if (!wrapper.contains(e.target)) {
+                        wrapper.classList.remove('open');
+                        btn.setAttribute('aria-expanded', 'false');
+                    }
+                });
+            }
+
+            // Sync dropdown reminder badge status with reminders active state
+            const reminderBtn = document.querySelector('.dropdown-reminder-btn');
+            if (reminderBtn) {
+                const updateBadge = () => {
+                    const badge = reminderBtn.querySelector('.reminder-status-badge');
+                    if (badge) {
+                        badge.textContent = reminderBtn.classList.contains('active') ? 'ON' : 'OFF';
+                    }
+                };
+                updateBadge();
+                const observer = new MutationObserver(updateBadge);
+                observer.observe(reminderBtn, { attributes: true, attributeFilter: ['class'] });
+            }
+        });
     </script>
 </body>
 </html>
