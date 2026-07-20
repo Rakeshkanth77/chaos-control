@@ -30,6 +30,11 @@
     <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=6">
     <style>
         /* ── Header / Nav Styles ── */
+        .app-header {
+            position: relative;
+            z-index: 1000;
+        }
+
         .user-profile-badge {
             display: flex;
             align-items: center;
@@ -49,7 +54,6 @@
             user-select: none;
         }
         .user-profile-badge:hover,
-        .profile-dropdown-wrapper:hover .user-profile-badge,
         .profile-dropdown-wrapper.open .user-profile-badge {
             background: rgba(12, 88, 85, 0.16);
             border-color: rgba(45, 212, 191, 0.4);
@@ -61,7 +65,6 @@
             color: var(--text-secondary);
             margin-left: 2px;
         }
-        .profile-dropdown-wrapper:hover .dropdown-chevron,
         .profile-dropdown-wrapper.open .dropdown-chevron {
             transform: rotate(180deg);
             color: var(--accent-color);
@@ -71,15 +74,6 @@
         .profile-dropdown-wrapper {
             position: relative;
             display: inline-block;
-        }
-
-        .profile-dropdown-wrapper::after {
-            content: '';
-            position: absolute;
-            top: 100%;
-            left: 0; right: 0;
-            height: 12px;
-            display: block;
         }
 
         .profile-dropdown-menu {
@@ -101,7 +95,6 @@
             z-index: 2000;
         }
 
-        .profile-dropdown-wrapper:hover .profile-dropdown-menu,
         .profile-dropdown-wrapper.open .profile-dropdown-menu {
             opacity: 1;
             visibility: visible;
