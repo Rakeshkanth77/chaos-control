@@ -19,6 +19,12 @@ document.addEventListener('DOMContentLoaded', () => {
     const pomoSetupControls = document.getElementById('pomoSetupControls');
     const pomoRunningControls = document.getElementById('pomoRunningControls');
     const pomoCancelBtn = document.getElementById('pomoCancelBtn');
+    const pomoPauseBtn = document.getElementById('pomoPauseBtn');
+    const pomoPauseIcon = document.getElementById('pomoPauseIcon');
+    const pomoPauseText = document.getElementById('pomoPauseText');
+    const pomoFinishEarlyBtn = document.getElementById('pomoFinishEarlyBtn');
+    const pomoExtend5Btn = document.getElementById('pomoExtend5Btn');
+    const pomoExtend10Btn = document.getElementById('pomoExtend10Btn');
     
     const pomoCustomMins = document.getElementById('pomoCustomMins');
     const pomoStartCustomBtn = document.getElementById('pomoStartCustomBtn');
@@ -57,6 +63,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let currentSessionId = null;
     let durationSeconds = 0;
     let endTimestamp = 0;
+    let isTimerPaused = false;
     let promptSessionId = null;
     let isStatusPollingActive = false;
     let xOffset = 0;
@@ -179,6 +186,16 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Ticks down UI local view
     function updateTimerUI() {
+        if (isTimerPaused) {
+            pomoSessionStatus.textContent = '⏸️ PAUSED — Taking a breather';
+            if (pomoPauseIcon) pomoPauseIcon.textContent = '▶️';
+            if (pomoPauseText) pomoPauseText.textContent = 'Resume';
+            return;
+        }
+
+        if (pomoPauseIcon) pomoPauseIcon.textContent = '⏸️';
+        if (pomoPauseText) pomoPauseText.textContent = 'Pause';
+
         const remaining = Math.max(0, Math.ceil((endTimestamp - Date.now()) / 1000));
         
         pomoTimerText.textContent = formatTime(remaining);
@@ -200,7 +217,7 @@ document.addEventListener('DOMContentLoaded', () => {
         if (pomoMiniTimerText) {
             pomoMiniTimerText.textContent = formatTime(remaining);
         }
-        if (pomoMiniWidget && window.innerWidth <= 768 && pomoMiniWidget.style.display !== 'flex') {
+        if (pomoMiniWidget && window.innerWidth <= 1024 && pomoMiniWidget.style.display !== 'flex') {
             pomoMiniWidget.style.display = 'flex';
         }
 
@@ -312,6 +329,75 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Pause / Resume Toggle Request
+    async function togglePause() {
+        if (!currentSessionId) return;
+        try {
+            if (isTimerPaused) {
+                const data = await apiPost('/api/pomodoro/resume/');
+                if (data.status === 'success') {
+                    isTimerPaused = false;
+                    pomoSessionStatus.textContent = 'Deep Focus Active';
+                    syncStatus();
+                }
+            } else {
+                const data = await apiPost('/api/pomodoro/pause/');
+                if (data.status === 'success') {
+                    isTimerPaused = true;
+                    pomoSessionStatus.textContent = '⏸️ PAUSED — Taking a breather';
+                    updateTimerUI();
+                }
+            }
+        } catch (e) {
+            console.error('Failed to toggle pause:', e);
+        }
+    }
+
+    if (pomoPauseBtn) pomoPauseBtn.addEventListener('click', togglePause);
+
+    // Extend Sprint Duration (+5m or +10m)
+    async function extendSprint(extraMins) {
+        if (!currentSessionId) return;
+        try {
+            const data = await apiPost('/api/pomodoro/extend/', { extra_minutes: extraMins });
+            if (data.status === 'success') {
+                durationSeconds += extraMins * 60;
+                endTimestamp += extraMins * 60 * 1000;
+                if (window.showToast) {
+                    window.showToast(`Sprint extended by +${extraMins} mins! 🚀`);
+                }
+                updateTimerUI();
+            }
+        } catch (e) {
+            console.error('Failed to extend sprint:', e);
+        }
+    }
+
+    if (pomoExtend5Btn) pomoExtend5Btn.addEventListener('click', () => extendSprint(5));
+    if (pomoExtend10Btn) pomoExtend10Btn.addEventListener('click', () => extendSprint(10));
+
+    // Finish Sprint Early & Save Log
+    async function finishEarly() {
+        if (!currentSessionId) return;
+        if (!confirm('Finished your focus task early? Save log and complete sprint now?')) return;
+        
+        try {
+            const data = await apiPost('/api/pomodoro/finish-early/');
+            if (data.status === 'success') {
+                clearTimerUI();
+                playChime();
+                if (window.showToast) {
+                    window.showToast(`Sprint completed! (${data.duration_minutes} min focus logged)`);
+                }
+                syncStatus();
+            }
+        } catch (e) {
+            console.error('Failed to finish sprint early:', e);
+        }
+    }
+
+    if (pomoFinishEarlyBtn) pomoFinishEarlyBtn.addEventListener('click', finishEarly);
+
     // Cancel Pomodoro Request
     async function cancelTimer() {
         if (!confirm('Are you sure you want to cancel the current focus sprint?')) return;
@@ -363,17 +449,27 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 1. Sync active session state
                 if (data.active_session) {
                     currentSessionId = data.active_session.id;
+                    isTimerPaused = data.active_session.is_paused || false;
                     pomoSetupControls.style.display = 'none';
-                    pomoRunningControls.style.display = 'block';
+                    pomoRunningControls.style.display = 'flex';
                     if (pomoPipBtn && isPipSupported) {
                         pomoPipBtn.style.display = 'block';
                     }
-                    pomoSessionStatus.textContent = 'Deep Focus Active';
+                    
+                    if (isTimerPaused) {
+                        pomoSessionStatus.textContent = '⏸️ PAUSED — Taking a breather';
+                        if (pomoPauseIcon) pomoPauseIcon.textContent = '▶️';
+                        if (pomoPauseText) pomoPauseText.textContent = 'Resume';
+                    } else {
+                        pomoSessionStatus.textContent = 'Deep Focus Active';
+                        if (pomoPauseIcon) pomoPauseIcon.textContent = '⏸️';
+                        if (pomoPauseText) pomoPauseText.textContent = 'Pause';
+                    }
                     
                     const rem = data.active_session.remaining_seconds;
                     const tot = data.active_session.duration_minutes * 60;
                     startLocalTimer(rem, tot);
-                    if (pomoMiniWidget && window.innerWidth <= 768) {
+                    if (pomoMiniWidget && window.innerWidth <= 1024) {
                         pomoMiniWidget.style.display = 'flex';
                     }
                 } else {
@@ -424,18 +520,23 @@ document.addEventListener('DOMContentLoaded', () => {
             item.className = 'pomo-log-item';
             
             const logText = log.focus_log ? log.focus_log : '<em style="opacity: 0.5;">No details logged (click to add)</em>';
-            // Show start → end time range
             const timeRange = log.ended_at ? `${log.started_at} → ${log.ended_at}` : log.started_at;
             
+            let pauseLabel = '';
+            if (log.total_paused_seconds && log.total_paused_seconds > 0) {
+                const pMins = Math.floor(log.total_paused_seconds / 60);
+                const pSecs = log.total_paused_seconds % 60;
+                pauseLabel = pMins > 0 ? ` • ⏸️ ${pMins}m ${pSecs}s paused` : ` • ⏸️ ${pSecs}s paused`;
+            }
+
             item.innerHTML = `
                 <div class="pomo-log-time">${timeRange}</div>
                 <div class="pomo-log-details">
                     <span class="pomo-log-desc" style="cursor: pointer;" data-id="${log.id}">${escapeHtml(logText)}</span>
-                    <span class="pomo-log-meta">${log.duration_minutes} min focus session</span>
+                    <span class="pomo-log-meta">${log.duration_minutes} min focus session${pauseLabel}</span>
                 </div>
             `;
             
-            // Allow clicking log description to edit/add accomplishments details
             const descEl = item.querySelector('.pomo-log-desc');
             descEl.addEventListener('click', () => {
                 editLogDetails(log.id, log.focus_log);
@@ -508,7 +609,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (dayDetailContent) dayDetailContent.style.display = 'flex';
 
         if (dayDetailTime) dayDetailTime.textContent = `${log.started_at} → ${log.ended_at || '?'}`;
-        if (dayDetailDuration) dayDetailDuration.textContent = `${log.duration_minutes} minutes`;
+        
+        let durationText = `${log.duration_minutes} minutes focus`;
+        if (log.total_paused_seconds && log.total_paused_seconds > 0) {
+            const pMins = Math.floor(log.total_paused_seconds / 60);
+            const pSecs = log.total_paused_seconds % 60;
+            durationText += pMins > 0 ? ` (⏸️ ${pMins}m ${pSecs}s paused)` : ` (⏸️ ${pSecs}s paused)`;
+        }
+        if (dayDetailDuration) dayDetailDuration.textContent = durationText;
+
         if (dayDetailLog) {
             dayDetailLog.textContent = log.focus_log && log.focus_log !== 'Focus Session'
                 ? log.focus_log

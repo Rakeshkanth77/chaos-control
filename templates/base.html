@@ -716,10 +716,21 @@
         </div>
 
         <!-- Controls Section (Visible when timer IS running) -->
-        <div class="pomo-running-controls" id="pomoRunningControls" style="display: none;">
-            <div style="display: flex; gap: 10px; width: 100%;">
-                <button id="pomoCancelBtn" class="btn btn-danger" style="flex: 1; padding: 10px; border-radius: 12px; font-weight: 600;">Cancel Focus</button>
-                <button id="pomoPipBtn" class="btn pomo-pip-btn" style="flex: 1; padding: 10px; border-radius: 12px; font-weight: 600; display: none; background: linear-gradient(135deg, #0c5855, #2dd4bf); border: none; color: #fff; cursor: pointer;">Pop Out</button>
+        <div class="pomo-running-controls" id="pomoRunningControls" style="display: none; flex-direction: column; gap: 10px; width: 100%;">
+            <div style="display: flex; gap: 8px; width: 100%;">
+                <button id="pomoPauseBtn" class="btn btn-secondary" style="flex: 1; padding: 10px; border-radius: 12px; font-weight: 600; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    <span id="pomoPauseIcon">⏸️</span> <span id="pomoPauseText">Pause</span>
+                </button>
+                <button id="pomoFinishEarlyBtn" class="btn" style="flex: 1.2; padding: 10px; border-radius: 12px; font-weight: 600; background: linear-gradient(135deg, #059669, #10b981); color: #fff; border: none; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px;">
+                    🏁 Finish &amp; Save
+                </button>
+            </div>
+            <div style="display: flex; gap: 6px; width: 100%; align-items: center; flex-wrap: wrap;">
+                <span style="font-size: 0.75rem; color: rgba(255,255,255,0.6); font-weight: 600; margin-right: 2px;">Extend:</span>
+                <button id="pomoExtend5Btn" class="btn btn-secondary" style="padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600;" title="Add 5 minutes to sprint">+5m</button>
+                <button id="pomoExtend10Btn" class="btn btn-secondary" style="padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600;" title="Add 10 minutes to sprint">+10m</button>
+                <button id="pomoCancelBtn" class="btn btn-danger" style="margin-left: auto; padding: 6px 12px; border-radius: 8px; font-size: 0.78rem; font-weight: 600;">Cancel</button>
+                <button id="pomoPipBtn" class="btn pomo-pip-btn" style="padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 600; display: none; background: linear-gradient(135deg, #0c5855, #2dd4bf); border: none; color: #fff; cursor: pointer;">Pop Out</button>
             </div>
         </div>
 

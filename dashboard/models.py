@@ -67,8 +67,12 @@ class DailyReflection(models.Model):
 class PomodoroSession(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)
     started_at = models.DateTimeField(auto_now_add=True)
+    ended_at = models.DateTimeField(null=True, blank=True)
     duration_minutes = models.IntegerField(default=25)
     completed = models.BooleanField(default=False)
+    is_paused = models.BooleanField(default=False)
+    paused_at = models.DateTimeField(null=True, blank=True)
+    total_paused_seconds = models.IntegerField(default=0)
     focus_log = models.TextField(blank=True, default="")
     date = models.DateField()
 

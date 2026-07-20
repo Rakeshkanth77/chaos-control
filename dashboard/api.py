@@ -277,15 +277,19 @@ def generate_suggestions_view(request):
 def sync_user_pomodoros(user):
     """
     Finds any active (incomplete) Pomodoro sessions for this user.
-    If the current time exceeds started_at + duration, marks it as completed.
+    If the current time exceeds started_at + duration + total_paused_seconds, marks it as completed.
     """
     active_sessions = PomodoroSession.objects.filter(user=user, completed=False)
     now = timezone.now()
     synced_count = 0
     for session in active_sessions:
-        end_time = session.started_at + timezone.timedelta(minutes=session.duration_minutes)
+        if session.is_paused:
+            continue  # Paused sessions stay active until resumed or completed early
+        paused_sec = session.total_paused_seconds
+        end_time = session.started_at + timezone.timedelta(minutes=session.duration_minutes, seconds=paused_sec)
         if now >= end_time:
             session.completed = True
+            session.ended_at = end_time
             session.save()
             synced_count += 1
     return synced_count
@@ -305,6 +309,8 @@ def start_pomodoro(request):
             user=request.user,
             duration_minutes=duration,
             completed=False,
+            is_paused=False,
+            total_paused_seconds=0,
             date=target_date
         )
 
@@ -320,9 +326,11 @@ def complete_pomodoro(request):
         session_id = data.get('session_id')
         session = PomodoroSession.objects.get(id=session_id, user=request.user)
         session.completed = True
+        if not session.ended_at:
+            session.ended_at = timezone.now()
+        session.is_paused = False
         session.save()
         
-        # Get count for today
         count = PomodoroSession.objects.filter(date=session.date, completed=True, user=request.user).count()
         return JsonResponse({'status': 'success', 'count': count})
     except PomodoroSession.DoesNotExist:
@@ -330,26 +338,116 @@ def complete_pomodoro(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
+@require_POST
+@api_login_required
+def pause_pomodoro(request):
+    try:
+        session = PomodoroSession.objects.filter(user=request.user, completed=False).order_by('-started_at').first()
+        if not session:
+            return JsonResponse({'status': 'error', 'message': 'No active session'}, status=404)
+        
+        if not session.is_paused:
+            session.is_paused = True
+            session.paused_at = timezone.now()
+            session.save()
+        
+        return JsonResponse({'status': 'success', 'is_paused': True})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@require_POST
+@api_login_required
+def resume_pomodoro(request):
+    try:
+        session = PomodoroSession.objects.filter(user=request.user, completed=False).order_by('-started_at').first()
+        if not session:
+            return JsonResponse({'status': 'error', 'message': 'No active session'}, status=404)
+        
+        if session.is_paused and session.paused_at:
+            paused_duration = int((timezone.now() - session.paused_at).total_seconds())
+            session.total_paused_seconds += max(0, paused_duration)
+            session.is_paused = False
+            session.paused_at = None
+            session.save()
+            
+        return JsonResponse({'status': 'success', 'is_paused': False, 'total_paused_seconds': session.total_paused_seconds})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@require_POST
+@api_login_required
+def extend_pomodoro(request):
+    try:
+        data = json.loads(request.body)
+        extra_minutes = int(data.get('extra_minutes', 5))
+        session = PomodoroSession.objects.filter(user=request.user, completed=False).order_by('-started_at').first()
+        if not session:
+            return JsonResponse({'status': 'error', 'message': 'No active session'}, status=404)
+        
+        session.duration_minutes += extra_minutes
+        session.save()
+        
+        return JsonResponse({'status': 'success', 'duration_minutes': session.duration_minutes})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+@require_POST
+@api_login_required
+def finish_early_pomodoro(request):
+    try:
+        session = PomodoroSession.objects.filter(user=request.user, completed=False).order_by('-started_at').first()
+        if not session:
+            return JsonResponse({'status': 'error', 'message': 'No active session'}, status=404)
+        
+        now = timezone.now()
+        total_paused = session.total_paused_seconds
+        if session.is_paused and session.paused_at:
+            total_paused += int((now - session.paused_at).total_seconds())
+            
+        actual_seconds = max(60, int((now - session.started_at).total_seconds()) - total_paused)
+        actual_minutes = max(1, round(actual_seconds / 60))
+        
+        session.duration_minutes = actual_minutes
+        session.total_paused_seconds = total_paused
+        session.is_paused = False
+        session.paused_at = None
+        session.completed = True
+        session.ended_at = now
+        session.save()
+        
+        return JsonResponse({
+            'status': 'success',
+            'session_id': session.id,
+            'duration_minutes': actual_minutes,
+            'started_at': timezone.localtime(session.started_at).strftime('%I:%M %p')
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
 @api_login_required
 def pomodoro_status(request):
     try:
-        # Sync old running sessions
         sync_user_pomodoros(request.user)
         
-        # Get current active session
         active_session = PomodoroSession.objects.filter(user=request.user, completed=False).order_by('-started_at').first()
         active_data = None
         if active_session:
-            end_time = active_session.started_at + timezone.timedelta(minutes=active_session.duration_minutes)
-            remaining = max(0, int((end_time - timezone.now()).total_seconds()))
+            now = timezone.now()
+            curr_paused_sec = active_session.total_paused_seconds
+            if active_session.is_paused and active_session.paused_at:
+                curr_paused_sec += int((now - active_session.paused_at).total_seconds())
+                
+            end_time = active_session.started_at + timezone.timedelta(minutes=active_session.duration_minutes, seconds=curr_paused_sec)
+            remaining = max(0, int((end_time - now).total_seconds()))
             active_data = {
                 'id': active_session.id,
                 'duration_minutes': active_session.duration_minutes,
                 'started_at': active_session.started_at.isoformat(),
-                'remaining_seconds': remaining
+                'remaining_seconds': remaining,
+                'is_paused': active_session.is_paused,
+                'total_paused_seconds': curr_paused_sec
             }
         
-        # Get today's completed logs
         today = timezone.localdate()
         completed_sessions = PomodoroSession.objects.filter(
             user=request.user,
@@ -362,9 +460,8 @@ def pomodoro_status(request):
         
         for s in completed_sessions:
             local_start = timezone.localtime(s.started_at)
-            local_end = timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes))
+            local_end = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes, seconds=s.total_paused_seconds))
             started_at_minutes = local_start.hour * 60 + local_start.minute
-            # Cap at 1439 (23:59) in case a session spills past midnight
             ended_at_minutes = min(local_end.hour * 60 + local_end.minute, 1439)
             
             logs_list.append({
@@ -374,9 +471,9 @@ def pomodoro_status(request):
                 'started_at_minutes': started_at_minutes,
                 'ended_at_minutes': ended_at_minutes,
                 'duration_minutes': s.duration_minutes,
+                'total_paused_seconds': s.total_paused_seconds,
                 'focus_log': s.focus_log
             })
-            # If the session has an empty focus_log, flag it for prompt in UI (latest first)
             if not s.focus_log and not prompt_log_session:
                 prompt_log_session = {
                     'id': s.id,
