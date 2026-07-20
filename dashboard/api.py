@@ -464,6 +464,9 @@ def pomodoro_status(request):
             started_at_minutes = local_start.hour * 60 + local_start.minute
             ended_at_minutes = min(local_end.hour * 60 + local_end.minute, 1439)
             
+            total_elapsed_sec = int((local_end - local_start).total_seconds())
+            calc_paused_sec = max(s.total_paused_seconds, max(0, total_elapsed_sec - (s.duration_minutes * 60)))
+            
             logs_list.append({
                 'id': s.id,
                 'started_at': local_start.strftime('%I:%M %p'),
@@ -471,7 +474,7 @@ def pomodoro_status(request):
                 'started_at_minutes': started_at_minutes,
                 'ended_at_minutes': ended_at_minutes,
                 'duration_minutes': s.duration_minutes,
-                'total_paused_seconds': s.total_paused_seconds,
+                'total_paused_seconds': calc_paused_sec,
                 'focus_log': s.focus_log
             })
             if not s.focus_log and not prompt_log_session:
@@ -542,6 +545,22 @@ def pomodoro_history(request):
         else:
             target_date = timezone.localdate()
             
+        def build_session_log(s):
+            l_start = timezone.localtime(s.started_at)
+            l_end = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes, seconds=s.total_paused_seconds))
+            total_elapsed_sec = int((l_end - l_start).total_seconds())
+            calc_paused_sec = max(s.total_paused_seconds, max(0, total_elapsed_sec - (s.duration_minutes * 60)))
+            return {
+                'id': s.id,
+                'started_at': l_start.strftime('%I:%M %p'),
+                'ended_at': l_end.strftime('%I:%M %p'),
+                'started_at_minutes': l_start.hour * 60 + l_start.minute,
+                'ended_at_minutes': min(l_end.hour * 60 + l_end.minute, 1439),
+                'duration_minutes': s.duration_minutes,
+                'total_paused_seconds': calc_paused_sec,
+                'focus_log': s.focus_log
+            }
+            
         if view_type == 'week':
             # Calculate Monday - Sunday range
             start_of_week = target_date - timezone.timedelta(days=target_date.weekday())
@@ -564,18 +583,7 @@ def pomodoro_history(request):
                 d_mins = sum(s.duration_minutes for s in d_sessions)
                 total_focus_mins += d_mins
                 
-                logs_data = []
-                for s in d_sessions:
-                    l_start = timezone.localtime(s.started_at)
-                    l_end = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes))
-                    logs_data.append({
-                        'id': s.id,
-                        'started_at': l_start.strftime('%I:%M %p'),
-                        'ended_at': l_end.strftime('%I:%M %p'),
-                        'duration_minutes': s.duration_minutes,
-                        'total_paused_seconds': s.total_paused_seconds,
-                        'focus_log': s.focus_log
-                    })
+                logs_data = [build_session_log(s) for s in d_sessions]
                     
                 daily_list.append({
                     'date': curr_d.strftime('%Y-%m-%d'),
@@ -627,18 +635,7 @@ def pomodoro_history(request):
                 if d_mins > 0:
                     active_days_count += 1
                     
-                logs_data = []
-                for s in d_sessions:
-                    l_start = timezone.localtime(s.started_at)
-                    l_end = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes))
-                    logs_data.append({
-                        'id': s.id,
-                        'started_at': l_start.strftime('%I:%M %p'),
-                        'ended_at': l_end.strftime('%I:%M %p'),
-                        'duration_minutes': s.duration_minutes,
-                        'total_paused_seconds': s.total_paused_seconds,
-                        'focus_log': s.focus_log
-                    })
+                logs_data = [build_session_log(s) for s in d_sessions]
                     
                 daily_map[i] = {
                     'date': curr_d.strftime('%Y-%m-%d'),
@@ -672,26 +669,8 @@ def pomodoro_history(request):
                 date=target_date
             ).order_by('started_at')
             
-            logs_list = []
-            total_focus_mins = 0
-            
-            for s in sessions:
-                l_start = timezone.localtime(s.started_at)
-                l_end = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes, seconds=s.total_paused_seconds))
-                started_at_minutes = l_start.hour * 60 + l_start.minute
-                ended_at_minutes = min(l_end.hour * 60 + l_end.minute, 1439)
-                total_focus_mins += s.duration_minutes
-                
-                logs_list.append({
-                    'id': s.id,
-                    'started_at': l_start.strftime('%I:%M %p'),
-                    'ended_at': l_end.strftime('%I:%M %p'),
-                    'started_at_minutes': started_at_minutes,
-                    'ended_at_minutes': ended_at_minutes,
-                    'duration_minutes': s.duration_minutes,
-                    'total_paused_seconds': s.total_paused_seconds,
-                    'focus_log': s.focus_log
-                })
+            logs_list = [build_session_log(s) for s in sessions]
+            total_focus_mins = sum(s.duration_minutes for s in sessions)
                 
             return JsonResponse({
                 'status': 'success',

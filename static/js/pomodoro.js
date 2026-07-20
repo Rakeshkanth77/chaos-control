@@ -519,6 +519,19 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function formatPauseLabel(totalPausedSec) {
+        if (!totalPausedSec || totalPausedSec <= 0) return '';
+        const pMins = Math.floor(totalPausedSec / 60);
+        const pSecs = totalPausedSec % 60;
+        if (pMins > 0 && pSecs > 0) {
+            return ` • ⏸️ ${pMins}m ${pSecs}s paused`;
+        } else if (pMins > 0) {
+            return ` • ⏸️ ${pMins}m paused`;
+        } else {
+            return ` • ⏸️ ${pSecs}s paused`;
+        }
+    }
+
     // Render focus logs list inside popup
     function renderCompletedLogs(logs) {
         if (!pomoLogsList) return;
@@ -540,13 +553,7 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const logText = log.focus_log ? log.focus_log : '<em style="opacity: 0.5;">No details logged (click to add)</em>';
             const timeRange = log.ended_at ? `${log.started_at} → ${log.ended_at}` : log.started_at;
-            
-            let pauseLabel = '';
-            if (log.total_paused_seconds && log.total_paused_seconds > 0) {
-                const pMins = Math.floor(log.total_paused_seconds / 60);
-                const pSecs = log.total_paused_seconds % 60;
-                pauseLabel = pMins > 0 ? ` • ⏸️ ${pMins}m ${pSecs}s paused` : ` • ⏸️ ${pSecs}s paused`;
-            }
+            const pauseLabel = formatPauseLabel(log.total_paused_seconds);
 
             item.innerHTML = `
                 <div class="pomo-log-time">${timeRange}</div>
@@ -771,7 +778,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="pomo-log-time" style="font-size: 0.72rem;">${log.started_at} → ${log.ended_at}</div>
                             <div class="pomo-log-details">
                                 <span class="pomo-log-desc">${escapeHtml(log.focus_log || 'Focus Session')}</span>
-                                <span class="pomo-log-meta">${log.duration_minutes}m</span>
+                                <span class="pomo-log-meta">${log.duration_minutes}m focus${formatPauseLabel(log.total_paused_seconds)}</span>
                             </div>
                         </div>
                     `).join('')}
@@ -848,7 +855,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             <div class="pomo-log-time" style="font-size: 0.72rem;">${log.started_at} → ${log.ended_at}</div>
                             <div class="pomo-log-details">
                                 <span class="pomo-log-desc">${escapeHtml(log.focus_log || 'Focus Session')}</span>
-                                <span class="pomo-log-meta">${log.duration_minutes}m</span>
+                                <span class="pomo-log-meta">${log.duration_minutes}m focus${formatPauseLabel(log.total_paused_seconds)}</span>
                             </div>
                         </div>
                     `).join('')}
