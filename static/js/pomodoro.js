@@ -88,6 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let pipWindowInstance = null;
     let completedLogs = []; // cached from last syncStatus
     let dayViewNowInterval = null;
+    let isGracePeriodActive = false;
+    let graceCountdownInterval = null;
     let focusHistoryView = 'day';
     let focusHistoryDate = new Date();
     const isPipSupported = 'documentPictureInPicture' in window;
@@ -248,26 +250,64 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         }
 
-        // Timer finished
+        // Timer finished -> Enter 60-second grace window before auto-logging
         if (remaining <= 0) {
             clearInterval(countdownInterval);
-            handleFinishedTimer();
+            startGracePeriod(60);
         }
+    }
+
+    // Starts 60-second grace period after sprint ends allowing user to extend or log accomplishment
+    function startGracePeriod(remGraceSecs = 60) {
+        if (isGracePeriodActive) return;
+        isGracePeriodActive = true;
+        clearInterval(countdownInterval);
+        
+        playChime();
+        pomoSessionStatus.textContent = '🎉 Sprint Complete! Extend or Save Log';
+        if (pomoPauseBtn) pomoPauseBtn.style.display = 'none';
+
+        const graceEndTimestamp = Date.now() + remGraceSecs * 1000;
+
+        function updateGraceUI() {
+            const rem = Math.max(0, Math.ceil((graceEndTimestamp - Date.now()) / 1000));
+            pomoTimerText.textContent = formatTime(rem);
+            updateProgressRing(rem, 60);
+
+            if (pomoNavTimer) {
+                pomoNavTimer.textContent = formatTime(rem);
+                pomoNavTimer.style.display = 'inline-block';
+            }
+            if (pomoMiniTimerText) {
+                pomoMiniTimerText.textContent = formatTime(rem);
+            }
+            if (pipWindowInstance) {
+                const pipTimeEl = pipWindowInstance.document.getElementById('pomoPipTime');
+                if (pipTimeEl) pipTimeEl.textContent = formatTime(rem);
+            }
+
+            if (rem <= 0) {
+                clearInterval(graceCountdownInterval);
+                isGracePeriodActive = false;
+                handleFinishedTimer();
+            }
+        }
+
+        updateGraceUI();
+        clearInterval(graceCountdownInterval);
+        graceCountdownInterval = setInterval(updateGraceUI, 200);
     }
 
     // Timer local complete triggers API verification
     async function handleFinishedTimer() {
-        // Reset timer button UI
         clearTimerUI();
 
         pomoSessionStatus.textContent = 'Completing session...';
         
         try {
-            // Signal completeness to the server
             if (currentSessionId) {
                 await apiPost('/api/pomodoro/complete/', { session_id: currentSessionId });
             }
-            playChime();
             if (window.showToast) {
                 window.showToast('Focus session complete! Log your accomplishment.');
             }
@@ -280,10 +320,13 @@ document.addEventListener('DOMContentLoaded', () => {
 
     function clearTimerUI() {
         clearInterval(countdownInterval);
+        clearInterval(graceCountdownInterval);
+        isGracePeriodActive = false;
         
         pomoTimerText.textContent = '25:00';
         updateProgressRing(100, 100);
         pomoSessionStatus.textContent = 'Ready to focus?';
+        if (pomoPauseBtn) pomoPauseBtn.style.display = 'flex';
         
         if (pomoNavTimer) {
             pomoNavTimer.style.display = 'none';
@@ -380,12 +423,17 @@ document.addEventListener('DOMContentLoaded', () => {
         try {
             const data = await apiPost('/api/pomodoro/extend/', { extra_minutes: extraMins });
             if (data.status === 'success') {
+                if (isGracePeriodActive) {
+                    clearInterval(graceCountdownInterval);
+                    isGracePeriodActive = false;
+                    if (pomoPauseBtn) pomoPauseBtn.style.display = 'flex';
+                }
                 durationSeconds += extraMins * 60;
                 endTimestamp += extraMins * 60 * 1000;
                 if (window.showToast) {
                     window.showToast(`Sprint extended by +${extraMins} mins! 🚀`);
                 }
-                updateTimerUI();
+                syncStatus();
             }
         } catch (e) {
             console.error('Failed to extend sprint:', e);
@@ -398,9 +446,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Finish Sprint Early & Save Log
     async function finishEarly() {
         if (!currentSessionId) return;
-        if (!confirm('Finished your focus task early? Save log and complete sprint now?')) return;
+        if (!isGracePeriodActive && !confirm('Finished your focus task early? Save log and complete sprint now?')) return;
         
         try {
+            clearInterval(graceCountdownInterval);
+            isGracePeriodActive = false;
             const data = await apiPost('/api/pomodoro/finish-early/');
             if (data.status === 'success') {
                 clearTimerUI();
@@ -475,7 +525,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         pomoPipBtn.style.display = 'block';
                     }
                     
-                    if (isTimerPaused) {
+                    if (data.active_session.in_grace_period) {
+                        startGracePeriod(data.active_session.grace_remaining_seconds);
+                    } else if (isTimerPaused) {
                         pomoSessionStatus.textContent = '⏸️ PAUSED — Taking a breather';
                         if (pomoPauseIcon) pomoPauseIcon.textContent = '▶️';
                         if (pomoPauseText) pomoPauseText.textContent = 'Resume';
@@ -485,9 +537,11 @@ document.addEventListener('DOMContentLoaded', () => {
                         if (pomoPauseText) pomoPauseText.textContent = 'Pause';
                     }
                     
-                    const rem = data.active_session.remaining_seconds;
-                    const tot = data.active_session.duration_minutes * 60;
-                    startLocalTimer(rem, tot);
+                    if (!data.active_session.in_grace_period) {
+                        const rem = data.active_session.remaining_seconds;
+                        const tot = data.active_session.duration_minutes * 60;
+                        startLocalTimer(rem, tot);
+                    }
                     if (pomoMiniWidget && window.innerWidth <= 1024) {
                         pomoMiniWidget.style.display = 'flex';
                     }

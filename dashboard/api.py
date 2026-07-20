@@ -277,7 +277,7 @@ def generate_suggestions_view(request):
 def sync_user_pomodoros(user):
     """
     Finds any active (incomplete) Pomodoro sessions for this user.
-    If the current time exceeds started_at + duration + total_paused_seconds, marks it as completed.
+    If current time exceeds started_at + duration + total_paused_seconds + 60s grace, marks it as completed.
     """
     active_sessions = PomodoroSession.objects.filter(user=user, completed=False)
     now = timezone.now()
@@ -287,7 +287,8 @@ def sync_user_pomodoros(user):
             continue  # Paused sessions stay active until resumed or completed early
         paused_sec = session.total_paused_seconds
         end_time = session.started_at + timezone.timedelta(minutes=session.duration_minutes, seconds=paused_sec)
-        if now >= end_time:
+        auto_complete_time = end_time + timezone.timedelta(seconds=60) # 60-second grace period
+        if now >= auto_complete_time:
             session.completed = True
             session.ended_at = end_time
             session.save()
@@ -439,13 +440,19 @@ def pomodoro_status(request):
                 
             end_time = active_session.started_at + timezone.timedelta(minutes=active_session.duration_minutes, seconds=curr_paused_sec)
             remaining = max(0, int((end_time - now).total_seconds()))
+            
+            in_grace = (now >= end_time) and (now < end_time + timezone.timedelta(seconds=60))
+            grace_rem = max(0, int((end_time + timezone.timedelta(seconds=60) - now).total_seconds())) if in_grace else 0
+            
             active_data = {
                 'id': active_session.id,
                 'duration_minutes': active_session.duration_minutes,
                 'started_at': active_session.started_at.isoformat(),
                 'remaining_seconds': remaining,
                 'is_paused': active_session.is_paused,
-                'total_paused_seconds': curr_paused_sec
+                'total_paused_seconds': curr_paused_sec,
+                'in_grace_period': in_grace,
+                'grace_remaining_seconds': grace_rem
             }
         
         today = timezone.localdate()
