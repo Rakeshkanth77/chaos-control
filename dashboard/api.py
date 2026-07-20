@@ -475,7 +475,7 @@ def pomodoro_status(request):
             }
         
         # Get pending tasks for today
-        pending_todos = Todo.objects.filter(user=request.user, date=today, completed=False).order_by('id')
+        pending_todos = Todo.objects.filter(user=request.user, date=today, is_completed=False).order_by('id')
         pending_list = [{'id': t.id, 'title': t.title} for t in pending_todos]
 
         completed_sessions = PomodoroSession.objects.filter(
