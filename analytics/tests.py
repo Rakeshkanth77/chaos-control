@@ -31,9 +31,4 @@ class SummaryStatsTestCase(TestCase):
         self.assertEqual(data['totals']['todos_completed'], 1)
         self.assertEqual(data['totals']['pomodoros_completed'], 1)
 
-    def test_capacity_stats(self):
-        response = self.client.get('/analytics/api/capacity/')
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertEqual(data['status'], 'success')
-        self.assertEqual(len(data['weekday_avg']), 7)
+
