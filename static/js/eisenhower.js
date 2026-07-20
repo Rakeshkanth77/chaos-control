@@ -6,6 +6,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Update the counter badges for each priority block
     function updatePriorityCounts() {
         const counts = {
+            'stop_todo': 0,
             'urgent_important': 0,
             'important_not_urgent': 0,
             'urgent_not_important': 0,
@@ -248,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">${todo.title}</span>
                                 <select class="todo-priority-select" data-id="${todo.id}" title="Change priority">
                                     <option value="unassigned" selected>Prioritize</option>
+                                    <option value="stop_todo">⛔ Stop-Do</option>
                                     <option value="urgent_important">Urgent &amp; Important</option>
                                     <option value="important_not_urgent">Important &amp; Not Urgent</option>
                                     <option value="urgent_not_important">Urgent &amp; Not Important</option>
@@ -411,6 +413,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">${todo.title}</span>
                                 <select class="todo-priority-select" data-id="${todo.id}" title="Change priority">
                                     <option value="unassigned" ${todo.priority === 'unassigned' ? 'selected' : ''}>Prioritize</option>
+                                    <option value="stop_todo" ${todo.priority === 'stop_todo' ? 'selected' : ''}>⛔ Stop-Do</option>
                                     <option value="urgent_important" ${todo.priority === 'urgent_important' ? 'selected' : ''}>Urgent &amp; Important</option>
                                     <option value="important_not_urgent" ${todo.priority === 'important_not_urgent' ? 'selected' : ''}>Important &amp; Not Urgent</option>
                                     <option value="urgent_not_important" ${todo.priority === 'urgent_not_important' ? 'selected' : ''}>Urgent &amp; Not Important</option>

@@ -526,6 +526,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>Prioritize</option>
+                                    <option value="stop_todo" {% if todo.priority == 'stop_todo' %}selected{% endif %}>⛔ Stop-Do</option>
                                     <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>Urgent &amp; Important</option>
                                     <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>Important &amp; Not Urgent</option>
                                     <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>Urgent &amp; Not Important</option>
@@ -555,6 +556,44 @@ document.addEventListener('DOMContentLoaded', () => {
                 What matters most?
             </h2>
             
+            <!-- Top Row: Stop-Do / Say No Boundaries -->
+            <div class="priority-block stop_todo" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; margin-bottom: 12px;">
+                <div class="priority-header" style="border-bottom: 1px solid rgba(239, 68, 68, 0.2); padding-bottom: 6px;">
+                    <span style="display: flex; align-items: center; gap: 8px; min-width: 0;" title="Stop-Do / Say No Boundaries">
+                        <span style="font-size: 0.9rem;">⛔</span>
+                        <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-size: 0.82rem; font-weight: 700; color: #f87171;">Stop-Do (Say No)</span>
+                    </span>
+                    <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
+                        <span class="priority-count" id="count-stop_todo" style="background: rgba(239, 68, 68, 0.2); color: #f87171;">0</span>
+                        <button class="add-priority-task-btn" data-priority="stop_todo" title="Add boundary to Stop-Do list" style="color: #f87171;">+</button>
+                    </div>
+                </div>
+                <div id="list-stop_todo" class="priority-list" data-priority="stop_todo">
+                    {% for todo in todos_by_priority.stop_todo %}
+                        <div class="todo-item {% if todo.is_completed %}completed{% endif %}" data-id="{{ todo.id }}">
+                            <div class="todo-content-wrapper">
+                                <input type="checkbox" class="todo-checkbox" {% if todo.is_completed %}checked{% endif %} title="Mark boundary as kept/avoided">
+                                <span class="todo-text">{{ todo.title }}</span>
+                                <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
+                                    <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>Prioritize</option>
+                                    <option value="stop_todo" {% if todo.priority == 'stop_todo' %}selected{% endif %}>⛔ Stop-Do</option>
+                                    <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>Urgent &amp; Important</option>
+                                    <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>Important &amp; Not Urgent</option>
+                                    <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>Urgent &amp; Not Important</option>
+                                    <option value="neither" {% if todo.priority == 'neither' %}selected{% endif %}>Neither</option>
+                                </select>
+                            </div>
+                            <div class="todo-actions">
+                                <button class="action-btn focus-pomo" title="Focus on this task in Pomodoro">▶️ focus</button>
+                                <button class="action-btn edit">edit</button>
+                                <button class="action-btn breakdown">details</button>
+                                <button class="action-btn delete">delete</button>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+
             <!-- Red: Urgent & Important -->
             <div class="priority-block urgent_important">
                 <div class="priority-header">
@@ -575,6 +614,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>Prioritize</option>
+                                    <option value="stop_todo" {% if todo.priority == 'stop_todo' %}selected{% endif %}>⛔ Stop-Do</option>
                                     <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>Urgent &amp; Important</option>
                                     <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>Important &amp; Not Urgent</option>
                                     <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>Urgent &amp; Not Important</option>
@@ -612,6 +652,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>Prioritize</option>
+                                    <option value="stop_todo" {% if todo.priority == 'stop_todo' %}selected{% endif %}>⛔ Stop-Do</option>
                                     <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>Urgent &amp; Important</option>
                                     <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>Important &amp; Not Urgent</option>
                                     <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>Urgent &amp; Not Important</option>
@@ -649,6 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>Prioritize</option>
+                                    <option value="stop_todo" {% if todo.priority == 'stop_todo' %}selected{% endif %}>⛔ Stop-Do</option>
                                     <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>Urgent &amp; Important</option>
                                     <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>Important &amp; Not Urgent</option>
                                     <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>Urgent &amp; Not Important</option>
@@ -686,6 +728,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned" {% if todo.priority == 'unassigned' %}selected{% endif %}>Prioritize</option>
+                                    <option value="stop_todo" {% if todo.priority == 'stop_todo' %}selected{% endif %}>⛔ Stop-Do</option>
                                     <option value="urgent_important" {% if todo.priority == 'urgent_important' %}selected{% endif %}>Urgent &amp; Important</option>
                                     <option value="important_not_urgent" {% if todo.priority == 'important_not_urgent' %}selected{% endif %}>Important &amp; Not Urgent</option>
                                     <option value="urgent_not_important" {% if todo.priority == 'urgent_not_important' %}selected{% endif %}>Urgent &amp; Not Important</option>

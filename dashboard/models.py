@@ -14,6 +14,7 @@ class BrainDump(models.Model):
 class Todo(models.Model):
     PRIORITY_CHOICES = [
         ('unassigned', 'Unassigned'),
+        ('stop_todo', '⛔ Stop-Do / Say No'),
         ('urgent_important', 'Urgent & Important'),
         ('important_not_urgent', 'Important & Not Urgent'),
         ('urgent_not_important', 'Urgent & Not Important'),

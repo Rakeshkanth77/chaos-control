@@ -92,6 +92,7 @@ def index(request):
     # Group todos by priority
     todos_by_priority = {
         'unassigned': todos.filter(priority='unassigned'),
+        'stop_todo': todos.filter(priority='stop_todo'),
         'urgent_important': todos.filter(priority='urgent_important'),
         'important_not_urgent': todos.filter(priority='important_not_urgent'),
         'urgent_not_important': todos.filter(priority='urgent_not_important'),

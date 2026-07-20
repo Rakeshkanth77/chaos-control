@@ -545,6 +545,14 @@ body {
 }
 
 /* Custom styles per Priority Block */
+.priority-block.stop_todo {
+    background: rgba(239, 68, 68, 0.08);
+    border-color: rgba(239, 68, 68, 0.35);
+}
+.priority-block.stop_todo .priority-header {
+    color: #f87171;
+}
+
 .priority-block.urgent_important {
     background: var(--urgent-important-bg);
     border-color: var(--urgent-important-border);
