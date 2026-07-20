@@ -35,6 +35,7 @@ urlpatterns = [
     path('api/pomodoro/extend/', api.extend_pomodoro, name='api_extend_pomodoro'),
     path('api/pomodoro/finish-early/', api.finish_early_pomodoro, name='api_finish_early_pomodoro'),
     path('api/pomodoro/status/', api.pomodoro_status, name='api_pomodoro_status'),
+    path('api/pomodoro/history/', api.pomodoro_history, name='api_pomodoro_history'),
     path('api/pomodoro/save-log/', api.save_pomodoro_log, name='api_save_pomodoro_log'),
     path('api/pomodoro/cancel/', api.cancel_pomodoro, name='api_cancel_pomodoro'),
     path('api/profile/update-plan/', api.update_plan, name='api_update_plan'),

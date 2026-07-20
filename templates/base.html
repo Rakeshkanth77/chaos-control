@@ -771,7 +771,7 @@
         </div>
     </div>
 
-    <!-- ── 24-Hour Focus Day View Modal ── -->
+    <!-- ── Focus History Modal (Day / Week / Month Views) ── -->
     <div class="day-view-overlay" id="dayViewOverlay"></div>
     <div class="day-view-modal" id="dayViewModal">
         <div class="day-view-header">
@@ -780,57 +780,97 @@
                     <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#2dd4bf" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                 </div>
                 <div>
-                    <h3 class="day-view-title">My Focus Day</h3>
-                    <div class="day-view-subtitle" id="dayViewDate"></div>
+                    <h3 class="day-view-title">My Focus History</h3>
+                    <div class="day-view-subtitle" id="dayViewDate">Focus timeline &amp; analytics</div>
                 </div>
             </div>
             <button id="closeDayViewBtn" class="pomo-close-btn" title="Close">✕</button>
         </div>
 
+        <!-- Controls Bar: Tabs + Date Navigator -->
+        <div class="focus-modal-controls-bar">
+            <!-- View Tabs -->
+            <div class="focus-view-tabs">
+                <button class="focus-view-tab active" id="focusViewTabDay" data-view="day">Day</button>
+                <button class="focus-view-tab" id="focusViewTabWeek" data-view="week">Week</button>
+                <button class="focus-view-tab" id="focusViewTabMonth" data-view="month">Month</button>
+            </div>
+            
+            <!-- Date Navigator -->
+            <div class="focus-date-navigator">
+                <button id="focusNavPrevBtn" class="focus-nav-btn" title="Previous">←</button>
+                <span class="focus-date-display" id="focusDateDisplay">Today</span>
+                <button id="focusNavNextBtn" class="focus-nav-btn" title="Next">→</button>
+                <button id="focusNavTodayBtn" class="focus-today-badge">Go to Today</button>
+            </div>
+        </div>
+
         <div class="day-view-body">
-            <!-- 24-Hour Ruler -->
-            <div class="day-ruler-wrapper">
-                <div class="day-ruler" id="dayRuler"></div>
-                <!-- Session track -->
-                <div class="day-track" id="dayTrack">
-                    <div class="day-now-line" id="dayNowLine"></div>
-                    <!-- session blocks injected by JS -->
+            <!-- PANEL 1: DAY VIEW -->
+            <div id="focusPanelDay" class="focus-panel">
+                <!-- 24-Hour Ruler -->
+                <div class="day-ruler-wrapper">
+                    <div class="day-ruler" id="dayRuler"></div>
+                    <!-- Session track -->
+                    <div class="day-track" id="dayTrack">
+                        <div class="day-now-line" id="dayNowLine"></div>
+                        <!-- session blocks injected by JS -->
+                    </div>
+                </div>
+
+                <!-- Legend -->
+                <div class="day-legend">
+                    <span class="day-legend-item">
+                        <span class="day-legend-dot" style="background: #2dd4bf;"></span> Focus Sprint
+                    </span>
+                    <span class="day-legend-item">
+                        <span class="day-legend-dot" style="background: #ef4444;"></span> Now
+                    </span>
+                    <span class="day-legend-item gap">
+                        <span class="day-legend-dot" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);"></span> Gap / Unlogged
+                    </span>
+                </div>
+
+                <!-- Detail Panel -->
+                <div class="day-detail-panel" id="dayDetailPanel">
+                    <div class="day-detail-empty" id="dayDetailEmpty">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
+                        <span>Click a session block to view details</span>
+                    </div>
+                    <div class="day-detail-content" id="dayDetailContent" style="display: none;">
+                        <div class="day-detail-row">
+                            <span class="day-detail-label">Time</span>
+                            <span class="day-detail-value" id="dayDetailTime"></span>
+                        </div>
+                        <div class="day-detail-row">
+                            <span class="day-detail-label">Duration</span>
+                            <span class="day-detail-value" id="dayDetailDuration"></span>
+                        </div>
+                        <div class="day-detail-log-row">
+                            <span class="day-detail-label">Log</span>
+                            <span class="day-detail-log-text" id="dayDetailLog"></span>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Legend -->
-            <div class="day-legend">
-                <span class="day-legend-item">
-                    <span class="day-legend-dot" style="background: #2dd4bf;"></span> Focus Sprint
-                </span>
-                <span class="day-legend-item">
-                    <span class="day-legend-dot" style="background: #ef4444;"></span> Now
-                </span>
-                <span class="day-legend-item gap">
-                    <span class="day-legend-dot" style="background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.12);"></span> Gap / Unlogged
-                </span>
+            <!-- PANEL 2: WEEK VIEW -->
+            <div id="focusPanelWeek" class="focus-panel" style="display: none;">
+                <div class="focus-stats-row" id="weekStatsRow"></div>
+                <div class="week-chart-container" id="weekChartContainer"></div>
+                <div class="focus-history-list" id="weekHistoryList"></div>
             </div>
 
-            <!-- Detail Panel -->
-            <div class="day-detail-panel" id="dayDetailPanel">
-                <div class="day-detail-empty" id="dayDetailEmpty">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.25)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="12" y1="8" x2="12" y2="12"></line><line x1="12" y1="16" x2="12.01" y2="16"></line></svg>
-                    <span>Click a session block to view details</span>
+            <!-- PANEL 3: MONTH VIEW -->
+            <div id="focusPanelMonth" class="focus-panel" style="display: none;">
+                <div class="focus-stats-row" id="monthStatsRow"></div>
+                <div class="month-calendar-wrapper">
+                    <div class="month-calendar-header">
+                        <span>Mon</span><span>Tue</span><span>Wed</span><span>Thu</span><span>Fri</span><span>Sat</span><span>Sun</span>
+                    </div>
+                    <div class="month-calendar-grid" id="monthCalendarGrid"></div>
                 </div>
-                <div class="day-detail-content" id="dayDetailContent" style="display: none;">
-                    <div class="day-detail-row">
-                        <span class="day-detail-label">Time</span>
-                        <span class="day-detail-value" id="dayDetailTime"></span>
-                    </div>
-                    <div class="day-detail-row">
-                        <span class="day-detail-label">Duration</span>
-                        <span class="day-detail-value" id="dayDetailDuration"></span>
-                    </div>
-                    <div class="day-detail-log-row">
-                        <span class="day-detail-label">Log</span>
-                        <span class="day-detail-log-text" id="dayDetailLog"></span>
-                    </div>
-                </div>
+                <div class="focus-history-list" id="monthHistoryList"></div>
             </div>
         </div>
     </div>

@@ -40,7 +40,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const pomoPromptSaveBtn = document.getElementById('pomoPromptSaveBtn');
     const pomoPromptSkipBtn = document.getElementById('pomoPromptSkipBtn');
 
-    // Day-view modal DOM refs
+    // Day/Week/Month Focus History modal DOM refs
     const dayViewOverlay = document.getElementById('dayViewOverlay');
     const dayViewModal = document.getElementById('dayViewModal');
     const dayViewDateEl = document.getElementById('dayViewDate');
@@ -54,6 +54,23 @@ document.addEventListener('DOMContentLoaded', () => {
     const dayDetailLog = document.getElementById('dayDetailLog');
     const openDayViewBtn = document.getElementById('openDayViewBtn');
     const closeDayViewBtn = document.getElementById('closeDayViewBtn');
+
+    const focusViewTabDay = document.getElementById('focusViewTabDay');
+    const focusViewTabWeek = document.getElementById('focusViewTabWeek');
+    const focusViewTabMonth = document.getElementById('focusViewTabMonth');
+    const focusNavPrevBtn = document.getElementById('focusNavPrevBtn');
+    const focusNavNextBtn = document.getElementById('focusNavNextBtn');
+    const focusNavTodayBtn = document.getElementById('focusNavTodayBtn');
+    const focusDateDisplay = document.getElementById('focusDateDisplay');
+    const focusPanelDay = document.getElementById('focusPanelDay');
+    const focusPanelWeek = document.getElementById('focusPanelWeek');
+    const focusPanelMonth = document.getElementById('focusPanelMonth');
+    const weekStatsRow = document.getElementById('weekStatsRow');
+    const weekChartContainer = document.getElementById('weekChartContainer');
+    const weekHistoryList = document.getElementById('weekHistoryList');
+    const monthStatsRow = document.getElementById('monthStatsRow');
+    const monthCalendarGrid = document.getElementById('monthCalendarGrid');
+    const monthHistoryList = document.getElementById('monthHistoryList');
 
     // Circle progress ring math
     const ringCircumference = 282.7; // 2 * pi * 45
@@ -71,6 +88,8 @@ document.addEventListener('DOMContentLoaded', () => {
     let pipWindowInstance = null;
     let completedLogs = []; // cached from last syncStatus
     let dayViewNowInterval = null;
+    let focusHistoryView = 'day';
+    let focusHistoryDate = new Date();
     const isPipSupported = 'documentPictureInPicture' in window;
 
     // Helper to post API data
@@ -625,27 +644,230 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ─── Focus History Views (Day / Week / Month) & Navigation ───────
+
+    function formatDateIso(d) {
+        const y = d.getFullYear();
+        const m = String(d.getMonth() + 1).padStart(2, '0');
+        const day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    }
+
+    function changeFocusHistoryDate(delta) {
+        if (focusHistoryView === 'day') {
+            focusHistoryDate.setDate(focusHistoryDate.getDate() + delta);
+        } else if (focusHistoryView === 'week') {
+            focusHistoryDate.setDate(focusHistoryDate.getDate() + (delta * 7));
+        } else if (focusHistoryView === 'month') {
+            focusHistoryDate.setMonth(focusHistoryDate.getMonth() + delta);
+        }
+        fetchAndRenderFocusHistory();
+    }
+
+    function resetFocusHistoryToday() {
+        focusHistoryDate = new Date();
+        fetchAndRenderFocusHistory();
+    }
+
+    function switchFocusHistoryView(newView) {
+        focusHistoryView = newView;
+        [focusViewTabDay, focusViewTabWeek, focusViewTabMonth].forEach(tab => {
+            if (tab) tab.classList.toggle('active', tab.dataset.view === newView);
+        });
+        [focusPanelDay, focusPanelWeek, focusPanelMonth].forEach(panel => {
+            if (panel) panel.style.display = 'none';
+        });
+
+        if (newView === 'day' && focusPanelDay) focusPanelDay.style.display = 'block';
+        if (newView === 'week' && focusPanelWeek) focusPanelWeek.style.display = 'block';
+        if (newView === 'month' && focusPanelMonth) focusPanelMonth.style.display = 'block';
+
+        fetchAndRenderFocusHistory();
+    }
+
+    async function fetchAndRenderFocusHistory() {
+        const dateStr = formatDateIso(focusHistoryDate);
+        try {
+            const res = await fetch(`/api/pomodoro/history/?view=${focusHistoryView}&date=${dateStr}`);
+            const data = await res.json();
+            if (data.status !== 'success') return;
+
+            if (focusHistoryView === 'day') {
+                if (focusDateDisplay) focusDateDisplay.textContent = data.formatted_date;
+                buildRuler();
+                renderDayTimeline(data.logs);
+                if (dayDetailEmpty) dayDetailEmpty.style.display = 'flex';
+                if (dayDetailContent) dayDetailContent.style.display = 'none';
+            } else if (focusHistoryView === 'week') {
+                if (focusDateDisplay) focusDateDisplay.textContent = data.formatted_range;
+                renderWeekPanel(data);
+            } else if (focusHistoryView === 'month') {
+                if (focusDateDisplay) focusDateDisplay.textContent = data.formatted_month;
+                renderMonthPanel(data);
+            }
+        } catch (e) {
+            console.error('Failed to fetch focus history:', e);
+        }
+    }
+
+    function renderWeekPanel(data) {
+        if (!weekStatsRow || !weekChartContainer || !weekHistoryList) return;
+        
+        const hours = (data.total_focus_minutes / 60).toFixed(1);
+        weekStatsRow.innerHTML = `
+            <div class="focus-stat-card">
+                <span class="focus-stat-value">${hours}h</span>
+                <span class="focus-stat-label">Total Focus</span>
+            </div>
+            <div class="focus-stat-card">
+                <span class="focus-stat-value">${data.total_sessions}</span>
+                <span class="focus-stat-label">Sprints Completed</span>
+            </div>
+            <div class="focus-stat-card">
+                <span class="focus-stat-value">${data.avg_daily_minutes}m</span>
+                <span class="focus-stat-label">Avg Daily Focus</span>
+            </div>
+        `;
+
+        const maxMins = Math.max(...data.days.map(d => d.focus_minutes), 60);
+        weekChartContainer.innerHTML = '';
+        data.days.forEach(d => {
+            const pct = Math.round((d.focus_minutes / maxMins) * 100);
+            const col = document.createElement('div');
+            col.className = `week-bar-column ${d.is_today ? 'is-today' : ''}`;
+            col.innerHTML = `
+                <span class="week-bar-val">${d.focus_minutes > 0 ? d.focus_minutes + 'm' : ''}</span>
+                <div class="week-bar-track">
+                    <div class="week-bar-fill" style="height: ${Math.max(pct, 4)}%;"></div>
+                </div>
+                <span class="week-bar-day">${d.day_name}</span>
+            `;
+            col.addEventListener('click', () => {
+                focusHistoryView = 'day';
+                focusHistoryDate = new Date(d.date);
+                switchFocusHistoryView('day');
+            });
+            weekChartContainer.appendChild(col);
+        });
+
+        weekHistoryList.innerHTML = '';
+        const daysWithLogs = data.days.filter(d => d.logs && d.logs.length > 0);
+        if (daysWithLogs.length === 0) {
+            weekHistoryList.innerHTML = '<div class="pomo-log-empty">No focus sessions recorded for this week.</div>';
+            return;
+        }
+
+        daysWithLogs.forEach(d => {
+            const group = document.createElement('div');
+            group.className = 'focus-history-day-group';
+            group.innerHTML = `
+                <div class="focus-history-day-header">
+                    <span>${d.day_name}, ${d.date}</span>
+                    <span style="font-size: 0.78rem; opacity: 0.8;">${d.focus_minutes} mins (${d.session_count} sprints)</span>
+                </div>
+                <div class="focus-history-day-logs">
+                    ${d.logs.map(log => `
+                        <div class="pomo-log-item" style="padding: 6px 0; border: none;">
+                            <div class="pomo-log-time" style="font-size: 0.72rem;">${log.started_at} → ${log.ended_at}</div>
+                            <div class="pomo-log-details">
+                                <span class="pomo-log-desc">${escapeHtml(log.focus_log || 'Focus Session')}</span>
+                                <span class="pomo-log-meta">${log.duration_minutes}m</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            weekHistoryList.appendChild(group);
+        });
+    }
+
+    function renderMonthPanel(data) {
+        if (!monthStatsRow || !monthCalendarGrid || !monthHistoryList) return;
+
+        const hours = (data.total_focus_minutes / 60).toFixed(1);
+        monthStatsRow.innerHTML = `
+            <div class="focus-stat-card">
+                <span class="focus-stat-value">${hours}h</span>
+                <span class="focus-stat-label">Monthly Focus</span>
+            </div>
+            <div class="focus-stat-card">
+                <span class="focus-stat-value">${data.active_days} / ${data.total_days}</span>
+                <span class="focus-stat-label">Active Days</span>
+            </div>
+            <div class="focus-stat-card">
+                <span class="focus-stat-value">${data.total_sessions}</span>
+                <span class="focus-stat-label">Total Sprints</span>
+            </div>
+        `;
+
+        monthCalendarGrid.innerHTML = '';
+        for (let i = 0; i < data.start_weekday; i++) {
+            const emptyCell = document.createElement('div');
+            emptyCell.className = 'month-day-cell empty';
+            monthCalendarGrid.appendChild(emptyCell);
+        }
+
+        data.days.forEach(d => {
+            const cell = document.createElement('div');
+            let classes = ['month-day-cell'];
+            if (d.is_today) classes.push('is-today');
+            if (d.focus_minutes >= 60) classes.push('high-focus');
+            else if (d.focus_minutes > 0) classes.push('has-focus');
+
+            cell.className = classes.join(' ');
+            cell.innerHTML = `
+                <span>${d.day_num}</span>
+                ${d.focus_minutes > 0 ? `<span class="month-cell-badge">${d.focus_minutes}m</span>` : ''}
+            `;
+            cell.addEventListener('click', () => {
+                focusHistoryView = 'day';
+                focusHistoryDate = new Date(d.date);
+                switchFocusHistoryView('day');
+            });
+            monthCalendarGrid.appendChild(cell);
+        });
+
+        monthHistoryList.innerHTML = '';
+        const daysWithLogs = data.days.filter(d => d.logs && d.logs.length > 0);
+        if (daysWithLogs.length === 0) {
+            monthHistoryList.innerHTML = '<div class="pomo-log-empty">No focus sessions recorded for this month.</div>';
+            return;
+        }
+
+        daysWithLogs.forEach(d => {
+            const group = document.createElement('div');
+            group.className = 'focus-history-day-group';
+            group.innerHTML = `
+                <div class="focus-history-day-header">
+                    <span>${d.weekday_name}, ${d.date}</span>
+                    <span style="font-size: 0.78rem; opacity: 0.8;">${d.focus_minutes} mins (${d.session_count} sprints)</span>
+                </div>
+                <div class="focus-history-day-logs">
+                    ${d.logs.map(log => `
+                        <div class="pomo-log-item" style="padding: 6px 0; border: none;">
+                            <div class="pomo-log-time" style="font-size: 0.72rem;">${log.started_at} → ${log.ended_at}</div>
+                            <div class="pomo-log-details">
+                                <span class="pomo-log-desc">${escapeHtml(log.focus_log || 'Focus Session')}</span>
+                                <span class="pomo-log-meta">${log.duration_minutes}m</span>
+                            </div>
+                        </div>
+                    `).join('')}
+                </div>
+            `;
+            monthHistoryList.appendChild(group);
+        });
+    }
+
     function openDayView() {
         if (!dayViewModal || !dayViewOverlay) return;
-        // Set date subtitle
-        if (dayViewDateEl) {
-            const today = new Date();
-            dayViewDateEl.textContent = today.toLocaleDateString('en-GB', {
-                weekday: 'long', day: 'numeric', month: 'long', year: 'numeric'
-            });
-        }
-        // Reset detail panel
-        if (dayDetailEmpty) dayDetailEmpty.style.display = 'flex';
-        if (dayDetailContent) dayDetailContent.style.display = 'none';
-
-        buildRuler();
-        renderDayTimeline(completedLogs);
+        focusHistoryDate = new Date();
+        focusHistoryView = 'day';
+        switchFocusHistoryView('day');
 
         dayViewOverlay.classList.add('open');
         dayViewModal.classList.add('open');
         document.body.style.overflow = 'hidden';
 
-        // Refresh now-line every minute
         clearInterval(dayViewNowInterval);
         dayViewNowInterval = setInterval(updateNowLine, 60000);
     }
@@ -662,6 +884,16 @@ document.addEventListener('DOMContentLoaded', () => {
     if (openDayViewBtn) openDayViewBtn.addEventListener('click', openDayView);
     if (closeDayViewBtn) closeDayViewBtn.addEventListener('click', closeDayView);
     if (dayViewOverlay) dayViewOverlay.addEventListener('click', closeDayView);
+
+    // Tab Event Listeners
+    if (focusViewTabDay) focusViewTabDay.addEventListener('click', () => switchFocusHistoryView('day'));
+    if (focusViewTabWeek) focusViewTabWeek.addEventListener('click', () => switchFocusHistoryView('week'));
+    if (focusViewTabMonth) focusViewTabMonth.addEventListener('click', () => switchFocusHistoryView('month'));
+
+    // Navigator Event Listeners
+    if (focusNavPrevBtn) focusNavPrevBtn.addEventListener('click', () => changeFocusHistoryDate(-1));
+    if (focusNavNextBtn) focusNavNextBtn.addEventListener('click', () => changeFocusHistoryDate(1));
+    if (focusNavTodayBtn) focusNavTodayBtn.addEventListener('click', resetFocusHistoryToday);
 
     // ────────────────────────────────────────────────────────────────────
 

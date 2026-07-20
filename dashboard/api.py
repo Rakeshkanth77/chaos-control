@@ -522,6 +522,190 @@ def cancel_pomodoro(request):
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
+@api_login_required
+def pomodoro_history(request):
+    """
+    Returns focus logs and stats for Day, Week, or Month view based on target date.
+    Query params:
+    - view: 'day' | 'week' | 'month' (default: 'day')
+    - date: 'YYYY-MM-DD' (default: today)
+    """
+    try:
+        view_type = request.GET.get('view', 'day').lower()
+        date_str = request.GET.get('date')
+        
+        if date_str:
+            try:
+                target_date = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                target_date = timezone.localdate()
+        else:
+            target_date = timezone.localdate()
+            
+        if view_type == 'week':
+            # Calculate Monday - Sunday range
+            start_of_week = target_date - timezone.timedelta(days=target_date.weekday())
+            end_of_week = start_of_week + timezone.timedelta(days=6)
+            
+            sessions = PomodoroSession.objects.filter(
+                user=request.user,
+                completed=True,
+                date__gte=start_of_week,
+                date__lte=end_of_week
+            ).order_by('started_at')
+            
+            daily_list = []
+            total_focus_mins = 0
+            total_sessions_count = sessions.count()
+            
+            for i in range(7):
+                curr_d = start_of_week + timezone.timedelta(days=i)
+                d_sessions = [s for s in sessions if s.date == curr_d]
+                d_mins = sum(s.duration_minutes for s in d_sessions)
+                total_focus_mins += d_mins
+                
+                logs_data = []
+                for s in d_sessions:
+                    l_start = timezone.localtime(s.started_at)
+                    l_end = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes))
+                    logs_data.append({
+                        'id': s.id,
+                        'started_at': l_start.strftime('%I:%M %p'),
+                        'ended_at': l_end.strftime('%I:%M %p'),
+                        'duration_minutes': s.duration_minutes,
+                        'total_paused_seconds': s.total_paused_seconds,
+                        'focus_log': s.focus_log
+                    })
+                    
+                daily_list.append({
+                    'date': curr_d.strftime('%Y-%m-%d'),
+                    'day_name': curr_d.strftime('%a'),
+                    'day_num': curr_d.day,
+                    'is_today': curr_d == timezone.localdate(),
+                    'focus_minutes': d_mins,
+                    'session_count': len(d_sessions),
+                    'logs': logs_data
+                })
+                
+            return JsonResponse({
+                'status': 'success',
+                'view': 'week',
+                'target_date': target_date.strftime('%Y-%m-%d'),
+                'start_date': start_of_week.strftime('%Y-%m-%d'),
+                'end_date': end_of_week.strftime('%Y-%m-%d'),
+                'formatted_range': f"{start_of_week.strftime('%b %d')} - {end_of_week.strftime('%b %d, %Y')}",
+                'total_focus_minutes': total_focus_mins,
+                'total_sessions': total_sessions_count,
+                'avg_daily_minutes': round(total_focus_mins / 7, 1),
+                'days': daily_list
+            })
+            
+        elif view_type == 'month':
+            # Calculate 1st day of month to last day of month
+            start_of_month = target_date.replace(day=1)
+            next_month = (start_of_month + timezone.timedelta(days=32)).replace(day=1)
+            end_of_month = next_month - timezone.timedelta(days=1)
+            
+            sessions = PomodoroSession.objects.filter(
+                user=request.user,
+                completed=True,
+                date__gte=start_of_month,
+                date__lte=end_of_month
+            ).order_by('started_at')
+            
+            total_focus_mins = sum(s.duration_minutes for s in sessions)
+            total_sessions_count = sessions.count()
+            
+            days_in_month = (end_of_month - start_of_month).days + 1
+            daily_map = {}
+            active_days_count = 0
+            
+            for i in range(1, days_in_month + 1):
+                curr_d = start_of_month.replace(day=i)
+                d_sessions = [s for s in sessions if s.date == curr_d]
+                d_mins = sum(s.duration_minutes for s in d_sessions)
+                if d_mins > 0:
+                    active_days_count += 1
+                    
+                logs_data = []
+                for s in d_sessions:
+                    l_start = timezone.localtime(s.started_at)
+                    l_end = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes))
+                    logs_data.append({
+                        'id': s.id,
+                        'started_at': l_start.strftime('%I:%M %p'),
+                        'ended_at': l_end.strftime('%I:%M %p'),
+                        'duration_minutes': s.duration_minutes,
+                        'total_paused_seconds': s.total_paused_seconds,
+                        'focus_log': s.focus_log
+                    })
+                    
+                daily_map[i] = {
+                    'date': curr_d.strftime('%Y-%m-%d'),
+                    'day_num': i,
+                    'weekday_name': curr_d.strftime('%a'),
+                    'is_today': curr_d == timezone.localdate(),
+                    'focus_minutes': d_mins,
+                    'session_count': len(d_sessions),
+                    'logs': logs_data
+                }
+                
+            return JsonResponse({
+                'status': 'success',
+                'view': 'month',
+                'target_date': target_date.strftime('%Y-%m-%d'),
+                'year': target_date.year,
+                'month': target_date.month,
+                'formatted_month': target_date.strftime('%B %Y'),
+                'start_weekday': start_of_month.weekday(),
+                'total_days': days_in_month,
+                'active_days': active_days_count,
+                'total_focus_minutes': total_focus_mins,
+                'total_sessions': total_sessions_count,
+                'days': list(daily_map.values())
+            })
+            
+        else: # Day View
+            sessions = PomodoroSession.objects.filter(
+                user=request.user,
+                completed=True,
+                date=target_date
+            ).order_by('started_at')
+            
+            logs_list = []
+            total_focus_mins = 0
+            
+            for s in sessions:
+                l_start = timezone.localtime(s.started_at)
+                l_end = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes, seconds=s.total_paused_seconds))
+                started_at_minutes = l_start.hour * 60 + l_start.minute
+                ended_at_minutes = min(l_end.hour * 60 + l_end.minute, 1439)
+                total_focus_mins += s.duration_minutes
+                
+                logs_list.append({
+                    'id': s.id,
+                    'started_at': l_start.strftime('%I:%M %p'),
+                    'ended_at': l_end.strftime('%I:%M %p'),
+                    'started_at_minutes': started_at_minutes,
+                    'ended_at_minutes': ended_at_minutes,
+                    'duration_minutes': s.duration_minutes,
+                    'total_paused_seconds': s.total_paused_seconds,
+                    'focus_log': s.focus_log
+                })
+                
+            return JsonResponse({
+                'status': 'success',
+                'view': 'day',
+                'target_date': target_date.strftime('%Y-%m-%d'),
+                'formatted_date': target_date.strftime('%A, %d %B %Y'),
+                'is_today': target_date == timezone.localdate(),
+                'total_focus_minutes': total_focus_mins,
+                'total_sessions': len(logs_list),
+                'logs': logs_list
+            })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
 @require_POST
 @api_login_required
 def update_plan(request):
