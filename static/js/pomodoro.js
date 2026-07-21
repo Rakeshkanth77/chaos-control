@@ -364,10 +364,20 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSessionId = null;
     }
 
-    // Focus Category Selector State (PhD vs Other)
+    // Focus Category & Duration Setup State
     let selectedPomoCategory = 'phd';
+    let selectedDurationMins = 25;
+
     const pomoCatPhdBtn = document.getElementById('pomoCatPhdBtn');
     const pomoCatOtherBtn = document.getElementById('pomoCatOtherBtn');
+    const pomoConfirmStartBtn = document.getElementById('pomoConfirmStartBtn');
+    const pomoSetCustomBtn = document.getElementById('pomoSetCustomBtn') || document.getElementById('pomoStartCustomBtn');
+
+    function updateStartButtonUI() {
+        if (!pomoConfirmStartBtn) return;
+        const catLabel = selectedPomoCategory === 'phd' ? 'PhD' : 'Other';
+        pomoConfirmStartBtn.textContent = `🚀 Start ${catLabel} Sprint (${selectedDurationMins} min)`;
+    }
 
     function setPomoCategory(cat) {
         selectedPomoCategory = cat;
@@ -381,10 +391,64 @@ document.addEventListener('DOMContentLoaded', () => {
             pomoCatOtherBtn.style.background = cat === 'other' ? '#3b82f6' : 'transparent';
             pomoCatOtherBtn.style.color = cat === 'other' ? '#ffffff' : 'rgba(255,255,255,0.6)';
         }
+        updateStartButtonUI();
     }
 
     if (pomoCatPhdBtn) pomoCatPhdBtn.addEventListener('click', () => setPomoCategory('phd'));
     if (pomoCatOtherBtn) pomoCatOtherBtn.addEventListener('click', () => setPomoCategory('other'));
+
+    function setSelectedDuration(mins, activeBtn = null) {
+        selectedDurationMins = mins;
+        pomoPresetBtns.forEach(btn => {
+            const isMatch = activeBtn ? (btn === activeBtn) : (parseInt(btn.dataset.mins) === mins);
+            if (isMatch) {
+                btn.style.background = 'rgba(45, 212, 191, 0.25)';
+                btn.style.borderColor = '#2dd4bf';
+                btn.style.fontWeight = '700';
+            } else {
+                btn.style.background = 'rgba(45, 212, 191, 0.08)';
+                btn.style.borderColor = 'rgba(45, 212, 191, 0.25)';
+                btn.style.fontWeight = '600';
+            }
+        });
+        updateStartButtonUI();
+    }
+
+    // Presets Setup (Selection only — does not start automatically)
+    pomoPresetBtns.forEach(btn => {
+        btn.addEventListener('click', () => {
+            const mins = parseInt(btn.dataset.mins);
+            setSelectedDuration(mins, btn);
+        });
+    });
+
+    // Custom Time Setup
+    if (pomoSetCustomBtn) {
+        pomoSetCustomBtn.addEventListener('click', () => {
+            const mins = parseInt(pomoCustomMins.value);
+            if (!isNaN(mins) && mins >= 1 && mins <= 180) {
+                setSelectedDuration(mins);
+            } else {
+                alert('Please enter a duration between 1 and 180 minutes.');
+            }
+        });
+    }
+
+    if (pomoCustomMins) {
+        pomoCustomMins.addEventListener('input', () => {
+            const mins = parseInt(pomoCustomMins.value);
+            if (!isNaN(mins) && mins >= 1 && mins <= 180) {
+                setSelectedDuration(mins);
+            }
+        });
+    }
+
+    // Confirm & Start Focus Sprint Button Listener
+    if (pomoConfirmStartBtn) {
+        pomoConfirmStartBtn.addEventListener('click', () => {
+            startTimer(selectedDurationMins);
+        });
+    }
 
     // Start Pomodoro Request
     async function startTimer(mins) {
@@ -526,23 +590,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (pomoCancelBtn) pomoCancelBtn.addEventListener('click', cancelTimer);
-
-    // Presets Setup
-    pomoPresetBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            const mins = parseInt(btn.dataset.mins);
-            startTimer(mins);
-        });
-    });
-
-    // Custom Time Setup
-    if (pomoStartCustomBtn) {
-        pomoStartCustomBtn.addEventListener('click', () => {
-            const mins = parseInt(pomoCustomMins.value);
-            startTimer(mins);
-            pomoCustomMins.value = ''; // clear input
-        });
-    }
 
     // Sync status and load today's log lists
     async function syncStatus() {

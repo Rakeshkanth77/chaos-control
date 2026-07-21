@@ -720,15 +720,20 @@
             </div>
 
             <div class="pomo-section-label">Select Sprint Duration:</div>
-            <div class="pomo-presets-grid">
-                <button class="btn pomo-preset-btn" data-mins="25" style="background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.25); color: #2dd4bf; border-radius: 10px; font-weight: 600;">25 min</button>
+            <div class="pomo-presets-grid" id="pomoPresetsGrid">
+                <button class="btn pomo-preset-btn active" data-mins="25" style="background: rgba(45, 212, 191, 0.2); border: 1px solid #2dd4bf; color: #2dd4bf; border-radius: 10px; font-weight: 700;">25 min</button>
                 <button class="btn pomo-preset-btn" data-mins="45" style="background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.25); color: #2dd4bf; border-radius: 10px; font-weight: 600;">45 min</button>
                 <button class="btn pomo-preset-btn" data-mins="5" style="background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.25); color: #2dd4bf; border-radius: 10px; font-weight: 600;">5 min</button>
             </div>
             <div class="pomo-custom-input-group">
-                <input type="number" id="pomoCustomMins" class="inline-input pomo-custom-input" placeholder="Custom..." min="1" max="180">
-                <button id="pomoStartCustomBtn" class="btn pomo-custom-add-btn" style="background: linear-gradient(135deg, #0c9e93, #2dd4bf); color: #061614; font-weight: 700; border: none;">+ Custom Time</button>
+                <input type="number" id="pomoCustomMins" class="inline-input pomo-custom-input" placeholder="Custom mins..." min="1" max="180">
+                <button id="pomoSetCustomBtn" class="btn pomo-custom-add-btn" style="background: rgba(255, 255, 255, 0.08); color: #2dd4bf; font-weight: 600; border: 1px solid rgba(45, 212, 191, 0.3);">Set Custom</button>
             </div>
+
+            <!-- Explicit Confirmation & Start Button -->
+            <button id="pomoConfirmStartBtn" class="btn pomo-confirm-start-btn" style="width: 100%; margin-top: 14px; padding: 12px; border-radius: 12px; font-size: 0.95rem; font-weight: 700; background: linear-gradient(135deg, #0c9e93, #2dd4bf); color: #061614; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(45, 212, 191, 0.35); transition: all 0.2s;">
+                🚀 Start PhD Sprint (25 min)
+            </button>
         </div>
 
         <!-- Controls Section (Visible when timer IS running) -->
