@@ -94,26 +94,83 @@ document.addEventListener('DOMContentLoaded', () => {
                     options: commonChartOptions
                 });
 
-                // Render Pomodoro Bar Chart
+                // Render Pomodoro Dual Bar Chart (Focus Time vs Total Sessions)
                 const ctxPomo = document.getElementById('pomodoro-chart').getContext('2d');
+                
+                const valueOnTopPlugin = {
+                    id: 'valueOnTop',
+                    afterDatasetsDraw(chart) {
+                        const { ctx } = chart;
+                        chart.data.datasets.forEach((dataset, datasetIndex) => {
+                            const meta = chart.getDatasetMeta(datasetIndex);
+                            if (!meta.hidden) {
+                                meta.data.forEach((element, index) => {
+                                    const val = dataset.data[index];
+                                    if (val > 0) {
+                                        ctx.save();
+                                        ctx.fillStyle = datasetIndex === 0 ? '#0d9488' : '#7e22ce';
+                                        ctx.font = '700 10px Inter, sans-serif';
+                                        ctx.textAlign = 'center';
+                                        ctx.textBaseline = 'bottom';
+                                        const labelText = datasetIndex === 0 ? `${val}m` : `${val}`;
+                                        ctx.fillText(labelText, element.x, element.y - 2);
+                                        ctx.restore();
+                                    }
+                                });
+                            }
+                        });
+                    }
+                };
+
                 new Chart(ctxPomo, {
                     type: 'bar',
+                    plugins: [valueOnTopPlugin],
                     data: {
                         labels: res.labels,
-                        datasets: [{
-                            label: 'Sessions',
-                            data: res.pomodoros,
-                            backgroundColor: 'rgba(99, 91, 143, 0.55)',
-                            borderRadius: 6,
-                            borderWidth: 0
-                        }]
+                        datasets: [
+                            {
+                                label: 'Focus Time (Mins)',
+                                data: res.pomodoro_minutes || [],
+                                backgroundColor: 'rgba(45, 212, 191, 0.65)',
+                                borderColor: '#2dd4bf',
+                                borderRadius: 6,
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Total Pomodoros',
+                                data: res.pomodoros || [],
+                                backgroundColor: 'rgba(168, 85, 247, 0.65)',
+                                borderColor: '#a855f7',
+                                borderRadius: 6,
+                                borderWidth: 1,
+                                yAxisID: 'y1'
+                            }
+                        ]
                     },
                     options: {
                         ...commonChartOptions,
                         scales: {
-                            ...commonChartOptions.scales,
+                            x: {
+                                grid: { display: false },
+                                ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75' }
+                            },
                             y: {
-                                ...commonChartOptions.scales.y,
+                                type: 'linear',
+                                display: true,
+                                position: 'left',
+                                title: { display: true, text: 'Minutes', font: { size: 10, weight: 'bold' }, color: '#0d9488' },
+                                grid: { color: 'rgba(0, 0, 0, 0.03)' },
+                                ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75', precision: 0 },
+                                suggestedMax: 60
+                            },
+                            y1: {
+                                type: 'linear',
+                                display: true,
+                                position: 'right',
+                                title: { display: true, text: 'Counts', font: { size: 10, weight: 'bold' }, color: '#7e22ce' },
+                                grid: { drawOnChartArea: false },
+                                ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75', precision: 0 },
                                 suggestedMax: 4
                             }
                         }

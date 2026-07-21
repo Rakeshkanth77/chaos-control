@@ -3347,7 +3347,7 @@ body {
 /* ── Focus Stats Row ── */
 .focus-stats-row {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
     gap: 12px;
 }
 
@@ -3544,6 +3544,31 @@ body {
     color: #2dd4bf;
     border-bottom: 1px solid rgba(255, 255, 255, 0.06);
     padding-bottom: 6px;
+    cursor: pointer;
+    user-select: none;
+    transition: color 0.2s ease;
+}
+
+.focus-history-day-header:hover {
+    color: #5eead4;
+}
+
+.focus-history-day-header .history-toggle-icon {
+    display: inline-block;
+    transition: transform 0.2s ease;
+    font-size: 0.75rem;
+    margin-right: 6px;
+}
+
+.focus-history-day-logs {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    transition: all 0.2s ease;
+}
+
+.focus-history-day-logs.collapsed {
+    display: none;
 }
 
 

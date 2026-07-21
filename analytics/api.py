@@ -1,6 +1,6 @@
 from django.http import JsonResponse
 from django.utils import timezone
-from django.db.models import Count, Q
+from django.db.models import Count, Q, Sum
 from datetime import timedelta, datetime
 from dashboard.models import Todo, PomodoroSession, DailyReflection
 
@@ -69,24 +69,28 @@ def get_summary_stats(request):
         )
         
         pomodoro_data = PomodoroSession.objects.filter(date__gte=start_date, date__lte=today, completed=True, user=request.user).values('date').annotate(
-            count=Count('id')
+            count=Count('id'),
+            total_minutes=Sum('duration_minutes')
         )
 
         # Map datasets into dictionary by date
         todo_dict = {item['date']: item for item in todo_data}
-        pomodoro_dict = {item['date']: item['count'] for item in pomodoro_data}
+        pomodoro_dict = {item['date']: {'count': item['count'], 'minutes': item['total_minutes'] or 0} for item in pomodoro_data}
 
         # Construct daily trend arrays
         todos_created = []
         todos_completed = []
         pomodoros_done = []
+        pomodoro_minutes = []
 
         for d in date_list:
             t_info = todo_dict.get(d, {'total': 0, 'completed': 0})
             todos_created.append(t_info['total'])
             todos_completed.append(t_info['completed'])
 
-            pomodoros_done.append(pomodoro_dict.get(d, 0))
+            p_info = pomodoro_dict.get(d, {'count': 0, 'minutes': 0})
+            pomodoros_done.append(p_info['count'])
+            pomodoro_minutes.append(p_info['minutes'])
 
         # Eisenhower distribution (all-time or active todos)
         eisenhower_distribution = Todo.objects.filter(is_completed=False, user=request.user).values('priority').annotate(count=Count('id'))
@@ -136,6 +140,7 @@ def get_summary_stats(request):
             'todos_created': todos_created,
             'todos_completed': todos_completed,
             'pomodoros': pomodoros_done,
+            'pomodoro_minutes': pomodoro_minutes,
             'eisenhower_distribution': dist_data,
             'streak': streak,
             'totals': {

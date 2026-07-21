@@ -591,6 +591,38 @@ def pomodoro_history(request):
                 'focus_log': s.focus_log
             }
             
+        def calc_day_metrics(d_sessions):
+            if not d_sessions:
+                return {
+                    'first_start': None,
+                    'last_end': None,
+                    'span_minutes': 0,
+                    'focus_minutes': 0,
+                    'gap_minutes': 0
+                }
+            sorted_s = sorted(d_sessions, key=lambda s: s.started_at)
+            first_s = sorted_s[0]
+            last_s = sorted_s[-1]
+            
+            l_start = timezone.localtime(first_s.started_at)
+            if last_s.ended_at:
+                l_end = timezone.localtime(last_s.ended_at)
+            else:
+                l_end = timezone.localtime(last_s.started_at + timezone.timedelta(minutes=last_s.duration_minutes, seconds=last_s.total_paused_seconds))
+            
+            span_sec = max(0, int((l_end - l_start).total_seconds()))
+            span_mins = int(span_sec / 60)
+            focus_mins = sum(s.duration_minutes for s in d_sessions)
+            gap_mins = max(0, span_mins - focus_mins)
+            
+            return {
+                'first_start': l_start.strftime('%I:%M %p'),
+                'last_end': l_end.strftime('%I:%M %p'),
+                'span_minutes': span_mins,
+                'focus_minutes': focus_mins,
+                'gap_minutes': gap_mins
+            }
+            
         if view_type == 'week':
             # Calculate Monday - Sunday range
             start_of_week = target_date - timezone.timedelta(days=target_date.weekday())
@@ -605,13 +637,15 @@ def pomodoro_history(request):
             
             daily_list = []
             total_focus_mins = 0
+            total_gap_mins = 0
             total_sessions_count = sessions.count()
             
             for i in range(7):
                 curr_d = start_of_week + timezone.timedelta(days=i)
                 d_sessions = [s for s in sessions if s.date == curr_d]
-                d_mins = sum(s.duration_minutes for s in d_sessions)
-                total_focus_mins += d_mins
+                metrics = calc_day_metrics(d_sessions)
+                total_focus_mins += metrics['focus_minutes']
+                total_gap_mins += metrics['gap_minutes']
                 
                 logs_data = [build_session_log(s) for s in d_sessions]
                     
@@ -620,7 +654,11 @@ def pomodoro_history(request):
                     'day_name': curr_d.strftime('%a'),
                     'day_num': curr_d.day,
                     'is_today': curr_d == timezone.localdate(),
-                    'focus_minutes': d_mins,
+                    'focus_minutes': metrics['focus_minutes'],
+                    'gap_minutes': metrics['gap_minutes'],
+                    'span_minutes': metrics['span_minutes'],
+                    'first_start': metrics['first_start'],
+                    'last_end': metrics['last_end'],
                     'session_count': len(d_sessions),
                     'logs': logs_data
                 })
@@ -633,6 +671,7 @@ def pomodoro_history(request):
                 'end_date': end_of_week.strftime('%Y-%m-%d'),
                 'formatted_range': f"{start_of_week.strftime('%b %d')} - {end_of_week.strftime('%b %d, %Y')}",
                 'total_focus_minutes': total_focus_mins,
+                'total_gap_minutes': total_gap_mins,
                 'total_sessions': total_sessions_count,
                 'avg_daily_minutes': round(total_focus_mins / 7, 1),
                 'days': daily_list
@@ -657,13 +696,15 @@ def pomodoro_history(request):
             days_in_month = (end_of_month - start_of_month).days + 1
             daily_map = {}
             active_days_count = 0
+            total_gap_mins = 0
             
             for i in range(1, days_in_month + 1):
                 curr_d = start_of_month.replace(day=i)
                 d_sessions = [s for s in sessions if s.date == curr_d]
-                d_mins = sum(s.duration_minutes for s in d_sessions)
-                if d_mins > 0:
+                metrics = calc_day_metrics(d_sessions)
+                if metrics['focus_minutes'] > 0:
                     active_days_count += 1
+                total_gap_mins += metrics['gap_minutes']
                     
                 logs_data = [build_session_log(s) for s in d_sessions]
                     
@@ -672,7 +713,11 @@ def pomodoro_history(request):
                     'day_num': i,
                     'weekday_name': curr_d.strftime('%a'),
                     'is_today': curr_d == timezone.localdate(),
-                    'focus_minutes': d_mins,
+                    'focus_minutes': metrics['focus_minutes'],
+                    'gap_minutes': metrics['gap_minutes'],
+                    'span_minutes': metrics['span_minutes'],
+                    'first_start': metrics['first_start'],
+                    'last_end': metrics['last_end'],
                     'session_count': len(d_sessions),
                     'logs': logs_data
                 }
@@ -688,6 +733,7 @@ def pomodoro_history(request):
                 'total_days': days_in_month,
                 'active_days': active_days_count,
                 'total_focus_minutes': total_focus_mins,
+                'total_gap_minutes': total_gap_mins,
                 'total_sessions': total_sessions_count,
                 'days': list(daily_map.values())
             })
@@ -700,7 +746,7 @@ def pomodoro_history(request):
             ).order_by('started_at')
             
             logs_list = [build_session_log(s) for s in sessions]
-            total_focus_mins = sum(s.duration_minutes for s in sessions)
+            metrics = calc_day_metrics(sessions)
                 
             return JsonResponse({
                 'status': 'success',
@@ -708,7 +754,11 @@ def pomodoro_history(request):
                 'target_date': target_date.strftime('%Y-%m-%d'),
                 'formatted_date': target_date.strftime('%A, %d %B %Y'),
                 'is_today': target_date == timezone.localdate(),
-                'total_focus_minutes': total_focus_mins,
+                'total_focus_minutes': metrics['focus_minutes'],
+                'total_gap_minutes': metrics['gap_minutes'],
+                'total_span_minutes': metrics['span_minutes'],
+                'first_session_start': metrics['first_start'],
+                'last_session_end': metrics['last_end'],
                 'total_sessions': len(logs_list),
                 'logs': logs_list
             })
