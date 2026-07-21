@@ -815,21 +815,36 @@ body {
 
 .analytics-grid {
     display: grid;
-    grid-template-columns: 2fr 1fr 1fr;
+    grid-template-columns: 1fr 1fr;
     gap: 20px;
     margin-top: 16px;
+}
+
+.analytics-summary-grid {
+    display: grid;
+    grid-template-columns: 280px 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
+}
+
+.analytics-two-plots-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 20px;
+    margin-bottom: 24px;
 }
 
 .analytics-chart-panel {
     display: flex;
     flex-direction: column;
-    height: 280px;
+    min-height: 320px;
 }
 
 .chart-wrapper {
     flex-grow: 1;
     position: relative;
-    height: 100%;
+    width: 100%;
+    min-height: 260px;
     display: flex;
     align-items: center;
     justify-content: center;

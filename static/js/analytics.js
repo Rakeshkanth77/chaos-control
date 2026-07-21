@@ -144,8 +144,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 borderColor: '#2dd4bf',
                                 borderRadius: 6,
                                 borderWidth: 1,
-                                barPercentage: 0.7,
-                                categoryPercentage: 0.65,
+                                barPercentage: 0.55,
+                                categoryPercentage: 0.5,
                                 yAxisID: 'y'
                             },
                             {
@@ -155,8 +155,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 borderColor: '#ef4444',
                                 borderRadius: 6,
                                 borderWidth: 1,
-                                barPercentage: 0.7,
-                                categoryPercentage: 0.65,
+                                barPercentage: 0.55,
+                                categoryPercentage: 0.5,
                                 yAxisID: 'y'
                             },
                             {
@@ -166,8 +166,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 borderColor: '#a855f7',
                                 borderRadius: 6,
                                 borderWidth: 1,
-                                barPercentage: 0.7,
-                                categoryPercentage: 0.65,
+                                barPercentage: 0.55,
+                                categoryPercentage: 0.5,
                                 yAxisID: 'y1'
                             }
                         ]

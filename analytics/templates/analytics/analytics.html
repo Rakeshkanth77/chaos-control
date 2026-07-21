@@ -7,8 +7,8 @@
 <div class="analytics-section">
     <h2 class="panel-title">Productivity Insights & Metrics</h2>
     
-    <!-- Streak and Metrics Summary Bar -->
-    <div class="analytics-grid" style="margin-bottom: 20px; margin-top: 0;">
+    <!-- ROW 1: Streak and Metrics Summary Bar -->
+    <div class="analytics-summary-grid">
         <!-- Streak Card -->
         <div class="glass-panel streak-card">
             <div class="streak-label">Current Streak</div>
@@ -27,12 +27,11 @@
                 <span class="total-stat-label">Total Pomodoro Sessions</span>
             </div>
         </div>
-
     </div>
 
-    <!-- ROW 2: Charts Grid (Todo Trends + Eisenhower Distribution) -->
-    <div class="analytics-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin-bottom: 20px;">
-        <!-- Chart 1: Todo Trends (Created vs Completed) -->
+    <!-- ROW 2: Two Plots Side-by-Side (Operational Achievement + Active Priorities) -->
+    <div class="analytics-two-plots-grid">
+        <!-- Plot 1: Todo Trends (Created vs Completed) -->
         <div class="glass-panel analytics-chart-panel">
             <h3 class="panel-title">Operational Achievement Rate (Last 7 Days)</h3>
             <div class="chart-wrapper">
@@ -40,7 +39,7 @@
             </div>
         </div>
 
-        <!-- Chart 2: Eisenhower Priority Matrix Distribution -->
+        <!-- Plot 2: Eisenhower Priority Matrix Distribution -->
         <div class="glass-panel analytics-chart-panel">
             <h3 class="panel-title">Active Priorities</h3>
             <div class="chart-wrapper">
@@ -49,19 +48,19 @@
         </div>
     </div>
 
-    <!-- ROW 3: Big Full-Width Pomodoro & Opportunity Analytics Chart -->
+    <!-- ROW 3: Big Horizontally Expanded Full-Width Pomodoro & Opportunity Plot -->
     <div class="glass-panel" style="margin-bottom: 24px; width: 100%; padding: 24px; display: flex; flex-direction: column;">
-        <h3 class="panel-title" style="margin-bottom: 16px; font-size: 1.15rem; font-weight: 700;">Pomodoro &amp; Opportunity Focus Analytics (Last 7 Days)</h3>
-        <div class="chart-wrapper" style="height: 400px; min-height: 400px; width: 100%; position: relative;">
+        <h3 class="panel-title" style="margin-bottom: 16px; font-size: 1.15rem; font-weight: 700;">Pomodoro Sessions &amp; Opportunity Focus (Last 7 Days)</h3>
+        <div class="chart-wrapper" style="height: 420px; min-height: 420px; width: 100%; position: relative;">
             <canvas id="pomodoro-chart"></canvas>
         </div>
     </div>
 
-    <!-- Productivity Tip -->
-    <div class="analytics-grid" style="margin-top: 20px;">
-        <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; height: 250px;">
+    <!-- ROW 4: Productivity Tip -->
+    <div style="margin-top: 24px; margin-bottom: 20px;">
+        <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 24px;">
             <h3 class="panel-title" style="margin-bottom: 8px;">Productivity Tip</h3>
-            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); max-width: 280px; margin: 0 auto;" id="random-tip">
+            <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); max-width: 600px; margin: 0 auto;" id="random-tip">
                 "The secret of getting ahead is getting started. The secret of getting started is breaking your complex overwhelming objectives into small manageable tasks, and starting on the first one."
             </p>
         </div>
