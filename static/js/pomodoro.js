@@ -364,6 +364,28 @@ document.addEventListener('DOMContentLoaded', () => {
         currentSessionId = null;
     }
 
+    // Focus Category Selector State (PhD vs Other)
+    let selectedPomoCategory = 'phd';
+    const pomoCatPhdBtn = document.getElementById('pomoCatPhdBtn');
+    const pomoCatOtherBtn = document.getElementById('pomoCatOtherBtn');
+
+    function setPomoCategory(cat) {
+        selectedPomoCategory = cat;
+        if (pomoCatPhdBtn) {
+            pomoCatPhdBtn.classList.toggle('active', cat === 'phd');
+            pomoCatPhdBtn.style.background = cat === 'phd' ? '#2dd4bf' : 'transparent';
+            pomoCatPhdBtn.style.color = cat === 'phd' ? '#061614' : 'rgba(255,255,255,0.6)';
+        }
+        if (pomoCatOtherBtn) {
+            pomoCatOtherBtn.classList.toggle('active', cat === 'other');
+            pomoCatOtherBtn.style.background = cat === 'other' ? '#3b82f6' : 'transparent';
+            pomoCatOtherBtn.style.color = cat === 'other' ? '#ffffff' : 'rgba(255,255,255,0.6)';
+        }
+    }
+
+    if (pomoCatPhdBtn) pomoCatPhdBtn.addEventListener('click', () => setPomoCategory('phd'));
+    if (pomoCatOtherBtn) pomoCatOtherBtn.addEventListener('click', () => setPomoCategory('other'));
+
     // Start Pomodoro Request
     async function startTimer(mins) {
         if (isNaN(mins) || mins <= 0 || mins > 180) {
@@ -379,7 +401,8 @@ document.addEventListener('DOMContentLoaded', () => {
             const data = await apiPost('/api/pomodoro/start/', {
                 duration_minutes: mins,
                 task_id: taskId || null,
-                task_title: selectedOptText || ''
+                task_title: selectedOptText || '',
+                category: selectedPomoCategory || 'phd'
             });
             if (data.status === 'success') {
                 currentSessionId = data.session_id;

@@ -78,6 +78,8 @@ def get_summary_stats(request):
             todos_completed = [0] * 12
             pomodoros_done = [0] * 12
             pomodoro_minutes = [0] * 12
+            phd_minutes = [0] * 12
+            other_minutes = [0] * 12
             opportunity_minutes = [0] * 12
 
             # Fetch todos for target date
@@ -95,6 +97,10 @@ def get_summary_stats(request):
                 slot = min(local_start.hour // 2, 11)
                 pomodoros_done[slot] += 1
                 pomodoro_minutes[slot] += p.duration_minutes
+                if p.category == 'phd':
+                    phd_minutes[slot] += p.duration_minutes
+                else:
+                    other_minutes[slot] += p.duration_minutes
 
             if p_sessions:
                 f_s = p_sessions[0]
@@ -132,6 +138,8 @@ def get_summary_stats(request):
             todos_completed = []
             pomodoros_done = []
             pomodoro_minutes = []
+            phd_minutes = []
+            other_minutes = []
             opportunity_minutes = []
 
             for d in date_list:
@@ -147,13 +155,19 @@ def get_summary_stats(request):
                     l_end = timezone.localtime(l_s.ended_at) if l_s.ended_at else timezone.localtime(l_s.started_at + timedelta(minutes=l_s.duration_minutes))
                     span_mins = max(0, int((l_end - l_start).total_seconds() / 60))
                     f_mins = sum(s.duration_minutes for s in p_sessions)
+                    phd_m = sum(s.duration_minutes for s in p_sessions if s.category == 'phd')
+                    oth_m = sum(s.duration_minutes for s in p_sessions if s.category != 'phd')
                     o_mins = max(0, span_mins - f_mins)
                 else:
                     f_mins = 0
+                    phd_m = 0
+                    oth_m = 0
                     o_mins = 0
 
                 pomodoros_done.append(len(p_sessions))
                 pomodoro_minutes.append(f_mins)
+                phd_minutes.append(phd_m)
+                other_minutes.append(oth_m)
                 opportunity_minutes.append(o_mins)
 
         else: # Default: Week View
@@ -174,6 +188,8 @@ def get_summary_stats(request):
             todos_completed = []
             pomodoros_done = []
             pomodoro_minutes = []
+            phd_minutes = []
+            other_minutes = []
             opportunity_minutes = []
 
             for d in date_list:
@@ -189,13 +205,19 @@ def get_summary_stats(request):
                     l_end = timezone.localtime(l_s.ended_at) if l_s.ended_at else timezone.localtime(l_s.started_at + timedelta(minutes=l_s.duration_minutes))
                     span_mins = max(0, int((l_end - l_start).total_seconds() / 60))
                     f_mins = sum(s.duration_minutes for s in p_sessions)
+                    phd_m = sum(s.duration_minutes for s in p_sessions if s.category == 'phd')
+                    oth_m = sum(s.duration_minutes for s in p_sessions if s.category != 'phd')
                     o_mins = max(0, span_mins - f_mins)
                 else:
                     f_mins = 0
+                    phd_m = 0
+                    oth_m = 0
                     o_mins = 0
 
                 pomodoros_done.append(len(p_sessions))
                 pomodoro_minutes.append(f_mins)
+                phd_minutes.append(phd_m)
+                other_minutes.append(oth_m)
                 opportunity_minutes.append(o_mins)
 
         # Eisenhower distribution for target range (fallback to all active todos if empty)
@@ -245,6 +267,8 @@ def get_summary_stats(request):
             })
 
         pomodoro_hours = [round(m / 60.0, 2) for m in pomodoro_minutes]
+        phd_hours = [round(m / 60.0, 2) for m in phd_minutes]
+        other_hours = [round(m / 60.0, 2) for m in other_minutes]
         opportunity_hours = [round(m / 60.0, 2) for m in opportunity_minutes]
 
         return JsonResponse({
@@ -258,6 +282,8 @@ def get_summary_stats(request):
             'pomodoros': pomodoros_done,
             'pomodoro_minutes': pomodoro_minutes,
             'pomodoro_hours': pomodoro_hours,
+            'phd_hours': phd_hours,
+            'other_hours': other_hours,
             'opportunity_minutes': opportunity_minutes,
             'opportunity_hours': opportunity_hours,
             'eisenhower_distribution': dist_data,

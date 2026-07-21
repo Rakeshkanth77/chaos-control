@@ -705,9 +705,17 @@
         <!-- Controls Section (Visible when timer is NOT running) -->
         <div class="pomo-setup-controls" id="pomoSetupControls">
             <div class="pomo-section-label">🎯 Select Task to Focus On:</div>
-            <select id="pomoTaskSelect" class="pomo-task-select" style="width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(45, 212, 191, 0.3); color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 0.88rem; outline: none; margin-bottom: 12px; cursor: pointer;">
+            <select id="pomoTaskSelect" class="pomo-task-select" style="width: 100%; padding: 10px 12px; border-radius: 12px; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(45, 212, 191, 0.3); color: #ffffff; font-family: 'Outfit', sans-serif; font-size: 0.88rem; outline: none; margin-bottom: 10px; cursor: pointer;">
                 <option value="">-- General Focus Sprint --</option>
             </select>
+
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; background: rgba(255, 255, 255, 0.04); padding: 8px 12px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                <span class="pomo-section-label" style="margin: 0; font-size: 0.76rem;">Focus Category:</span>
+                <div class="pomo-cat-toggle-group" style="display: flex; background: rgba(0, 0, 0, 0.4); border: 1px solid rgba(45, 212, 191, 0.3); border-radius: 8px; padding: 2px; gap: 2px;">
+                    <button type="button" id="pomoCatPhdBtn" class="pomo-cat-btn active" style="padding: 4px 12px; border-radius: 6px; border: none; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: #2dd4bf; color: #061614;">🎓 PhD</button>
+                    <button type="button" id="pomoCatOtherBtn" class="pomo-cat-btn" style="padding: 4px 12px; border-radius: 6px; border: none; font-size: 0.78rem; font-weight: 700; cursor: pointer; transition: all 0.2s; background: transparent; color: rgba(255,255,255,0.6);">💼 Other</button>
+                </div>
+            </div>
 
             <div class="pomo-section-label">Select Sprint Duration:</div>
             <div class="pomo-presets-grid">

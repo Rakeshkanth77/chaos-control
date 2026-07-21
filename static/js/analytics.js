@@ -162,13 +162,15 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-                // 2. Render Pomodoro 3-Bar Chart (Focus Hours, Opportunity Hours, Total Sessions)
+                // 2. Render Pomodoro Stacked Bar Chart (PhD Focus + Other Focus + Opportunity Hours + Total Sessions)
                 const canvasPomo = document.getElementById('pomodoro-chart');
                 if (canvasPomo) {
-                    const pomoHoursData = res.pomodoro_hours || (res.pomodoro_minutes ? res.pomodoro_minutes.map(m => Number((m/60).toFixed(1))) : []);
-                    const oppHoursData = res.opportunity_hours || (res.opportunity_minutes ? res.opportunity_minutes.map(m => Number((m/60).toFixed(1))) : []);
+                    const phdHoursData = res.phd_hours || [];
+                    const otherHoursData = res.other_hours || (res.pomodoro_hours ? res.pomodoro_hours : []);
+                    const oppHoursData = res.opportunity_hours || [];
 
-                    const maxH = Math.max(...pomoHoursData, ...oppHoursData, 1);
+                    const totalFocusHours = phdHoursData.map((h, i) => Number((h + (otherHoursData[i] || 0)).toFixed(1)));
+                    const maxH = Math.max(...totalFocusHours, ...oppHoursData, 1);
                     const maxC = Math.max(...(res.pomodoros || [1]), 1);
 
                     const valueOnTopPlugin = {
@@ -182,15 +184,16 @@ document.addEventListener('DOMContentLoaded', () => {
                                         const val = dataset.data[index];
                                         if (val > 0) {
                                             ctx.save();
-                                            if (datasetIndex === 0) ctx.fillStyle = '#0d9488';
-                                            else if (datasetIndex === 1) ctx.fillStyle = '#dc2626';
+                                            if (datasetIndex === 0) ctx.fillStyle = '#0c9e93';
+                                            else if (datasetIndex === 1) ctx.fillStyle = '#2563eb';
+                                            else if (datasetIndex === 2) ctx.fillStyle = '#dc2626';
                                             else ctx.fillStyle = '#7e22ce';
 
                                             ctx.font = '700 10px Inter, sans-serif';
                                             ctx.textAlign = 'center';
                                             ctx.textBaseline = 'bottom';
-                                            const labelText = (datasetIndex === 0 || datasetIndex === 1) ? `${Number(val.toFixed(1))}h` : `${val}`;
-                                            ctx.fillText(labelText, element.x, element.y - 4);
+                                            const labelText = (datasetIndex <= 2) ? `${Number(val.toFixed(1))}h` : `${val}`;
+                                            ctx.fillText(labelText, element.x, element.y - 3);
                                             ctx.restore();
                                         }
                                     });
@@ -207,12 +210,25 @@ document.addEventListener('DOMContentLoaded', () => {
                             labels: res.labels,
                             datasets: [
                                 {
-                                    label: 'Focus Time (Hours)',
-                                    data: pomoHoursData,
-                                    backgroundColor: 'rgba(45, 212, 191, 0.7)',
+                                    label: '🎓 PhD Focus (Hours)',
+                                    data: phdHoursData,
+                                    backgroundColor: 'rgba(45, 212, 191, 0.85)',
                                     borderColor: '#2dd4bf',
-                                    borderRadius: 6,
+                                    borderRadius: 4,
                                     borderWidth: 1,
+                                    stack: 'focus',
+                                    barPercentage: 0.55,
+                                    categoryPercentage: 0.5,
+                                    yAxisID: 'y'
+                                },
+                                {
+                                    label: '💼 Other Focus (Hours)',
+                                    data: otherHoursData,
+                                    backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                                    borderColor: '#3b82f6',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'focus',
                                     barPercentage: 0.55,
                                     categoryPercentage: 0.5,
                                     yAxisID: 'y'
@@ -220,10 +236,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 {
                                     label: 'Opportunity Time (Hours)',
                                     data: oppHoursData,
-                                    backgroundColor: 'rgba(239, 68, 68, 0.7)',
+                                    backgroundColor: 'rgba(239, 68, 68, 0.75)',
                                     borderColor: '#ef4444',
                                     borderRadius: 6,
                                     borderWidth: 1,
+                                    stack: 'opp',
                                     barPercentage: 0.55,
                                     categoryPercentage: 0.5,
                                     yAxisID: 'y'
@@ -231,10 +248,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                 {
                                     label: 'Total Pomodoros',
                                     data: res.pomodoros || [],
-                                    backgroundColor: 'rgba(168, 85, 247, 0.7)',
+                                    backgroundColor: 'rgba(168, 85, 247, 0.75)',
                                     borderColor: '#a855f7',
                                     borderRadius: 6,
                                     borderWidth: 1,
+                                    stack: 'counts',
                                     barPercentage: 0.55,
                                     categoryPercentage: 0.5,
                                     yAxisID: 'y1'

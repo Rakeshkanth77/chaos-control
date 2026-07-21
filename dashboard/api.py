@@ -318,9 +318,14 @@ def start_pomodoro(request):
             except Todo.DoesNotExist:
                 pass
 
+        category = data.get('category', 'other')
+        if category not in ['phd', 'other']:
+            category = 'other'
+
         session = PomodoroSession.objects.create(
             user=request.user,
             task=task_obj,
+            category=category,
             duration_minutes=duration,
             completed=False,
             is_paused=False,
@@ -329,7 +334,7 @@ def start_pomodoro(request):
             date=target_date
         )
 
-        return JsonResponse({'status': 'success', 'session_id': session.id, 'task_title': focus_title})
+        return JsonResponse({'status': 'success', 'session_id': session.id, 'task_title': focus_title, 'category': session.category})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
