@@ -843,9 +843,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const dayStatsRow = document.getElementById('dayStatsRow');
         if (!dayStatsRow) return;
         const focusMins = data.total_focus_minutes || 0;
-        const gapMins = data.total_gap_minutes || 0;
+        const oppMins = data.total_opportunity_minutes ?? (data.total_gap_minutes || 0);
         const focusHrs = (focusMins / 60).toFixed(1);
-        const gapHrs = (gapMins / 60).toFixed(1);
+        const oppHrs = (oppMins / 60).toFixed(1);
         const spanText = (data.first_session_start && data.last_session_end)
             ? `${data.first_session_start} → ${data.last_session_end}`
             : 'No sessions today';
@@ -856,8 +856,8 @@ document.addEventListener('DOMContentLoaded', () => {
                 <span class="focus-stat-label">Total Focus Time</span>
             </div>
             <div class="focus-stat-card">
-                <span class="focus-stat-value" style="color: #f43f5e;">${gapMins >= 60 ? gapHrs + 'h' : gapMins + 'm'}</span>
-                <span class="focus-stat-label">Total Gap / Idle</span>
+                <span class="focus-stat-value" style="color: #ef4444;">${oppMins >= 60 ? oppHrs + 'h' : oppMins + 'm'}</span>
+                <span class="focus-stat-label">Opportunity Time</span>
             </div>
             <div class="focus-stat-card">
                 <span class="focus-stat-value" style="font-size: 1.05rem;">${spanText}</span>
@@ -870,15 +870,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!weekStatsRow || !weekChartContainer || !weekHistoryList) return;
         
         const focusHours = (data.total_focus_minutes / 60).toFixed(1);
-        const gapHours = (data.total_gap_minutes / 60).toFixed(1);
+        const oppHours = ((data.total_opportunity_minutes ?? data.total_gap_minutes) / 60).toFixed(1);
         weekStatsRow.innerHTML = `
             <div class="focus-stat-card">
                 <span class="focus-stat-value">${focusHours}h</span>
                 <span class="focus-stat-label">Total Focus</span>
             </div>
             <div class="focus-stat-card">
-                <span class="focus-stat-value" style="color: #f43f5e;">${gapHours}h</span>
-                <span class="focus-stat-label">Total Gaps</span>
+                <span class="focus-stat-value" style="color: #ef4444;">${oppHours}h</span>
+                <span class="focus-stat-label">Total Opportunity</span>
             </div>
             <div class="focus-stat-card">
                 <span class="focus-stat-value">${data.total_sessions}</span>
@@ -921,14 +921,15 @@ document.addEventListener('DOMContentLoaded', () => {
         daysWithLogs.forEach(d => {
             const group = document.createElement('div');
             group.className = 'focus-history-day-group';
-            const gapLabel = d.gap_minutes > 0 ? ` • ${d.gap_minutes}m gap` : '';
+            const oppMins = d.opportunity_minutes ?? d.gap_minutes ?? 0;
+            const oppLabel = oppMins > 0 ? ` • <span style="color:#ef4444;">${oppMins}m Opportunity</span>` : '';
             group.innerHTML = `
                 <div class="focus-history-day-header" title="Click to expand / collapse timeline">
                     <div>
                         <span class="history-toggle-icon">▼</span>
                         <span>${d.day_name}, ${d.date}</span>
                     </div>
-                    <span style="font-size: 0.78rem; opacity: 0.8; font-weight: 500;">${d.focus_minutes}m focus${gapLabel} (${d.session_count} sprint${d.session_count === 1 ? '' : 's'})</span>
+                    <span style="font-size: 0.78rem; opacity: 0.85; font-weight: 500;">${d.focus_minutes}m focus${oppLabel} (${d.session_count} sprint${d.session_count === 1 ? '' : 's'})</span>
                 </div>
                 <div class="focus-history-day-logs">
                     ${d.logs.map(log => `
@@ -959,15 +960,15 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!monthStatsRow || !monthCalendarGrid || !monthHistoryList) return;
 
         const focusHours = (data.total_focus_minutes / 60).toFixed(1);
-        const gapHours = (data.total_gap_minutes / 60).toFixed(1);
+        const oppHours = ((data.total_opportunity_minutes ?? data.total_gap_minutes) / 60).toFixed(1);
         monthStatsRow.innerHTML = `
             <div class="focus-stat-card">
                 <span class="focus-stat-value">${focusHours}h</span>
                 <span class="focus-stat-label">Monthly Focus</span>
             </div>
             <div class="focus-stat-card">
-                <span class="focus-stat-value" style="color: #f43f5e;">${gapHours}h</span>
-                <span class="focus-stat-label">Total Gaps</span>
+                <span class="focus-stat-value" style="color: #ef4444;">${oppHours}h</span>
+                <span class="focus-stat-label">Total Opportunity</span>
             </div>
             <div class="focus-stat-card">
                 <span class="focus-stat-value">${data.active_days} / ${data.total_days}</span>
@@ -1016,14 +1017,15 @@ document.addEventListener('DOMContentLoaded', () => {
         daysWithLogs.forEach(d => {
             const group = document.createElement('div');
             group.className = 'focus-history-day-group';
-            const gapLabel = d.gap_minutes > 0 ? ` • ${d.gap_minutes}m gap` : '';
+            const oppMins = d.opportunity_minutes ?? d.gap_minutes ?? 0;
+            const oppLabel = oppMins > 0 ? ` • <span style="color:#ef4444;">${oppMins}m Opportunity</span>` : '';
             group.innerHTML = `
                 <div class="focus-history-day-header" title="Click to expand / collapse timeline">
                     <div>
                         <span class="history-toggle-icon">▼</span>
                         <span>${d.weekday_name}, ${d.date}</span>
                     </div>
-                    <span style="font-size: 0.78rem; opacity: 0.8; font-weight: 500;">${d.focus_minutes}m focus${gapLabel} (${d.session_count} sprint${d.session_count === 1 ? '' : 's'})</span>
+                    <span style="font-size: 0.78rem; opacity: 0.85; font-weight: 500;">${d.focus_minutes}m focus${oppLabel} (${d.session_count} sprint${d.session_count === 1 ? '' : 's'})</span>
                 </div>
                 <div class="focus-history-day-logs">
                     ${d.logs.map(log => `

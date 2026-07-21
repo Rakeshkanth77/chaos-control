@@ -598,7 +598,8 @@ def pomodoro_history(request):
                     'last_end': None,
                     'span_minutes': 0,
                     'focus_minutes': 0,
-                    'gap_minutes': 0
+                    'gap_minutes': 0,
+                    'opportunity_minutes': 0
                 }
             sorted_s = sorted(d_sessions, key=lambda s: s.started_at)
             first_s = sorted_s[0]
@@ -613,14 +614,15 @@ def pomodoro_history(request):
             span_sec = max(0, int((l_end - l_start).total_seconds()))
             span_mins = int(span_sec / 60)
             focus_mins = sum(s.duration_minutes for s in d_sessions)
-            gap_mins = max(0, span_mins - focus_mins)
+            opp_mins = max(0, span_mins - focus_mins)
             
             return {
                 'first_start': l_start.strftime('%I:%M %p'),
                 'last_end': l_end.strftime('%I:%M %p'),
                 'span_minutes': span_mins,
                 'focus_minutes': focus_mins,
-                'gap_minutes': gap_mins
+                'gap_minutes': opp_mins,
+                'opportunity_minutes': opp_mins
             }
             
         if view_type == 'week':
@@ -645,7 +647,7 @@ def pomodoro_history(request):
                 d_sessions = [s for s in sessions if s.date == curr_d]
                 metrics = calc_day_metrics(d_sessions)
                 total_focus_mins += metrics['focus_minutes']
-                total_gap_mins += metrics['gap_minutes']
+                total_gap_mins += metrics['opportunity_minutes']
                 
                 logs_data = [build_session_log(s) for s in d_sessions]
                     
@@ -655,7 +657,8 @@ def pomodoro_history(request):
                     'day_num': curr_d.day,
                     'is_today': curr_d == timezone.localdate(),
                     'focus_minutes': metrics['focus_minutes'],
-                    'gap_minutes': metrics['gap_minutes'],
+                    'gap_minutes': metrics['opportunity_minutes'],
+                    'opportunity_minutes': metrics['opportunity_minutes'],
                     'span_minutes': metrics['span_minutes'],
                     'first_start': metrics['first_start'],
                     'last_end': metrics['last_end'],
@@ -672,6 +675,7 @@ def pomodoro_history(request):
                 'formatted_range': f"{start_of_week.strftime('%b %d')} - {end_of_week.strftime('%b %d, %Y')}",
                 'total_focus_minutes': total_focus_mins,
                 'total_gap_minutes': total_gap_mins,
+                'total_opportunity_minutes': total_gap_mins,
                 'total_sessions': total_sessions_count,
                 'avg_daily_minutes': round(total_focus_mins / 7, 1),
                 'days': daily_list
@@ -704,7 +708,7 @@ def pomodoro_history(request):
                 metrics = calc_day_metrics(d_sessions)
                 if metrics['focus_minutes'] > 0:
                     active_days_count += 1
-                total_gap_mins += metrics['gap_minutes']
+                total_gap_mins += metrics['opportunity_minutes']
                     
                 logs_data = [build_session_log(s) for s in d_sessions]
                     
@@ -714,7 +718,8 @@ def pomodoro_history(request):
                     'weekday_name': curr_d.strftime('%a'),
                     'is_today': curr_d == timezone.localdate(),
                     'focus_minutes': metrics['focus_minutes'],
-                    'gap_minutes': metrics['gap_minutes'],
+                    'gap_minutes': metrics['opportunity_minutes'],
+                    'opportunity_minutes': metrics['opportunity_minutes'],
                     'span_minutes': metrics['span_minutes'],
                     'first_start': metrics['first_start'],
                     'last_end': metrics['last_end'],
@@ -734,6 +739,7 @@ def pomodoro_history(request):
                 'active_days': active_days_count,
                 'total_focus_minutes': total_focus_mins,
                 'total_gap_minutes': total_gap_mins,
+                'total_opportunity_minutes': total_gap_mins,
                 'total_sessions': total_sessions_count,
                 'days': list(daily_map.values())
             })
@@ -755,7 +761,8 @@ def pomodoro_history(request):
                 'formatted_date': target_date.strftime('%A, %d %B %Y'),
                 'is_today': target_date == timezone.localdate(),
                 'total_focus_minutes': metrics['focus_minutes'],
-                'total_gap_minutes': metrics['gap_minutes'],
+                'total_gap_minutes': metrics['opportunity_minutes'],
+                'total_opportunity_minutes': metrics['opportunity_minutes'],
                 'total_span_minutes': metrics['span_minutes'],
                 'first_session_start': metrics['first_start'],
                 'last_session_end': metrics['last_end'],

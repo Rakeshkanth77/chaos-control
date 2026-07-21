@@ -30,8 +30,8 @@
 
     </div>
 
-    <!-- Charts Grid -->
-    <div class="analytics-grid">
+    <!-- ROW 2: Charts Grid (Todo Trends + Eisenhower Distribution) -->
+    <div class="analytics-grid" style="grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); margin-bottom: 20px;">
         <!-- Chart 1: Todo Trends (Created vs Completed) -->
         <div class="glass-panel analytics-chart-panel">
             <h3 class="panel-title">Operational Achievement Rate (Last 7 Days)</h3>
@@ -40,20 +40,20 @@
             </div>
         </div>
 
-        <!-- Chart 2: Pomodoros Completed -->
-        <div class="glass-panel analytics-chart-panel">
-            <h3 class="panel-title">Pomodoro Sessions</h3>
-            <div class="chart-wrapper">
-                <canvas id="pomodoro-chart"></canvas>
-            </div>
-        </div>
-
-        <!-- Chart 3: Eisenhower Priority Matrix Distribution -->
+        <!-- Chart 2: Eisenhower Priority Matrix Distribution -->
         <div class="glass-panel analytics-chart-panel">
             <h3 class="panel-title">Active Priorities</h3>
             <div class="chart-wrapper">
                 <canvas id="eisenhower-chart"></canvas>
             </div>
+        </div>
+    </div>
+
+    <!-- ROW 3: Big Full-Width Pomodoro & Opportunity Analytics Chart -->
+    <div class="glass-panel analytics-chart-panel" style="margin-bottom: 20px; width: 100%;">
+        <h3 class="panel-title">Pomodoro &amp; Opportunity Focus Analytics (Last 7 Days)</h3>
+        <div class="chart-wrapper" style="height: 320px;">
+            <canvas id="pomodoro-chart"></canvas>
         </div>
     </div>
 

@@ -467,6 +467,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     submitTask();
                 }
             }, 150);
+        });
+    });
+
     // ── Eisenhower View Mode Switcher (Matrix vs Signal & Noise) ──
     const viewModeMatrixBtn = document.getElementById('viewModeMatrixBtn');
     const viewModeSignalBtn = document.getElementById('viewModeSignalBtn');
@@ -482,13 +485,19 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     if (viewModeMatrixBtn) {
-        viewModeMatrixBtn.addEventListener('click', () => setEisenhowerViewMode('matrix'));
+        viewModeMatrixBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            setEisenhowerViewMode('matrix');
+        });
     }
     if (viewModeSignalBtn) {
-        viewModeSignalBtn.addEventListener('click', () => setEisenhowerViewMode('signal'));
+        viewModeSignalBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            setEisenhowerViewMode('signal');
+        });
     }
 
-    // Restore saved view mode
+    // Restore saved view mode on load
     const savedMode = localStorage.getItem('eisenhower_view_mode') || 'matrix';
     setEisenhowerViewMode(savedMode);
 });

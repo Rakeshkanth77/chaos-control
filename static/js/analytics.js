@@ -94,10 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     options: commonChartOptions
                 });
 
-                // Render Pomodoro Dual Bar Chart (Focus Time in Hours vs Total Sessions)
+                // Render Pomodoro 3-Bar Chart (Focus Hours, Opportunity Hours, Total Sessions)
                 const ctxPomo = document.getElementById('pomodoro-chart').getContext('2d');
                 
                 const pomoHoursData = res.pomodoro_hours || (res.pomodoro_minutes ? res.pomodoro_minutes.map(m => Number((m/60).toFixed(1))) : []);
+                const oppHoursData = res.opportunity_hours || (res.opportunity_minutes ? res.opportunity_minutes.map(m => Number((m/60).toFixed(1))) : []);
 
                 const valueOnTopPlugin = {
                     id: 'valueOnTop',
@@ -110,11 +111,14 @@ document.addEventListener('DOMContentLoaded', () => {
                                     const val = dataset.data[index];
                                     if (val > 0) {
                                         ctx.save();
-                                        ctx.fillStyle = datasetIndex === 0 ? '#0d9488' : '#7e22ce';
+                                        if (datasetIndex === 0) ctx.fillStyle = '#0d9488';
+                                        else if (datasetIndex === 1) ctx.fillStyle = '#dc2626';
+                                        else ctx.fillStyle = '#7e22ce';
+
                                         ctx.font = '700 10px Inter, sans-serif';
                                         ctx.textAlign = 'center';
                                         ctx.textBaseline = 'bottom';
-                                        const labelText = datasetIndex === 0 ? `${val}h` : `${val}`;
+                                        const labelText = (datasetIndex === 0 || datasetIndex === 1) ? `${val}h` : `${val}`;
                                         ctx.fillText(labelText, element.x, element.y - 2);
                                         ctx.restore();
                                     }
@@ -135,6 +139,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                 data: pomoHoursData,
                                 backgroundColor: 'rgba(45, 212, 191, 0.65)',
                                 borderColor: '#2dd4bf',
+                                borderRadius: 6,
+                                borderWidth: 1,
+                                yAxisID: 'y'
+                            },
+                            {
+                                label: 'Opportunity Time (Hours)',
+                                data: oppHoursData,
+                                backgroundColor: 'rgba(239, 68, 68, 0.65)',
+                                borderColor: '#ef4444',
                                 borderRadius: 6,
                                 borderWidth: 1,
                                 yAxisID: 'y'
@@ -164,7 +177,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 title: { display: true, text: 'Hours', font: { size: 10, weight: 'bold' }, color: '#0d9488' },
                                 grid: { color: 'rgba(0, 0, 0, 0.03)' },
                                 ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75' },
-                                suggestedMax: 2
+                                suggestedMax: 3
                             },
                             y1: {
                                 type: 'linear',
@@ -173,7 +186,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 title: { display: true, text: 'Counts', font: { size: 10, weight: 'bold' }, color: '#7e22ce' },
                                 grid: { drawOnChartArea: false },
                                 ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75', precision: 0 },
-                                suggestedMax: 4
+                                suggestedMax: 5
                             }
                         }
                     }

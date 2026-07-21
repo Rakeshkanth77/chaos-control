@@ -82,15 +82,30 @@ def get_summary_stats(request):
         todos_completed = []
         pomodoros_done = []
         pomodoro_minutes = []
+        opportunity_minutes = []
 
         for d in date_list:
             t_info = todo_dict.get(d, {'total': 0, 'completed': 0})
             todos_created.append(t_info['total'])
             todos_completed.append(t_info['completed'])
 
-            p_info = pomodoro_dict.get(d, {'count': 0, 'minutes': 0})
-            pomodoros_done.append(p_info['count'])
-            pomodoro_minutes.append(p_info['minutes'])
+            p_sessions = PomodoroSession.objects.filter(date=d, completed=True, user=request.user).order_by('started_at')
+            if p_sessions.exists():
+                s_list = list(p_sessions)
+                f_s = s_list[0]
+                l_s = s_list[-1]
+                l_start = timezone.localtime(f_s.started_at)
+                l_end = timezone.localtime(l_s.ended_at) if l_s.ended_at else timezone.localtime(l_s.started_at + timedelta(minutes=l_s.duration_minutes))
+                span_mins = max(0, int((l_end - l_start).total_seconds() / 60))
+                f_mins = sum(s.duration_minutes for s in s_list)
+                o_mins = max(0, span_mins - f_mins)
+            else:
+                f_mins = 0
+                o_mins = 0
+
+            pomodoros_done.append(len(p_sessions))
+            pomodoro_minutes.append(f_mins)
+            opportunity_minutes.append(o_mins)
 
         # Eisenhower distribution (all-time or active todos)
         eisenhower_distribution = Todo.objects.filter(is_completed=False, user=request.user).values('priority').annotate(count=Count('id'))
@@ -135,6 +150,7 @@ def get_summary_stats(request):
             })
 
         pomodoro_hours = [round(m / 60.0, 2) for m in pomodoro_minutes]
+        opportunity_hours = [round(m / 60.0, 2) for m in opportunity_minutes]
 
         return JsonResponse({
             'status': 'success',
@@ -144,6 +160,8 @@ def get_summary_stats(request):
             'pomodoros': pomodoros_done,
             'pomodoro_minutes': pomodoro_minutes,
             'pomodoro_hours': pomodoro_hours,
+            'opportunity_minutes': opportunity_minutes,
+            'opportunity_hours': opportunity_hours,
             'eisenhower_distribution': dist_data,
             'streak': streak,
             'totals': {
