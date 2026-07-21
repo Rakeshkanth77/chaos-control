@@ -435,7 +435,7 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
 
         <!-- Streak and Metrics Summary Bar -->
-        <div class="analytics-grid">
+        <div class="analytics-summary-grid">
             <!-- Streak Card -->
             <div class="glass-panel streak-card">
                 <div class="streak-label">Current Streak</div>
@@ -454,12 +454,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     <span class="total-stat-value" id="total-pomodoros">--</span>
                 </div>
             </div>
-
         </div>
 
-        <!-- Charts Grid -->
-        <div class="analytics-grid">
-            <!-- Chart 1: Todo Trends -->
+        <!-- ROW 2: Two Plots Side-by-Side (Operational Achievement + Active Priorities) -->
+        <div class="analytics-two-plots-grid">
+            <!-- Plot 1: Todo Trends -->
             <div class="glass-panel analytics-chart-panel">
                 <h3 class="panel-title">Operational Achievement Rate (Last 7 Days)</h3>
                 <div class="chart-wrapper">
@@ -467,15 +466,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
 
-            <!-- Chart 2: Pomodoros Completed -->
-            <div class="glass-panel analytics-chart-panel">
-                <h3 class="panel-title">Pomodoro Sessions</h3>
-                <div class="chart-wrapper">
-                    <canvas id="pomodoro-chart"></canvas>
-                </div>
-            </div>
-
-            <!-- Chart 3: Eisenhower Priority Distribution -->
+            <!-- Plot 2: Eisenhower Priority Distribution -->
             <div class="glass-panel analytics-chart-panel">
                 <h3 class="panel-title">Active Priorities</h3>
                 <div class="chart-wrapper">
@@ -484,11 +475,19 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
 
+        <!-- ROW 3: Big Horizontally Expanded Full-Width Pomodoro Plot -->
+        <div class="glass-panel" style="margin-bottom: 24px; width: 100%; padding: 24px; display: flex; flex-direction: column;">
+            <h3 class="panel-title" style="margin-bottom: 16px; font-size: 1.15rem; font-weight: 700;">Pomodoro Sessions &amp; Opportunity Focus (Last 7 Days)</h3>
+            <div class="chart-wrapper" style="height: 420px; min-height: 420px; width: 100%; position: relative;">
+                <canvas id="pomodoro-chart"></canvas>
+            </div>
+        </div>
+
         <!-- Productivity Tip -->
-        <div class="analytics-grid" style="margin-top: 20px;">
-            <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; height: 250px; padding: 20px;">
+        <div style="margin-top: 24px; margin-bottom: 20px;">
+            <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 24px;">
                 <h3 class="panel-title" style="margin-bottom: 8px; justify-content: center;">Productivity Tip</h3>
-                <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); max-width: 280px; margin: 0 auto;" id="random-tip">
+                <p style="font-size: 0.9rem; line-height: 1.6; color: var(--text-secondary); max-width: 600px; margin: 0 auto;" id="random-tip">
                     "The secret of getting ahead is getting started."
                 </p>
             </div>
