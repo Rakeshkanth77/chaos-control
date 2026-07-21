@@ -100,6 +100,9 @@ document.addEventListener('DOMContentLoaded', () => {
                 const pomoHoursData = res.pomodoro_hours || (res.pomodoro_minutes ? res.pomodoro_minutes.map(m => Number((m/60).toFixed(1))) : []);
                 const oppHoursData = res.opportunity_hours || (res.opportunity_minutes ? res.opportunity_minutes.map(m => Number((m/60).toFixed(1))) : []);
 
+                const maxH = Math.max(...pomoHoursData, ...oppHoursData, 1);
+                const maxC = Math.max(...(res.pomodoros || [1]), 1);
+
                 const valueOnTopPlugin = {
                     id: 'valueOnTop',
                     afterDatasetsDraw(chart) {
@@ -118,8 +121,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                         ctx.font = '700 10px Inter, sans-serif';
                                         ctx.textAlign = 'center';
                                         ctx.textBaseline = 'bottom';
-                                        const labelText = (datasetIndex === 0 || datasetIndex === 1) ? `${val}h` : `${val}`;
-                                        ctx.fillText(labelText, element.x, element.y - 2);
+                                        const labelText = (datasetIndex === 0 || datasetIndex === 1) ? `${Number(val.toFixed(1))}h` : `${val}`;
+                                        ctx.fillText(labelText, element.x, element.y - 4);
                                         ctx.restore();
                                     }
                                 });
@@ -137,34 +140,52 @@ document.addEventListener('DOMContentLoaded', () => {
                             {
                                 label: 'Focus Time (Hours)',
                                 data: pomoHoursData,
-                                backgroundColor: 'rgba(45, 212, 191, 0.65)',
+                                backgroundColor: 'rgba(45, 212, 191, 0.7)',
                                 borderColor: '#2dd4bf',
                                 borderRadius: 6,
                                 borderWidth: 1,
+                                barPercentage: 0.7,
+                                categoryPercentage: 0.65,
                                 yAxisID: 'y'
                             },
                             {
                                 label: 'Opportunity Time (Hours)',
                                 data: oppHoursData,
-                                backgroundColor: 'rgba(239, 68, 68, 0.65)',
+                                backgroundColor: 'rgba(239, 68, 68, 0.7)',
                                 borderColor: '#ef4444',
                                 borderRadius: 6,
                                 borderWidth: 1,
+                                barPercentage: 0.7,
+                                categoryPercentage: 0.65,
                                 yAxisID: 'y'
                             },
                             {
                                 label: 'Total Pomodoros',
                                 data: res.pomodoros || [],
-                                backgroundColor: 'rgba(168, 85, 247, 0.65)',
+                                backgroundColor: 'rgba(168, 85, 247, 0.7)',
                                 borderColor: '#a855f7',
                                 borderRadius: 6,
                                 borderWidth: 1,
+                                barPercentage: 0.7,
+                                categoryPercentage: 0.65,
                                 yAxisID: 'y1'
                             }
                         ]
                     },
                     options: {
                         ...commonChartOptions,
+                        plugins: {
+                            ...commonChartOptions.plugins,
+                            legend: {
+                                display: true,
+                                position: 'top',
+                                labels: {
+                                    font: { family: 'Inter', size: 11, weight: '600' },
+                                    color: '#5a5a75',
+                                    padding: 16
+                                }
+                            }
+                        },
                         scales: {
                             x: {
                                 grid: { display: false },
@@ -174,19 +195,19 @@ document.addEventListener('DOMContentLoaded', () => {
                                 type: 'linear',
                                 display: true,
                                 position: 'left',
-                                title: { display: true, text: 'Hours', font: { size: 10, weight: 'bold' }, color: '#0d9488' },
+                                title: { display: true, text: 'Hours', font: { size: 11, weight: 'bold' }, color: '#0d9488' },
                                 grid: { color: 'rgba(0, 0, 0, 0.03)' },
                                 ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75' },
-                                suggestedMax: 3
+                                suggestedMax: Math.ceil(maxH * 1.3)
                             },
                             y1: {
                                 type: 'linear',
                                 display: true,
                                 position: 'right',
-                                title: { display: true, text: 'Counts', font: { size: 10, weight: 'bold' }, color: '#7e22ce' },
+                                title: { display: true, text: 'Counts', font: { size: 11, weight: 'bold' }, color: '#7e22ce' },
                                 grid: { drawOnChartArea: false },
                                 ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75', precision: 0 },
-                                suggestedMax: 5
+                                suggestedMax: Math.ceil(maxC * 1.3)
                             }
                         }
                     }
