@@ -5,9 +5,27 @@
 
 {% block content %}
 <div class="analytics-section">
-    <h2 class="panel-title">Productivity Insights & Metrics</h2>
-    
-    <!-- ROW 1: Streak and Metrics Summary Bar -->
+    <!-- Analytics Header & Controls Bar (Day / Week / Month + Date Navigation) -->
+    <div class="glass-panel" style="display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; margin-bottom: 20px; flex-wrap: wrap; gap: 12px;">
+        <h2 class="panel-title" style="margin: 0; font-size: 1.15rem; font-weight: 700;">Productivity Insights &amp; Metrics</h2>
+        
+        <div style="display: flex; align-items: center; gap: 14px; flex-wrap: wrap;">
+            <!-- View Mode Tabs -->
+            <div class="focus-view-tabs" id="analyticsViewTabs">
+                <button class="focus-view-tab" data-view="day">Day</button>
+                <button class="focus-view-tab active" data-view="week">Week</button>
+                <button class="focus-view-tab" data-view="month">Month</button>
+            </div>
+
+            <!-- Date Range Navigator -->
+            <div class="focus-date-navigator">
+                <button id="analyticsPrevBtn" class="focus-nav-btn" title="Previous Range">‹</button>
+                <span id="analyticsDateDisplay" class="focus-date-display" style="min-width: 150px; font-weight: 700;">Loading...</span>
+                <button id="analyticsNextBtn" class="focus-nav-btn" title="Next Range">›</button>
+                <button id="analyticsTodayBtn" class="focus-today-badge" title="Reset to Current Date">Today</button>
+            </div>
+        </div>
+    </div>
     <div class="analytics-summary-grid">
         <!-- Streak Card -->
         <div class="glass-panel streak-card">
