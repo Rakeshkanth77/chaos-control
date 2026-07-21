@@ -467,9 +467,30 @@ document.addEventListener('DOMContentLoaded', () => {
                     submitTask();
                 }
             }, 150);
-        });
-    });
+    // ── Eisenhower View Mode Switcher (Matrix vs Signal & Noise) ──
+    const viewModeMatrixBtn = document.getElementById('viewModeMatrixBtn');
+    const viewModeSignalBtn = document.getElementById('viewModeSignalBtn');
+    const eisenhowerColumn = document.querySelector('.eisenhower-column');
 
+    function setEisenhowerViewMode(mode) {
+        if (!eisenhowerColumn) return;
+        const isSignal = mode === 'signal';
+        eisenhowerColumn.classList.toggle('mode-signal', isSignal);
+        if (viewModeMatrixBtn) viewModeMatrixBtn.classList.toggle('active', !isSignal);
+        if (viewModeSignalBtn) viewModeSignalBtn.classList.toggle('active', isSignal);
+        localStorage.setItem('eisenhower_view_mode', mode);
+    }
+
+    if (viewModeMatrixBtn) {
+        viewModeMatrixBtn.addEventListener('click', () => setEisenhowerViewMode('matrix'));
+    }
+    if (viewModeSignalBtn) {
+        viewModeSignalBtn.addEventListener('click', () => setEisenhowerViewMode('signal'));
+    }
+
+    // Restore saved view mode
+    const savedMode = localStorage.getItem('eisenhower_view_mode') || 'matrix';
+    setEisenhowerViewMode(savedMode);
 });
 
 

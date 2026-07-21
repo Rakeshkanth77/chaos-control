@@ -732,6 +732,46 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // ── Timeline Zoom Controls ──
+    let timelineZoomLevel = 100;
+    const timelineZoomOutBtn = document.getElementById('timelineZoomOutBtn');
+    const timelineZoomInBtn = document.getElementById('timelineZoomInBtn');
+    const timelineZoomResetBtn = document.getElementById('timelineZoomResetBtn');
+    const timelineZoomValue = document.getElementById('timelineZoomValue');
+
+    function applyTimelineZoom(newZoom) {
+        timelineZoomLevel = Math.max(100, Math.min(350, newZoom));
+        if (timelineZoomValue) timelineZoomValue.textContent = `${timelineZoomLevel}%`;
+
+        if (dayRuler && dayTrack) {
+            dayRuler.style.width = `${timelineZoomLevel}%`;
+            dayTrack.style.width = `${timelineZoomLevel}%`;
+            dayRuler.style.minWidth = `${timelineZoomLevel}%`;
+            dayTrack.style.minWidth = `${timelineZoomLevel}%`;
+        }
+    }
+
+    if (timelineZoomInBtn) {
+        timelineZoomInBtn.addEventListener('click', () => applyTimelineZoom(timelineZoomLevel + 50));
+    }
+    if (timelineZoomOutBtn) {
+        timelineZoomOutBtn.addEventListener('click', () => applyTimelineZoom(timelineZoomLevel - 50));
+    }
+    if (timelineZoomResetBtn) {
+        timelineZoomResetBtn.addEventListener('click', () => applyTimelineZoom(100));
+    }
+
+    const dayRulerWrapper = document.querySelector('.day-ruler-wrapper');
+    if (dayRulerWrapper) {
+        dayRulerWrapper.addEventListener('wheel', (e) => {
+            if (e.ctrlKey || e.metaKey) {
+                e.preventDefault();
+                const delta = e.deltaY < 0 ? 25 : -25;
+                applyTimelineZoom(timelineZoomLevel + delta);
+            }
+        }, { passive: false });
+    }
+
     // ─── Focus History Views (Day / Week / Month) & Navigation ───────
 
     function formatDateIso(d) {

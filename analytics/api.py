@@ -134,6 +134,8 @@ def get_summary_stats(request):
                 'count': item['count']
             })
 
+        pomodoro_hours = [round(m / 60.0, 2) for m in pomodoro_minutes]
+
         return JsonResponse({
             'status': 'success',
             'labels': date_labels,
@@ -141,6 +143,7 @@ def get_summary_stats(request):
             'todos_completed': todos_completed,
             'pomodoros': pomodoros_done,
             'pomodoro_minutes': pomodoro_minutes,
+            'pomodoro_hours': pomodoro_hours,
             'eisenhower_distribution': dist_data,
             'streak': streak,
             'totals': {

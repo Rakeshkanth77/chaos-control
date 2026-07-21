@@ -553,9 +553,15 @@ document.addEventListener('DOMContentLoaded', () => {
     <!-- COLUMN 2: Eisenhower Matrix (Scrollable 1x4 Priority Stack) -->
     <div class="grid-column">
         <div class="glass-panel eisenhower-column" data-mobile-tab="2">
-            <h2 class="panel-title">
-                What matters most?
-            </h2>
+            <div class="eisenhower-header-bar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
+                <h2 class="panel-title" style="margin-bottom: 0;">
+                    What matters most?
+                </h2>
+                <div class="view-mode-toggle-group" style="display: flex; background: rgba(0, 0, 0, 0.25); padding: 3px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08);">
+                    <button id="viewModeMatrixBtn" class="eisen-mode-btn active" data-mode="matrix" title="5-Row Eisenhower Triage">🔥 Matrix</button>
+                    <button id="viewModeSignalBtn" class="eisen-mode-btn" data-mode="signal" title="Steve Jobs Signal &amp; Noise Focus">⚡ Signal &amp; Noise</button>
+                </div>
+            </div>
             
             <!-- Top Row: Stop-Do / Say No Boundaries -->
             <div class="priority-block stop_todo" style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.35); border-radius: 12px; margin-bottom: 12px;">

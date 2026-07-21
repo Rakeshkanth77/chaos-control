@@ -94,9 +94,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     options: commonChartOptions
                 });
 
-                // Render Pomodoro Dual Bar Chart (Focus Time vs Total Sessions)
+                // Render Pomodoro Dual Bar Chart (Focus Time in Hours vs Total Sessions)
                 const ctxPomo = document.getElementById('pomodoro-chart').getContext('2d');
                 
+                const pomoHoursData = res.pomodoro_hours || (res.pomodoro_minutes ? res.pomodoro_minutes.map(m => Number((m/60).toFixed(1))) : []);
+
                 const valueOnTopPlugin = {
                     id: 'valueOnTop',
                     afterDatasetsDraw(chart) {
@@ -112,7 +114,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         ctx.font = '700 10px Inter, sans-serif';
                                         ctx.textAlign = 'center';
                                         ctx.textBaseline = 'bottom';
-                                        const labelText = datasetIndex === 0 ? `${val}m` : `${val}`;
+                                        const labelText = datasetIndex === 0 ? `${val}h` : `${val}`;
                                         ctx.fillText(labelText, element.x, element.y - 2);
                                         ctx.restore();
                                     }
@@ -129,8 +131,8 @@ document.addEventListener('DOMContentLoaded', () => {
                         labels: res.labels,
                         datasets: [
                             {
-                                label: 'Focus Time (Mins)',
-                                data: res.pomodoro_minutes || [],
+                                label: 'Focus Time (Hours)',
+                                data: pomoHoursData,
                                 backgroundColor: 'rgba(45, 212, 191, 0.65)',
                                 borderColor: '#2dd4bf',
                                 borderRadius: 6,
@@ -159,10 +161,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 type: 'linear',
                                 display: true,
                                 position: 'left',
-                                title: { display: true, text: 'Minutes', font: { size: 10, weight: 'bold' }, color: '#0d9488' },
+                                title: { display: true, text: 'Hours', font: { size: 10, weight: 'bold' }, color: '#0d9488' },
                                 grid: { color: 'rgba(0, 0, 0, 0.03)' },
-                                ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75', precision: 0 },
-                                suggestedMax: 60
+                                ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75' },
+                                suggestedMax: 2
                             },
                             y1: {
                                 type: 'linear',

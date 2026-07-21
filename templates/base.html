@@ -817,6 +817,17 @@
                 <!-- Day Stats Summary (Focus, Gap, Active Span) -->
                 <div class="focus-stats-row" id="dayStatsRow" style="margin-bottom: 16px;"></div>
 
+                <!-- Timeline Zoom Toolbar -->
+                <div class="timeline-zoom-bar">
+                    <span class="zoom-label">🔍 Timeline Zoom:</span>
+                    <div class="zoom-btn-group">
+                        <button id="timelineZoomOutBtn" class="timeline-zoom-btn" title="Zoom Out (-)">−</button>
+                        <span id="timelineZoomValue" class="zoom-value-badge">100%</span>
+                        <button id="timelineZoomInBtn" class="timeline-zoom-btn" title="Zoom In (+)">+</button>
+                        <button id="timelineZoomResetBtn" class="timeline-zoom-btn reset" title="Reset Zoom to Fit">Reset</button>
+                    </div>
+                </div>
+
                 <!-- 24-Hour Ruler -->
                 <div class="day-ruler-wrapper">
                     <div class="day-ruler" id="dayRuler"></div>

@@ -3571,6 +3571,233 @@ body {
     display: none;
 }
 
+/* ── Eisenhower View Mode Switcher (Matrix vs Signal & Noise) ── */
+.eisen-mode-btn {
+    background: transparent;
+    border: none;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Outfit', sans-serif;
+    font-size: 0.76rem;
+    font-weight: 700;
+    padding: 4px 10px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.eisen-mode-btn:hover {
+    color: #ffffff;
+}
+
+.eisen-mode-btn.active {
+    background: #2dd4bf;
+    color: #0f172a;
+    box-shadow: 0 2px 8px rgba(45, 212, 191, 0.3);
+}
+
+.eisenhower-column.mode-signal .priority-block.urgent_important {
+    border: 2px solid #2dd4bf !important;
+    background: rgba(45, 212, 191, 0.12) !important;
+    box-shadow: 0 0 16px rgba(45, 212, 191, 0.18);
+    position: relative;
+}
+
+.eisenhower-column.mode-signal .priority-block.urgent_important .priority-header::after {
+    content: " ⚡ SIGNAL";
+    font-size: 0.65rem;
+    font-weight: 800;
+    background: #2dd4bf;
+    color: #0f172a;
+    padding: 2px 6px;
+    border-radius: 4px;
+    margin-left: 6px;
+}
+
+.eisenhower-column.mode-signal .priority-block:not(.urgent_important) {
+    opacity: 0.72;
+    border-color: rgba(255, 255, 255, 0.08) !important;
+    background: rgba(0, 0, 0, 0.15) !important;
+}
+
+.eisenhower-column.mode-signal .priority-block:not(.urgent_important) .priority-header::after {
+    content: " 💤 NOISE";
+    font-size: 0.62rem;
+    font-weight: 700;
+    background: rgba(255, 255, 255, 0.1);
+    color: rgba(255, 255, 255, 0.6);
+    padding: 2px 5px;
+    border-radius: 4px;
+    margin-left: 6px;
+}
+
+/* ── Timeline Zoom Toolbar ── */
+.timeline-zoom-bar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    margin-bottom: 8px;
+}
+
+.zoom-label {
+    font-size: 0.76rem;
+    font-family: 'Outfit', sans-serif;
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+.zoom-btn-group {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.timeline-zoom-btn {
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    color: #ffffff;
+    width: 26px;
+    height: 26px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    font-weight: 700;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s ease;
+}
+
+.timeline-zoom-btn:hover {
+    background: rgba(45, 212, 191, 0.25);
+    border-color: #2dd4bf;
+    color: #2dd4bf;
+}
+
+.timeline-zoom-btn.reset {
+    width: auto;
+    padding: 0 8px;
+    font-size: 0.7rem;
+}
+
+.zoom-value-badge {
+    font-size: 0.72rem;
+    font-family: 'JetBrains Mono', monospace;
+    font-weight: 700;
+    color: #2dd4bf;
+    min-width: 42px;
+    text-align: center;
+}
+
+.day-ruler-wrapper {
+    position: relative;
+    user-select: none;
+    overflow-x: auto;
+    padding-bottom: 6px;
+    max-width: 100%;
+}
+
+.day-ruler-wrapper::-webkit-scrollbar {
+    height: 5px;
+}
+.day-ruler-wrapper::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.2);
+    border-radius: 4px;
+}
+.day-ruler-wrapper::-webkit-scrollbar-thumb {
+    background: rgba(45, 212, 191, 0.4);
+    border-radius: 4px;
+}
+
+.day-ruler, .day-track {
+    transition: min-width 0.25s ease, width 0.25s ease;
+    min-width: 100%;
+}
+
+/* ── Samsung Z Fold 7 & Narrow Folded Screen Responsive Fixes (< 480px) ── */
+@media (max-width: 480px) {
+    .pomo-day-modal {
+        width: 96% !important;
+        max-width: 100vw !important;
+        margin: 6px auto !important;
+        border-radius: 14px !important;
+        max-height: 94vh !important;
+    }
+
+    .day-view-header {
+        padding: 10px 14px !important;
+        gap: 8px !important;
+    }
+
+    .day-view-title {
+        font-size: 1rem !important;
+    }
+
+    .focus-modal-controls-bar {
+        padding: 8px 12px !important;
+        gap: 8px !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .focus-view-tabs {
+        width: 100% !important;
+        justify-content: space-around !important;
+    }
+
+    .focus-view-tab {
+        flex: 1 !important;
+        text-align: center !important;
+        padding: 6px 8px !important;
+    }
+
+    .focus-date-navigator {
+        width: 100% !important;
+        justify-content: center !important;
+    }
+
+    .day-view-body {
+        padding: 12px 14px !important;
+        gap: 14px !important;
+    }
+
+    .focus-stats-row {
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 8px !important;
+    }
+
+    .focus-stat-card {
+        padding: 10px 12px !important;
+    }
+
+    .focus-stat-value {
+        font-size: 1.15rem !important;
+    }
+
+    .timeline-zoom-bar {
+        padding: 4px 8px !important;
+        flex-wrap: wrap !important;
+        gap: 6px !important;
+    }
+
+    .eisenhower-header-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .view-mode-toggle-group {
+        width: 100% !important;
+    }
+
+    .eisen-mode-btn {
+        flex: 1 !important;
+        text-align: center !important;
+    }
+}
+
 
 
 
