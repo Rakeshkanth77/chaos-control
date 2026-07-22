@@ -3840,8 +3840,8 @@ body {
     }
 
     .pomo-chart-wrapper {
-        min-height: 280px !important;
-        height: 300px !important;
+        min-height: 350px !important;
+        height: 380px !important;
     }
 
     .analytics-header-bar {
@@ -3891,8 +3891,8 @@ body {
 }
 
 .pomo-chart-wrapper {
-    height: 520px;
-    min-height: 500px;
+    height: 460px !important;
+    min-height: 420px !important;
 }
 
 

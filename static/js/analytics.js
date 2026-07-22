@@ -185,6 +185,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const dsPomodoros = chart.getDatasetMeta(3);
 
                             const fontStr = isMobile ? '700 9px Inter, sans-serif' : '700 11px Inter, sans-serif';
+                            const fontBoldStr = isMobile ? '800 10px Inter, sans-serif' : '800 12px Inter, sans-serif';
 
                             chart.data.labels.forEach((_, index) => {
                                 const phdVal = chart.data.datasets[0]?.data[index] || 0;
@@ -201,35 +202,56 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ctx.font = fontStr;
                                 ctx.textAlign = 'center';
 
-                                // 1. PhD Focus Segment
-                                if (phdVal > 0 && elemPhD) {
-                                    const labelText = `${Number(phdVal.toFixed(1))}h`;
-                                    if (otherVal > 0 && elemOther) {
-                                        // PhD is underneath Other Focus -> draw inside PhD bar segment if height permits
-                                        const segHeight = Math.abs(elemPhD.base - elemPhD.y);
-                                        if (segHeight >= 12) {
-                                            ctx.fillStyle = '#064e3b';
-                                            ctx.textBaseline = 'middle';
-                                            ctx.fillText(labelText, elemPhD.x, (elemPhD.y + elemPhD.base) / 2);
+                                // 1. First Bar: Stacked Focus Bar (PhD Focus + Other Focus)
+                                const totalFocusVal = Number((phdVal + otherVal).toFixed(1));
+
+                                if (totalFocusVal > 0) {
+                                    if (phdVal > 0 && otherVal > 0) {
+                                        // Both PhD and Other Focus exist in this bar
+                                        if (elemPhD) {
+                                            const phdText = `${Number(phdVal.toFixed(1))}h`;
+                                            const phdSegHeight = Math.abs(elemPhD.base - elemPhD.y);
+                                            if (phdSegHeight >= 10) {
+                                                ctx.fillStyle = '#042f2e';
+                                                ctx.textBaseline = 'middle';
+                                                ctx.fillText(phdText, elemPhD.x, (elemPhD.y + elemPhD.base) / 2);
+                                            }
                                         }
-                                    } else {
-                                        // PhD is top of focus stack -> draw above bar
+
+                                        if (elemOther) {
+                                            const otherText = `${Number(otherVal.toFixed(1))}h`;
+                                            const otherSegHeight = Math.abs(elemOther.base - elemOther.y);
+                                            if (otherSegHeight >= 10) {
+                                                ctx.fillStyle = '#ffffff';
+                                                ctx.textBaseline = 'middle';
+                                                ctx.fillText(otherText, elemOther.x, (elemOther.y + elemOther.base) / 2);
+                                            }
+                                        }
+
+                                        // Total Focus Hours displayed right above the top of the stacked bar
+                                        const topY = elemOther ? elemOther.y : (elemPhD ? elemPhD.y : 0);
+                                        const topX = elemOther ? elemOther.x : (elemPhD ? elemPhD.x : 0);
+                                        ctx.fillStyle = '#0f172a';
+                                        ctx.font = fontBoldStr;
+                                        ctx.textBaseline = 'bottom';
+                                        ctx.fillText(`${totalFocusVal}h`, topX, topY - 3);
+                                        ctx.font = fontStr;
+                                    } else if (phdVal > 0 && elemPhD) {
+                                        // Only PhD Focus exists
+                                        const labelText = `${Number(phdVal.toFixed(1))}h`;
                                         ctx.fillStyle = '#0c9e93';
                                         ctx.textBaseline = 'bottom';
                                         ctx.fillText(labelText, elemPhD.x, elemPhD.y - 3);
+                                    } else if (otherVal > 0 && elemOther) {
+                                        // Only Other Focus exists
+                                        const labelText = `${Number(otherVal.toFixed(1))}h`;
+                                        ctx.fillStyle = '#1d4ed8';
+                                        ctx.textBaseline = 'bottom';
+                                        ctx.fillText(labelText, elemOther.x, elemOther.y - 3);
                                     }
                                 }
 
-                                // 2. Other Focus Segment
-                                if (otherVal > 0 && elemOther) {
-                                    const labelText = `${Number(otherVal.toFixed(1))}h`;
-                                    // Other is top of focus stack -> draw above bar
-                                    ctx.fillStyle = '#1d4ed8';
-                                    ctx.textBaseline = 'bottom';
-                                    ctx.fillText(labelText, elemOther.x, elemOther.y - 3);
-                                }
-
-                                // 3. Opportunity Time Segment
+                                // 2. Opportunity Time Segment
                                 if (oppVal > 0 && elemOpp) {
                                     const labelText = `${Number(oppVal.toFixed(1))}h`;
                                     ctx.fillStyle = '#dc2626';
@@ -237,7 +259,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     ctx.fillText(labelText, elemOpp.x, elemOpp.y - 3);
                                 }
 
-                                // 4. Total Pomodoros Segment
+                                // 3. Total Pomodoros Segment
                                 if (pomoVal > 0 && elemPomo) {
                                     ctx.fillStyle = '#7e22ce';
                                     ctx.textBaseline = 'bottom';
