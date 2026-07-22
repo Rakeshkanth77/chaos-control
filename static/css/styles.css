@@ -3881,9 +3881,18 @@ body {
     }
 }
 
+.analytics-chart-panel {
+    min-height: 380px;
+}
+
+.chart-wrapper {
+    min-height: 300px;
+    height: 320px;
+}
+
 .pomo-chart-wrapper {
-    height: 420px;
-    min-height: 420px;
+    height: 520px;
+    min-height: 500px;
 }
 
 

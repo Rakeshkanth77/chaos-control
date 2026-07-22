@@ -177,28 +177,74 @@ document.addEventListener('DOMContentLoaded', () => {
                         id: 'valueOnTop',
                         afterDatasetsDraw(chart) {
                             const { ctx, width } = chart;
-                            const isMobile = width < 480;
-                            chart.data.datasets.forEach((dataset, datasetIndex) => {
-                                const meta = chart.getDatasetMeta(datasetIndex);
-                                if (!meta.hidden) {
-                                    meta.data.forEach((element, index) => {
-                                        const val = dataset.data[index];
-                                        if (val > 0) {
-                                            ctx.save();
-                                            if (datasetIndex === 0) ctx.fillStyle = '#0c9e93';
-                                            else if (datasetIndex === 1) ctx.fillStyle = '#2563eb';
-                                            else if (datasetIndex === 2) ctx.fillStyle = '#dc2626';
-                                            else ctx.fillStyle = '#7e22ce';
+                            const isMobile = width < 500;
 
-                                            ctx.font = isMobile ? '700 8.5px Inter, sans-serif' : '700 10px Inter, sans-serif';
-                                            ctx.textAlign = 'center';
-                                            ctx.textBaseline = 'bottom';
-                                            const labelText = (datasetIndex <= 2) ? `${Number(val.toFixed(1))}h` : `${val}`;
-                                            ctx.fillText(labelText, element.x, element.y - 2);
-                                            ctx.restore();
+                            const dsPhD = chart.getDatasetMeta(0);
+                            const dsOther = chart.getDatasetMeta(1);
+                            const dsOpp = chart.getDatasetMeta(2);
+                            const dsPomodoros = chart.getDatasetMeta(3);
+
+                            const fontStr = isMobile ? '700 9px Inter, sans-serif' : '700 11px Inter, sans-serif';
+
+                            chart.data.labels.forEach((_, index) => {
+                                const phdVal = chart.data.datasets[0]?.data[index] || 0;
+                                const otherVal = chart.data.datasets[1]?.data[index] || 0;
+                                const oppVal = chart.data.datasets[2]?.data[index] || 0;
+                                const pomoVal = chart.data.datasets[3]?.data[index] || 0;
+
+                                const elemPhD = dsPhD && !dsPhD.hidden ? dsPhD.data[index] : null;
+                                const elemOther = dsOther && !dsOther.hidden ? dsOther.data[index] : null;
+                                const elemOpp = dsOpp && !dsOpp.hidden ? dsOpp.data[index] : null;
+                                const elemPomo = dsPomodoros && !dsPomodoros.hidden ? dsPomodoros.data[index] : null;
+
+                                ctx.save();
+                                ctx.font = fontStr;
+                                ctx.textAlign = 'center';
+
+                                // 1. PhD Focus Segment
+                                if (phdVal > 0 && elemPhD) {
+                                    const labelText = `${Number(phdVal.toFixed(1))}h`;
+                                    if (otherVal > 0 && elemOther) {
+                                        // PhD is underneath Other Focus -> draw inside PhD bar segment if height permits
+                                        const segHeight = Math.abs(elemPhD.base - elemPhD.y);
+                                        if (segHeight >= 12) {
+                                            ctx.fillStyle = '#064e3b';
+                                            ctx.textBaseline = 'middle';
+                                            ctx.fillText(labelText, elemPhD.x, (elemPhD.y + elemPhD.base) / 2);
                                         }
-                                    });
+                                    } else {
+                                        // PhD is top of focus stack -> draw above bar
+                                        ctx.fillStyle = '#0c9e93';
+                                        ctx.textBaseline = 'bottom';
+                                        ctx.fillText(labelText, elemPhD.x, elemPhD.y - 3);
+                                    }
                                 }
+
+                                // 2. Other Focus Segment
+                                if (otherVal > 0 && elemOther) {
+                                    const labelText = `${Number(otherVal.toFixed(1))}h`;
+                                    // Other is top of focus stack -> draw above bar
+                                    ctx.fillStyle = '#1d4ed8';
+                                    ctx.textBaseline = 'bottom';
+                                    ctx.fillText(labelText, elemOther.x, elemOther.y - 3);
+                                }
+
+                                // 3. Opportunity Time Segment
+                                if (oppVal > 0 && elemOpp) {
+                                    const labelText = `${Number(oppVal.toFixed(1))}h`;
+                                    ctx.fillStyle = '#dc2626';
+                                    ctx.textBaseline = 'bottom';
+                                    ctx.fillText(labelText, elemOpp.x, elemOpp.y - 3);
+                                }
+
+                                // 4. Total Pomodoros Segment
+                                if (pomoVal > 0 && elemPomo) {
+                                    ctx.fillStyle = '#7e22ce';
+                                    ctx.textBaseline = 'bottom';
+                                    ctx.fillText(`${pomoVal}`, elemPomo.x, elemPomo.y - 3);
+                                }
+
+                                ctx.restore();
                             });
                         }
                     };
