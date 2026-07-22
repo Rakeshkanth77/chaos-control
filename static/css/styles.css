@@ -3811,6 +3811,79 @@ body {
         flex: 1 !important;
         text-align: center !important;
     }
+
+    /* MOBILE RESPONSIVE STYLES FOR PRODUCTIVE ANALYTICS */
+    .analytics-section {
+        margin-top: 12px;
+    }
+
+    .analytics-summary-grid {
+        grid-template-columns: 1fr !important;
+        gap: 14px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .analytics-two-plots-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+        margin-bottom: 16px !important;
+    }
+
+    .analytics-chart-panel {
+        min-height: 280px !important;
+        padding: 16px !important;
+    }
+
+    .chart-wrapper {
+        min-height: 240px !important;
+        height: 250px !important;
+    }
+
+    .pomo-chart-wrapper {
+        min-height: 280px !important;
+        height: 300px !important;
+    }
+
+    .analytics-header-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding: 14px 16px !important;
+    }
+
+    .analytics-controls-wrap {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .analytics-controls-wrap .focus-view-tabs {
+        width: 100% !important;
+        display: flex !important;
+    }
+
+    .analytics-controls-wrap .focus-view-tab {
+        flex: 1 !important;
+        text-align: center !important;
+        padding: 8px 12px !important;
+    }
+
+    .analytics-controls-wrap .focus-date-navigator {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    .analytics-controls-wrap .focus-date-display {
+        flex: 1 !important;
+        text-align: center !important;
+        min-width: auto !important;
+    }
+}
+
+.pomo-chart-wrapper {
+    height: 420px;
+    min-height: 420px;
 }
 
 

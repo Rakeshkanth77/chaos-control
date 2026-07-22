@@ -619,7 +619,31 @@ def pomodoro_history(request):
             span_sec = max(0, int((l_end - l_start).total_seconds()))
             span_mins = int(span_sec / 60)
             focus_mins = sum(s.duration_minutes for s in d_sessions)
-            opp_mins = max(0, span_mins - focus_mins)
+            
+            # Restrict opportunity calculation strictly between 8:00 AM (08:00) and 6:00 PM (18:00)
+            d_date = l_start.date()
+            w_start = l_start.replace(hour=8, minute=0, second=0, microsecond=0)
+            w_end = l_start.replace(hour=18, minute=0, second=0, microsecond=0)
+
+            eff_start = max(w_start, l_start)
+            eff_end = min(w_end, l_end)
+
+            if eff_end > eff_start:
+                window_span_mins = int((eff_end - eff_start).total_seconds() / 60)
+                focus_mins_in_window = 0.0
+                for s in d_sessions:
+                    s_st = timezone.localtime(s.started_at)
+                    s_en = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timezone.timedelta(minutes=s.duration_minutes, seconds=s.total_paused_seconds))
+                    ov_st = max(eff_start, s_st)
+                    ov_en = min(eff_end, s_en)
+                    if ov_en > ov_st and s_en > s_st:
+                        tot_sec = (s_en - s_st).total_seconds()
+                        ov_sec = (ov_en - ov_st).total_seconds()
+                        ratio = min(1.0, max(0.0, ov_sec / tot_sec))
+                        focus_mins_in_window += s.duration_minutes * ratio
+                opp_mins = max(0, int(round(window_span_mins - focus_mins_in_window)))
+            else:
+                opp_mins = 0
             
             return {
                 'first_start': l_start.strftime('%I:%M %p'),

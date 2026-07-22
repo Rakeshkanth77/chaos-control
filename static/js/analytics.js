@@ -176,7 +176,8 @@ document.addEventListener('DOMContentLoaded', () => {
                     const valueOnTopPlugin = {
                         id: 'valueOnTop',
                         afterDatasetsDraw(chart) {
-                            const { ctx } = chart;
+                            const { ctx, width } = chart;
+                            const isMobile = width < 480;
                             chart.data.datasets.forEach((dataset, datasetIndex) => {
                                 const meta = chart.getDatasetMeta(datasetIndex);
                                 if (!meta.hidden) {
@@ -189,11 +190,11 @@ document.addEventListener('DOMContentLoaded', () => {
                                             else if (datasetIndex === 2) ctx.fillStyle = '#dc2626';
                                             else ctx.fillStyle = '#7e22ce';
 
-                                            ctx.font = '700 10px Inter, sans-serif';
+                                            ctx.font = isMobile ? '700 8.5px Inter, sans-serif' : '700 10px Inter, sans-serif';
                                             ctx.textAlign = 'center';
                                             ctx.textBaseline = 'bottom';
                                             const labelText = (datasetIndex <= 2) ? `${Number(val.toFixed(1))}h` : `${val}`;
-                                            ctx.fillText(labelText, element.x, element.y - 3);
+                                            ctx.fillText(labelText, element.x, element.y - 2);
                                             ctx.restore();
                                         }
                                     });

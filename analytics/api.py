@@ -52,6 +52,36 @@ def calculate_streak(user):
 
     return streak
 
+def calc_window_opportunity_mins(p_sessions):
+    if not p_sessions:
+        return 0
+    f_s = p_sessions[0]
+    l_s = p_sessions[-1]
+    l_start = timezone.localtime(f_s.started_at)
+    l_end = timezone.localtime(l_s.ended_at) if l_s.ended_at else timezone.localtime(l_s.started_at + timedelta(minutes=l_s.duration_minutes))
+
+    w_start = l_start.replace(hour=8, minute=0, second=0, microsecond=0)
+    w_end = l_start.replace(hour=18, minute=0, second=0, microsecond=0)
+
+    eff_start = max(w_start, l_start)
+    eff_end = min(w_end, l_end)
+
+    if eff_end > eff_start:
+        window_span_mins = int((eff_end - eff_start).total_seconds() / 60)
+        focus_mins_in_window = 0.0
+        for s in p_sessions:
+            s_st = timezone.localtime(s.started_at)
+            s_en = timezone.localtime(s.ended_at) if s.ended_at else timezone.localtime(s.started_at + timedelta(minutes=s.duration_minutes))
+            ov_st = max(eff_start, s_st)
+            ov_en = min(eff_end, s_en)
+            if ov_en > ov_st and s_en > s_st:
+                tot_sec = (s_en - s_st).total_seconds()
+                ov_sec = (ov_en - ov_st).total_seconds()
+                ratio = min(1.0, max(0.0, ov_sec / tot_sec))
+                focus_mins_in_window += s.duration_minutes * ratio
+        return max(0, int(round(window_span_mins - focus_mins_in_window)))
+    return 0
+
 @login_required
 def get_summary_stats(request):
     try:
@@ -103,13 +133,7 @@ def get_summary_stats(request):
                     other_minutes[slot] += p.duration_minutes
 
             if p_sessions:
-                f_s = p_sessions[0]
-                l_s = p_sessions[-1]
-                l_start = timezone.localtime(f_s.started_at)
-                l_end = timezone.localtime(l_s.ended_at) if l_s.ended_at else timezone.localtime(l_s.started_at + timedelta(minutes=l_s.duration_minutes))
-                span_mins = max(0, int((l_end - l_start).total_seconds() / 60))
-                tot_f_mins = sum(s.duration_minutes for s in p_sessions)
-                total_opp = max(0, span_mins - tot_f_mins)
+                total_opp = calc_window_opportunity_mins(p_sessions)
                 
                 # Distribute opportunity minutes proportionally across active slots
                 active_slots = [i for i, m in enumerate(pomodoro_minutes) if m > 0]
@@ -149,15 +173,10 @@ def get_summary_stats(request):
 
                 p_sessions = list(PomodoroSession.objects.filter(date=d, completed=True, user=request.user).order_by('started_at'))
                 if p_sessions:
-                    f_s = p_sessions[0]
-                    l_s = p_sessions[-1]
-                    l_start = timezone.localtime(f_s.started_at)
-                    l_end = timezone.localtime(l_s.ended_at) if l_s.ended_at else timezone.localtime(l_s.started_at + timedelta(minutes=l_s.duration_minutes))
-                    span_mins = max(0, int((l_end - l_start).total_seconds() / 60))
                     f_mins = sum(s.duration_minutes for s in p_sessions)
                     phd_m = sum(s.duration_minutes for s in p_sessions if s.category == 'phd')
                     oth_m = sum(s.duration_minutes for s in p_sessions if s.category != 'phd')
-                    o_mins = max(0, span_mins - f_mins)
+                    o_mins = calc_window_opportunity_mins(p_sessions)
                 else:
                     f_mins = 0
                     phd_m = 0
@@ -199,15 +218,10 @@ def get_summary_stats(request):
 
                 p_sessions = list(PomodoroSession.objects.filter(date=d, completed=True, user=request.user).order_by('started_at'))
                 if p_sessions:
-                    f_s = p_sessions[0]
-                    l_s = p_sessions[-1]
-                    l_start = timezone.localtime(f_s.started_at)
-                    l_end = timezone.localtime(l_s.ended_at) if l_s.ended_at else timezone.localtime(l_s.started_at + timedelta(minutes=l_s.duration_minutes))
-                    span_mins = max(0, int((l_end - l_start).total_seconds() / 60))
                     f_mins = sum(s.duration_minutes for s in p_sessions)
                     phd_m = sum(s.duration_minutes for s in p_sessions if s.category == 'phd')
                     oth_m = sum(s.duration_minutes for s in p_sessions if s.category != 'phd')
-                    o_mins = max(0, span_mins - f_mins)
+                    o_mins = calc_window_opportunity_mins(p_sessions)
                 else:
                     f_mins = 0
                     phd_m = 0
