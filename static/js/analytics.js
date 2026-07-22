@@ -213,6 +213,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                             const phdSegHeight = Math.abs(elemPhD.base - elemPhD.y);
                                             if (phdSegHeight >= 10) {
                                                 ctx.fillStyle = '#042f2e';
+                                                ctx.font = fontBoldStr;
                                                 ctx.textBaseline = 'middle';
                                                 ctx.fillText(phdText, elemPhD.x, (elemPhD.y + elemPhD.base) / 2);
                                             }
@@ -222,32 +223,35 @@ document.addEventListener('DOMContentLoaded', () => {
                                             const otherText = `${Number(otherVal.toFixed(1))}h`;
                                             const otherSegHeight = Math.abs(elemOther.base - elemOther.y);
                                             if (otherSegHeight >= 10) {
-                                                ctx.fillStyle = '#ffffff';
+                                                ctx.fillStyle = '#0f172a';
+                                                ctx.font = fontBoldStr;
                                                 ctx.textBaseline = 'middle';
                                                 ctx.fillText(otherText, elemOther.x, (elemOther.y + elemOther.base) / 2);
                                             }
                                         }
 
-                                        // Total Focus Hours displayed right above the top of the stacked bar
+                                        // Total Focus Hours displayed ABOVE the top of the stacked bar with clear 12px padding
                                         const topY = elemOther ? elemOther.y : (elemPhD ? elemPhD.y : 0);
                                         const topX = elemOther ? elemOther.x : (elemPhD ? elemPhD.x : 0);
                                         ctx.fillStyle = '#0f172a';
                                         ctx.font = fontBoldStr;
                                         ctx.textBaseline = 'bottom';
-                                        ctx.fillText(`${totalFocusVal}h`, topX, topY - 3);
+                                        ctx.fillText(`${totalFocusVal}h`, topX, topY - 12);
                                         ctx.font = fontStr;
                                     } else if (phdVal > 0 && elemPhD) {
                                         // Only PhD Focus exists
                                         const labelText = `${Number(phdVal.toFixed(1))}h`;
                                         ctx.fillStyle = '#0c9e93';
+                                        ctx.font = fontBoldStr;
                                         ctx.textBaseline = 'bottom';
-                                        ctx.fillText(labelText, elemPhD.x, elemPhD.y - 3);
+                                        ctx.fillText(labelText, elemPhD.x, elemPhD.y - 4);
                                     } else if (otherVal > 0 && elemOther) {
                                         // Only Other Focus exists
                                         const labelText = `${Number(otherVal.toFixed(1))}h`;
                                         ctx.fillStyle = '#1d4ed8';
+                                        ctx.font = fontBoldStr;
                                         ctx.textBaseline = 'bottom';
-                                        ctx.fillText(labelText, elemOther.x, elemOther.y - 3);
+                                        ctx.fillText(labelText, elemOther.x, elemOther.y - 4);
                                     }
                                 }
 
