@@ -286,8 +286,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     borderRadius: 4,
                                     borderWidth: 1,
                                     stack: 'focus',
-                                    barPercentage: 0.55,
-                                    categoryPercentage: 0.5,
+                                    barPercentage: 0.85,
+                                    categoryPercentage: 0.8,
                                     yAxisID: 'y'
                                 },
                                 {
@@ -298,8 +298,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     borderRadius: 4,
                                     borderWidth: 1,
                                     stack: 'focus',
-                                    barPercentage: 0.55,
-                                    categoryPercentage: 0.5,
+                                    barPercentage: 0.85,
+                                    categoryPercentage: 0.8,
                                     yAxisID: 'y'
                                 },
                                 {
@@ -310,8 +310,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     borderRadius: 6,
                                     borderWidth: 1,
                                     stack: 'opp',
-                                    barPercentage: 0.55,
-                                    categoryPercentage: 0.5,
+                                    barPercentage: 0.85,
+                                    categoryPercentage: 0.8,
                                     yAxisID: 'y'
                                 },
                                 {
@@ -322,8 +322,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     borderRadius: 6,
                                     borderWidth: 1,
                                     stack: 'counts',
-                                    barPercentage: 0.55,
-                                    categoryPercentage: 0.5,
+                                    barPercentage: 0.85,
+                                    categoryPercentage: 0.8,
                                     yAxisID: 'y1'
                                 }
                             ]
