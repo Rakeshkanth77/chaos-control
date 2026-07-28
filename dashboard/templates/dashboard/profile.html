@@ -507,7 +507,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     <canvas id="pomodoro-chart"></canvas>
                 </div>
 
-                <!-- Right 30%: Summary Metrics Bracket (Option 1: Category Breakdown) -->
+                <!-- Right 30%: Summary Metrics Bracket -->
                 <div class="pomo-stats-bracket" style="display: flex; flex-direction: column; justify-content: space-between; gap: 8px; background: rgba(12, 88, 85, 0.03); border: 1px solid rgba(12, 88, 85, 0.08); border-radius: 14px; padding: 14px;">
                     <div style="font-family: 'Outfit', sans-serif; font-size: 0.82rem; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(12, 88, 85, 0.1); padding-bottom: 6px; margin-bottom: 2px;">
                         📊 Focus &amp; Gap Highlights
@@ -531,7 +531,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <!-- 3. PhD Peak Focus -->
+                    <!-- 3. Overall Highest Opportunity Gap -->
+                    <div class="bracket-metric-card" style="background: rgba(239, 68, 68, 0.04); padding: 8px 10px; border-radius: 9px; border-left: 3px solid #ef4444; border-top: 1px solid rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03);">
+                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #dc2626; font-weight: 700;">⏳ Highest Opportunity Gap</div>
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
+                            <span id="bracket-highest-gap-val" style="font-size: 0.98rem; font-weight: 800; color: #ef4444;">--</span>
+                            <span id="bracket-highest-gap-sub" style="font-size: 0.7rem; color: #ef4444; font-weight: 600; background: rgba(239,68,68,0.12); padding: 1px 5px; border-radius: 4px;">--</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. PhD Peak Focus -->
                     <div class="bracket-metric-card" style="background: rgba(45, 212, 191, 0.05); padding: 8px 10px; border-radius: 9px; border-left: 3px solid #2dd4bf; border-top: 1px solid rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03);">
                         <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #0c9e93; font-weight: 700;">🎓 PhD Peak Focus</div>
                         <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
@@ -540,30 +549,12 @@ document.addEventListener('DOMContentLoaded', () => {
                         </div>
                     </div>
 
-                    <!-- 4. PhD Peak Gap -->
-                    <div class="bracket-metric-card" style="background: rgba(239, 68, 68, 0.04); padding: 8px 10px; border-radius: 9px; border-left: 3px solid #ef4444; border-top: 1px solid rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03);">
-                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #dc2626; font-weight: 700;">🎓 PhD Opportunity Gap</div>
-                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
-                            <span id="phd-highest-gap-val" style="font-size: 0.98rem; font-weight: 800; color: #ef4444;">--</span>
-                            <span id="phd-highest-gap-sub" style="font-size: 0.7rem; color: #ef4444; font-weight: 600; background: rgba(239,68,68,0.12); padding: 1px 5px; border-radius: 4px;">--</span>
-                        </div>
-                    </div>
-
-                    <!-- 5. In-House Peak Focus -->
+                    <!-- 5. Other Tasks Peak Focus -->
                     <div class="bracket-metric-card" style="background: rgba(59, 130, 246, 0.05); padding: 8px 10px; border-radius: 9px; border-left: 3px solid #3b82f6; border-top: 1px solid rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03);">
-                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d4ed8; font-weight: 700;">🏠 In-House Peak Focus</div>
+                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d4ed8; font-weight: 700;">💼 Other Tasks Peak Focus</div>
                         <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
                             <span id="other-highest-focus-val" style="font-size: 0.98rem; font-weight: 800; color: var(--text-primary);">--</span>
                             <span id="other-highest-focus-sub" style="font-size: 0.7rem; color: #1d4ed8; font-weight: 600; background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 4px;">--</span>
-                        </div>
-                    </div>
-
-                    <!-- 6. In-House Peak Gap -->
-                    <div class="bracket-metric-card" style="background: rgba(239, 68, 68, 0.04); padding: 8px 10px; border-radius: 9px; border-left: 3px solid #ef4444; border-top: 1px solid rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03);">
-                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #dc2626; font-weight: 700;">🏠 In-House Opportunity Gap</div>
-                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
-                            <span id="other-highest-gap-val" style="font-size: 0.98rem; font-weight: 800; color: #ef4444;">--</span>
-                            <span id="other-highest-gap-sub" style="font-size: 0.7rem; color: #ef4444; font-weight: 600; background: rgba(239,68,68,0.12); padding: 1px 5px; border-radius: 4px;">--</span>
                         </div>
                     </div>
                 </div>
