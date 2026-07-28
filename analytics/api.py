@@ -323,9 +323,19 @@ def get_summary_stats(request):
                 phd_peak_gap_mins = p_gap
                 phd_peak_gap_label = label
 
-            if o_gap > other_peak_gap_mins:
-                other_peak_gap_mins = o_gap
-                other_peak_gap_label = label
+        # Overall Highlights for 30% Summary Bracket
+        total_focus_per_day = [p + o for p, o in zip(phd_minutes, other_minutes)]
+        highest_day_focus_mins = max(total_focus_per_day) if total_focus_per_day else 0
+        highest_day_focus_label = date_labels[total_focus_per_day.index(highest_day_focus_mins)] if total_focus_per_day and highest_day_focus_mins > 0 else "N/A"
+
+        total_weekly_focus_mins = sum(total_focus_per_day)
+
+        highest_day_gap_mins = max(opportunity_minutes) if opportunity_minutes else 0
+        highest_day_gap_label = date_labels[opportunity_minutes.index(highest_day_gap_mins)] if opportunity_minutes and highest_day_gap_mins > 0 else "N/A"
+
+        num_days = len(date_labels) if date_labels else 1
+        avg_daily_focus_mins = int(round(total_weekly_focus_mins / float(num_days)))
+        avg_daily_gap_mins = int(round(sum(opportunity_minutes) / float(num_days)))
 
         return JsonResponse({
             'status': 'success',
@@ -344,6 +354,15 @@ def get_summary_stats(request):
             'other_hours': other_hours,
             'opportunity_minutes': opportunity_minutes,
             'opportunity_hours': opportunity_hours,
+            'weekly_highlights': {
+                'highest_focus_day_minutes': highest_day_focus_mins,
+                'highest_focus_day_label': highest_day_focus_label,
+                'total_weekly_focus_minutes': total_weekly_focus_mins,
+                'highest_gap_minutes': highest_day_gap_mins,
+                'highest_gap_label': highest_day_gap_label,
+                'avg_daily_focus_minutes': avg_daily_focus_mins,
+                'avg_daily_gap_minutes': avg_daily_gap_mins,
+            },
             'phd_insights': {
                 'highest_focus_minutes': phd_peak_focus_mins,
                 'highest_focus_label': phd_peak_focus_label,
