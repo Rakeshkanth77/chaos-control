@@ -285,6 +285,48 @@ def get_summary_stats(request):
         other_hours = [round(m / 60.0, 2) for m in other_minutes]
         opportunity_hours = [round(m / 60.0, 2) for m in opportunity_minutes]
 
+        # Compute Peak Focus & Peak Gap (Opportunity Time) for PhD and In-House (Other) separately
+        phd_peak_focus_mins = 0
+        phd_peak_focus_label = "N/A"
+        other_peak_focus_mins = 0
+        other_peak_focus_label = "N/A"
+
+        phd_peak_gap_mins = 0
+        phd_peak_gap_label = "N/A"
+        other_peak_gap_mins = 0
+        other_peak_gap_label = "N/A"
+
+        for idx, label in enumerate(date_labels):
+            p_m = phd_minutes[idx]
+            o_m = other_minutes[idx]
+            g_m = opportunity_minutes[idx]
+            tot_f = p_m + o_m
+
+            # Peak focus tracking
+            if p_m > phd_peak_focus_mins:
+                phd_peak_focus_mins = p_m
+                phd_peak_focus_label = label
+
+            if o_m > other_peak_focus_mins:
+                other_peak_focus_mins = o_m
+                other_peak_focus_label = label
+
+            # Peak opportunity gap tracking
+            if tot_f > 0:
+                p_gap = int(round(g_m * (p_m / tot_f)))
+                o_gap = int(round(g_m * (o_m / tot_f)))
+            else:
+                p_gap = g_m
+                o_gap = g_m
+
+            if p_gap > phd_peak_gap_mins:
+                phd_peak_gap_mins = p_gap
+                phd_peak_gap_label = label
+
+            if o_gap > other_peak_gap_mins:
+                other_peak_gap_mins = o_gap
+                other_peak_gap_label = label
+
         return JsonResponse({
             'status': 'success',
             'view': view_type,
@@ -296,10 +338,26 @@ def get_summary_stats(request):
             'pomodoros': pomodoros_done,
             'pomodoro_minutes': pomodoro_minutes,
             'pomodoro_hours': pomodoro_hours,
+            'phd_minutes': phd_minutes,
+            'other_minutes': other_minutes,
             'phd_hours': phd_hours,
             'other_hours': other_hours,
             'opportunity_minutes': opportunity_minutes,
             'opportunity_hours': opportunity_hours,
+            'phd_insights': {
+                'highest_focus_minutes': phd_peak_focus_mins,
+                'highest_focus_label': phd_peak_focus_label,
+                'highest_gap_minutes': phd_peak_gap_mins,
+                'highest_gap_label': phd_peak_gap_label,
+                'total_focus_minutes': sum(phd_minutes),
+            },
+            'other_insights': {
+                'highest_focus_minutes': other_peak_focus_mins,
+                'highest_focus_label': other_peak_focus_label,
+                'highest_gap_minutes': other_peak_gap_mins,
+                'highest_gap_label': other_peak_gap_label,
+                'total_focus_minutes': sum(other_minutes),
+            },
             'eisenhower_distribution': dist_data,
             'streak': streak,
             'totals': {

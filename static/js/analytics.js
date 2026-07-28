@@ -6,6 +6,24 @@ document.addEventListener('DOMContentLoaded', () => {
     const totalTodosDisplay = document.getElementById('total-todos-completed');
     const totalPomodorosDisplay = document.getElementById('total-pomodoros');
 
+    function formatDuration(minutes) {
+        if (!minutes || minutes <= 0) return '0 mins';
+        const h = Math.floor(minutes / 60);
+        const m = Math.round(minutes % 60);
+        if (h === 0) return `${m} mins`;
+        if (m === 0) return `${h} hour${h > 1 ? 's' : ''}`;
+        return `${h} hour${h > 1 ? 's' : ''} ${m} min${m > 1 ? 's' : ''}`;
+    }
+
+    function formatDurationShort(minutes) {
+        if (!minutes || minutes <= 0) return '0m';
+        const h = Math.floor(minutes / 60);
+        const m = Math.round(minutes % 60);
+        if (h === 0) return `${m}m`;
+        if (m === 0) return `${h}h`;
+        return `${h}h ${m}m`;
+    }
+
     // Chart.js helper for common styling
     const commonChartOptions = {
         responsive: true,
@@ -58,11 +76,11 @@ document.addEventListener('DOMContentLoaded', () => {
     let pomodoroChartInstance = null;
     let eisenhowerChartInstance = null;
 
-    function formatDateIso(d) {
-        const y = d.getFullYear();
-        const m = String(d.getMonth() + 1).padStart(2, '0');
-        const day = String(d.getDate()).padStart(2, '0');
-        return `${y}-${m}-${day}`;
+    function formatDateIso(dateObj) {
+        const year = dateObj.getFullYear();
+        const month = String(dateObj.getMonth() + 1).padStart(2, '0');
+        const day = String(dateObj.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
     }
 
     function changeAnalyticsDate(delta) {
@@ -117,17 +135,48 @@ document.addEventListener('DOMContentLoaded', () => {
             if (res.status === 'success') {
                 // Update Date Display
                 ['analyticsDateDisplay', 'profileAnalyticsDateDisplay'].forEach(id => {
-                    const el = document.getElementById(id);
-                    if (el) el.textContent = res.formatted_range || res.target_date;
+                    const disp = document.getElementById(id);
+                    if (disp) disp.textContent = res.formatted_range || res.target_date;
                 });
 
                 // Populate metrics
-                if (streakDisplay) streakDisplay.textContent = `${res.streak} Days`;
+                if (streakDisplay) streakDisplay.textContent = `${res.streak} days`;
                 if (totalTodosDisplay) totalTodosDisplay.textContent = res.totals.todos_completed;
                 if (totalPomodorosDisplay) totalPomodorosDisplay.textContent = res.totals.pomodoros_completed;
 
                 // Render GitHub-Style Contribution Calendar
-                renderContributionGrid(res.contribution_grid || []);
+                if (res.contribution_grid) {
+                    renderContributionGrid(res.contribution_grid);
+                }
+
+                // Render PhD vs In-House Insights Cards
+                if (res.phd_insights) {
+                    const phdTotal = document.getElementById('phd-total-focus');
+                    const phdFocusVal = document.getElementById('phd-highest-focus-val');
+                    const phdFocusSub = document.getElementById('phd-highest-focus-sub');
+                    const phdGapVal = document.getElementById('phd-highest-gap-val');
+                    const phdGapSub = document.getElementById('phd-highest-gap-sub');
+
+                    if (phdTotal) phdTotal.textContent = `Total: ${formatDurationShort(res.phd_insights.total_focus_minutes)}`;
+                    if (phdFocusVal) phdFocusVal.textContent = formatDuration(res.phd_insights.highest_focus_minutes);
+                    if (phdFocusSub) phdFocusSub.textContent = res.phd_insights.highest_focus_label;
+                    if (phdGapVal) phdGapVal.textContent = formatDuration(res.phd_insights.highest_gap_minutes);
+                    if (phdGapSub) phdGapSub.textContent = res.phd_insights.highest_gap_label;
+                }
+
+                if (res.other_insights) {
+                    const otherTotal = document.getElementById('other-total-focus');
+                    const otherFocusVal = document.getElementById('other-highest-focus-val');
+                    const otherFocusSub = document.getElementById('other-highest-focus-sub');
+                    const otherGapVal = document.getElementById('other-highest-gap-val');
+                    const otherGapSub = document.getElementById('other-highest-gap-sub');
+
+                    if (otherTotal) otherTotal.textContent = `Total: ${formatDurationShort(res.other_insights.total_focus_minutes)}`;
+                    if (otherFocusVal) otherFocusVal.textContent = formatDuration(res.other_insights.highest_focus_minutes);
+                    if (otherFocusSub) otherFocusSub.textContent = res.other_insights.highest_focus_label;
+                    if (otherGapVal) otherGapVal.textContent = formatDuration(res.other_insights.highest_gap_minutes);
+                    if (otherGapSub) otherGapSub.textContent = res.other_insights.highest_gap_label;
+                }
 
                 // 1. Render Todo Line Chart (Created vs Completed)
                 const canvasTodo = document.getElementById('todo-chart');
@@ -141,9 +190,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 {
                                     label: 'Tasks Created',
                                     data: res.todos_created,
-                                    borderColor: 'rgba(99, 91, 143, 0.5)',
-                                    backgroundColor: 'rgba(99, 91, 143, 0.05)',
-                                    fill: true,
+                                    borderColor: 'rgba(12, 88, 85, 0.4)',
+                                    backgroundColor: 'transparent',
+                                    borderDash: [5, 5],
                                     tension: 0.3,
                                     borderWidth: 2
                                 },
@@ -165,6 +214,10 @@ document.addEventListener('DOMContentLoaded', () => {
                 // 2. Render Pomodoro Stacked Bar Chart (PhD Focus + Other Focus + Opportunity Hours + Total Sessions)
                 const canvasPomo = document.getElementById('pomodoro-chart');
                 if (canvasPomo) {
+                    const phdMinsData = res.phd_minutes || res.phd_hours.map(h => Math.round(h * 60));
+                    const otherMinsData = res.other_minutes || res.other_hours.map(h => Math.round(h * 60));
+                    const oppMinsData = res.opportunity_minutes || res.opportunity_hours.map(h => Math.round(h * 60));
+
                     const phdHoursData = res.phd_hours || [];
                     const otherHoursData = res.other_hours || (res.pomodoro_hours ? res.pomodoro_hours : []);
                     const oppHoursData = res.opportunity_hours || [];
@@ -188,9 +241,9 @@ document.addEventListener('DOMContentLoaded', () => {
                             const fontBoldStr = isMobile ? '800 10px Inter, sans-serif' : '800 12px Inter, sans-serif';
 
                             chart.data.labels.forEach((_, index) => {
-                                const phdVal = chart.data.datasets[0]?.data[index] || 0;
-                                const otherVal = chart.data.datasets[1]?.data[index] || 0;
-                                const oppVal = chart.data.datasets[2]?.data[index] || 0;
+                                const phdM = phdMinsData[index] || 0;
+                                const otherM = otherMinsData[index] || 0;
+                                const oppM = oppMinsData[index] || 0;
                                 const pomoVal = chart.data.datasets[3]?.data[index] || 0;
 
                                 const elemPhD = dsPhD && !dsPhD.hidden ? dsPhD.data[index] : null;
@@ -203,13 +256,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 ctx.textAlign = 'center';
 
                                 // 1. First Bar: Stacked Focus Bar (PhD Focus + Other Focus)
-                                const totalFocusVal = Number((phdVal + otherVal).toFixed(1));
+                                const totalFocusM = phdM + otherM;
 
-                                if (totalFocusVal > 0) {
-                                    if (phdVal > 0 && otherVal > 0) {
+                                if (totalFocusM > 0) {
+                                    if (phdM > 0 && otherM > 0) {
                                         // Both PhD and Other Focus exist in this bar
                                         if (elemPhD) {
-                                            const phdText = `${Number(phdVal.toFixed(1))}h`;
+                                            const phdText = formatDurationShort(phdM);
                                             const phdSegHeight = Math.abs(elemPhD.base - elemPhD.y);
                                             if (phdSegHeight >= 10) {
                                                 ctx.fillStyle = '#042f2e';
@@ -220,7 +273,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                         }
 
                                         if (elemOther) {
-                                            const otherText = `${Number(otherVal.toFixed(1))}h`;
+                                            const otherText = formatDurationShort(otherM);
                                             const otherSegHeight = Math.abs(elemOther.base - elemOther.y);
                                             if (otherSegHeight >= 10) {
                                                 ctx.fillStyle = '#0f172a';
@@ -230,24 +283,24 @@ document.addEventListener('DOMContentLoaded', () => {
                                             }
                                         }
 
-                                        // Total Focus Hours displayed ABOVE the top of the stacked bar with clear 12px padding
+                                        // Total Focus Hours displayed ABOVE the top of the stacked bar
                                         const topY = elemOther ? elemOther.y : (elemPhD ? elemPhD.y : 0);
                                         const topX = elemOther ? elemOther.x : (elemPhD ? elemPhD.x : 0);
                                         ctx.fillStyle = '#0f172a';
                                         ctx.font = fontBoldStr;
                                         ctx.textBaseline = 'bottom';
-                                        ctx.fillText(`${totalFocusVal}h`, topX, topY - 12);
+                                        ctx.fillText(formatDurationShort(totalFocusM), topX, topY - 12);
                                         ctx.font = fontStr;
-                                    } else if (phdVal > 0 && elemPhD) {
+                                    } else if (phdM > 0 && elemPhD) {
                                         // Only PhD Focus exists
-                                        const labelText = `${Number(phdVal.toFixed(1))}h`;
+                                        const labelText = formatDurationShort(phdM);
                                         ctx.fillStyle = '#0c9e93';
                                         ctx.font = fontBoldStr;
                                         ctx.textBaseline = 'bottom';
                                         ctx.fillText(labelText, elemPhD.x, elemPhD.y - 4);
-                                    } else if (otherVal > 0 && elemOther) {
+                                    } else if (otherM > 0 && elemOther) {
                                         // Only Other Focus exists
-                                        const labelText = `${Number(otherVal.toFixed(1))}h`;
+                                        const labelText = formatDurationShort(otherM);
                                         ctx.fillStyle = '#1d4ed8';
                                         ctx.font = fontBoldStr;
                                         ctx.textBaseline = 'bottom';
@@ -256,8 +309,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
 
                                 // 2. Opportunity Time Segment
-                                if (oppVal > 0 && elemOpp) {
-                                    const labelText = `${Number(oppVal.toFixed(1))}h`;
+                                if (oppM > 0 && elemOpp) {
+                                    const labelText = formatDurationShort(oppM);
                                     ctx.fillStyle = '#dc2626';
                                     ctx.textBaseline = 'bottom';
                                     ctx.fillText(labelText, elemOpp.x, elemOpp.y - 3);

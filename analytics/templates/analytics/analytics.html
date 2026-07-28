@@ -74,6 +74,65 @@
         </div>
     </div>
 
+    <!-- ROW 3.5: Peak Focus & Opportunity Gap Insights (PhD vs In-House) -->
+    <div class="analytics-insights-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 20px; margin-bottom: 24px;">
+        <!-- PhD Work Insights Panel -->
+        <div class="glass-panel" style="padding: 20px; border-left: 4px solid #2dd4bf;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                <h3 class="panel-title" style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #2dd4bf; display: flex; align-items: center; gap: 8px;">
+                    🎓 PhD Work Insights
+                </h3>
+                <span id="phd-total-focus" style="font-size: 0.78rem; font-weight: 700; background: rgba(45, 212, 191, 0.12); color: #0c9e93; padding: 3px 8px; border-radius: 6px;">Total: --</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(12,88,85,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(12,88,85,0.08);">
+                    <div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); font-weight: 600;">⚡ Highest Focus</div>
+                        <div id="phd-highest-focus-val" style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-top: 2px;">--</div>
+                    </div>
+                    <span id="phd-highest-focus-sub" style="font-size: 0.78rem; color: #0c9e93; font-weight: 600; background: rgba(12,158,147,0.1); padding: 2px 8px; border-radius: 6px;">--</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(239,68,68,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(239,68,68,0.12);">
+                    <div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: #ef4444; font-weight: 600;">⏳ Highest Opportunity Gap</div>
+                        <div id="phd-highest-gap-val" style="font-size: 1.1rem; font-weight: 800; color: #ef4444; margin-top: 2px;">--</div>
+                    </div>
+                    <span id="phd-highest-gap-sub" style="font-size: 0.78rem; color: #ef4444; font-weight: 600; background: rgba(239,68,68,0.1); padding: 2px 8px; border-radius: 6px;">--</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- In-House (Other Work) Insights Panel -->
+        <div class="glass-panel" style="padding: 20px; border-left: 4px solid #3b82f6;">
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px;">
+                <h3 class="panel-title" style="margin: 0; font-size: 1.05rem; font-weight: 700; color: #3b82f6; display: flex; align-items: center; gap: 8px;">
+                    🏠 In-House Work Insights
+                </h3>
+                <span id="other-total-focus" style="font-size: 0.78rem; font-weight: 700; background: rgba(59, 130, 246, 0.12); color: #1d4ed8; padding: 3px 8px; border-radius: 6px;">Total: --</span>
+            </div>
+            
+            <div style="display: flex; flex-direction: column; gap: 12px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(59,130,246,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(59,130,246,0.08);">
+                    <div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); font-weight: 600;">⚡ Highest Focus</div>
+                        <div id="other-highest-focus-val" style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin-top: 2px;">--</div>
+                    </div>
+                    <span id="other-highest-focus-sub" style="font-size: 0.78rem; color: #1d4ed8; font-weight: 600; background: rgba(59,130,246,0.1); padding: 2px 8px; border-radius: 6px;">--</span>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(239,68,68,0.03); padding: 10px 14px; border-radius: 10px; border: 1px solid rgba(239,68,68,0.12);">
+                    <div>
+                        <div style="font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.5px; color: #ef4444; font-weight: 600;">⏳ Highest Opportunity Gap</div>
+                        <div id="other-highest-gap-val" style="font-size: 1.1rem; font-weight: 800; color: #ef4444; margin-top: 2px;">--</div>
+                    </div>
+                    <span id="other-highest-gap-sub" style="font-size: 0.78rem; color: #ef4444; font-weight: 600; background: rgba(239,68,68,0.1); padding: 2px 8px; border-radius: 6px;">--</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <!-- ROW 4: Productivity Tip -->
     <div style="margin-top: 24px; margin-bottom: 20px;">
         <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 24px;">

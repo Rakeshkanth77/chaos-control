@@ -415,7 +415,7 @@
             <button class="mobile-nav-close" onclick="closeMobileNav()" aria-label="Close menu">✕</button>
         </div>
         {% if request.user.is_authenticated %}
-            <a href="/" class="mobile-nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
+            <a href="/analytics/" class="mobile-nav-link {% if '/analytics' in request.path or request.GET.tab == 'analytics' %}active{% endif %}">Productive Analytics</a>
             <a href="/bible-memory/" class="mobile-nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">Practice Portal</a>
             <div class="mobile-nav-divider"></div>
             <a href="/profile/" class="mobile-nav-link {% if request.path == '/profile/' and not request.GET.tab %}active{% endif %}">
@@ -424,7 +424,6 @@
                 {% endif %}
                 Profile &amp; Settings
             </a>
-            <a href="/profile/?tab=analytics" class="mobile-nav-link {% if request.GET.tab == 'analytics' %}active{% endif %}">Productivity Analytics</a>
             <a href="/privacy/" class="mobile-nav-link {% if request.path == '/privacy/' %}active{% endif %}">Privacy</a>
             <div class="mobile-nav-divider"></div>
             <a href="/accounts/logout/" class="mobile-nav-logout">Sign Out</a>
@@ -461,11 +460,14 @@
 
                 <!-- Desktop Nav -->
                 <nav class="app-nav desktop-nav" style="display: flex; align-items: center; gap: 12px;">
-                    <a href="/" class="nav-link {% if request.path == '/' %}active{% endif %}">Dashboard</a>
                     <button id="toggle-projects-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px;" title="Current Projects">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
                         <span>Projects</span>
                     </button>
+                    <a href="/analytics/" class="nav-link {% if '/analytics' in request.path or request.GET.tab == 'analytics' %}active{% endif %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;" title="Productive Analytics">
+                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                        <span>Productive Analytics</span>
+                    </a>
                     <button id="pomo-nav-btn" class="nav-link pomo-nav-btn" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px; position: relative;" title="Pomodoro Focus Timer">
                         <svg class="pomo-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         <span class="pomo-btn-text">Pomodoro</span>
@@ -921,11 +923,57 @@
         </div>
     </div>
 
-    <!-- Audio notification element -->
-    <audio id="pomoAlertSound" src="https://assets.mixkit.co/active_storage/sfx/2869/2869-200.wav" preload="auto"></audio>
+    {% if request.user.is_authenticated %}
+    <!-- Slide-out Current Projects Sidebar Panel -->
+    <div class="projects-sidebar-overlay" id="projectsSidebarOverlay"></div>
+    <div class="glass-panel projects-sidebar" id="projectsSidebar">
+        <div class="sidebar-header" style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(12, 88, 85, 0.08); padding-bottom: 12px; margin-bottom: 16px;">
+            <h2 class="panel-title" style="margin: 0; font-family: 'Outfit', sans-serif; font-size: 1.25rem;">
+                Current Projects
+            </h2>
+            <button id="close-projects-sidebar" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-primary); outline: none;">✕</button>
+        </div>
+        
+        <!-- Quick Add Form -->
+        <form id="add-project-form" class="project-add-inline" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 16px; background: rgba(12, 88, 85, 0.03); padding: 12px; border-radius: 12px; border: 1px solid rgba(12, 88, 85, 0.08);">
+            <label style="font-size: 0.75rem; font-weight: 600; text-transform: uppercase; color: var(--accent-color);">Add New Project</label>
+            <input type="text" id="project-name" class="inline-input" placeholder="Project name..." required autocomplete="off" style="padding: 8px 12px; font-size: 0.85rem;">
+            <input type="url" id="project-url" class="inline-input" placeholder="URL (https://...)" required autocomplete="off" style="padding: 8px 12px; font-size: 0.85rem;">
+            <button type="submit" class="btn" style="width: 100%; padding: 8px;">+ Add Project</button>
+        </form>
+
+        <!-- Project List -->
+        <div class="project-list-container" id="project-list" style="flex-grow: 1; overflow-y: auto;">
+            {% for project in projects %}
+                <div class="project-item" data-id="{{ project.id }}" draggable="true">
+                    <div class="project-drag-handle">☰</div>
+                    <div class="project-content-wrapper">
+                        <span class="project-name-text">
+                            <a href="{{ project.url }}" target="_blank" rel="noopener noreferrer">{{ project.name }} ↗</a>
+                        </span>
+                        {% if project.description %}
+                            <span class="project-desc-text">{{ project.description }}</span>
+                        {% endif %}
+                    </div>
+                    <div class="project-actions">
+                        <button class="project-sort-btn project-move-up" title="Move Up">▲</button>
+                        <button class="project-sort-btn project-move-down" title="Move Down">▼</button>
+                        <button class="action-btn project-edit-btn">edit</button>
+                        <button class="action-btn project-delete-btn" style="color: #ef4444;">delete</button>
+                    </div>
+                </div>
+            {% empty %}
+                <div class="empty-state-message" id="project-empty-state" style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 12px 0;">
+                    No projects tracked.
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
 
     <script src="{% static 'js/pomodoro.js' %}?v=8"></script>
     {% if request.user.is_authenticated %}
+    <script src="{% static 'js/projects.js' %}?v=2"></script>
     <script src="{% static 'js/reminders.js' %}?v=1"></script>
     {% endif %}
 

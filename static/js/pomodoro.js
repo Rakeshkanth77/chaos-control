@@ -909,24 +909,33 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    function formatMinsToHoursMins(minutes) {
+        if (!minutes || minutes <= 0) return '0m';
+        const h = Math.floor(minutes / 60);
+        const m = Math.round(minutes % 60);
+        if (h === 0) return `${m}m`;
+        if (m === 0) return `${h}h`;
+        return `${h}h ${m}m`;
+    }
+
     function renderDayStats(data) {
         const dayStatsRow = document.getElementById('dayStatsRow');
         if (!dayStatsRow) return;
         const focusMins = data.total_focus_minutes || 0;
         const oppMins = data.total_opportunity_minutes ?? (data.total_gap_minutes || 0);
-        const focusHrs = (focusMins / 60).toFixed(1);
-        const oppHrs = (oppMins / 60).toFixed(1);
+        const focusFormatted = formatMinsToHoursMins(focusMins);
+        const oppFormatted = formatMinsToHoursMins(oppMins);
         const spanText = (data.first_session_start && data.last_session_end)
             ? `${data.first_session_start} → ${data.last_session_end}`
             : 'No sessions today';
 
         dayStatsRow.innerHTML = `
             <div class="focus-stat-card">
-                <span class="focus-stat-value">${focusMins >= 60 ? focusHrs + 'h' : focusMins + 'm'}</span>
+                <span class="focus-stat-value">${focusFormatted}</span>
                 <span class="focus-stat-label">Total Focus Time</span>
             </div>
             <div class="focus-stat-card">
-                <span class="focus-stat-value" style="color: #ef4444;">${oppMins >= 60 ? oppHrs + 'h' : oppMins + 'm'}</span>
+                <span class="focus-stat-value" style="color: #ef4444;">${oppFormatted}</span>
                 <span class="focus-stat-label">Opportunity Time</span>
             </div>
             <div class="focus-stat-card">
@@ -939,15 +948,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderWeekPanel(data) {
         if (!weekStatsRow || !weekChartContainer || !weekHistoryList) return;
         
-        const focusHours = (data.total_focus_minutes / 60).toFixed(1);
-        const oppHours = ((data.total_opportunity_minutes ?? data.total_gap_minutes) / 60).toFixed(1);
+        const focusFormatted = formatMinsToHoursMins(data.total_focus_minutes);
+        const oppFormatted = formatMinsToHoursMins(data.total_opportunity_minutes ?? data.total_gap_minutes);
         weekStatsRow.innerHTML = `
             <div class="focus-stat-card">
-                <span class="focus-stat-value">${focusHours}h</span>
+                <span class="focus-stat-value">${focusFormatted}</span>
                 <span class="focus-stat-label">Total Focus</span>
             </div>
             <div class="focus-stat-card">
-                <span class="focus-stat-value" style="color: #ef4444;">${oppHours}h</span>
+                <span class="focus-stat-value" style="color: #ef4444;">${oppFormatted}</span>
                 <span class="focus-stat-label">Total Opportunity</span>
             </div>
             <div class="focus-stat-card">
@@ -1029,15 +1038,15 @@ document.addEventListener('DOMContentLoaded', () => {
     function renderMonthPanel(data) {
         if (!monthStatsRow || !monthCalendarGrid || !monthHistoryList) return;
 
-        const focusHours = (data.total_focus_minutes / 60).toFixed(1);
-        const oppHours = ((data.total_opportunity_minutes ?? data.total_gap_minutes) / 60).toFixed(1);
+        const focusFormatted = formatMinsToHoursMins(data.total_focus_minutes);
+        const oppFormatted = formatMinsToHoursMins(data.total_opportunity_minutes ?? data.total_gap_minutes);
         monthStatsRow.innerHTML = `
             <div class="focus-stat-card">
-                <span class="focus-stat-value">${focusHours}h</span>
+                <span class="focus-stat-value">${focusFormatted}</span>
                 <span class="focus-stat-label">Monthly Focus</span>
             </div>
             <div class="focus-stat-card">
-                <span class="focus-stat-value" style="color: #ef4444;">${oppHours}h</span>
+                <span class="focus-stat-value" style="color: #ef4444;">${oppFormatted}</span>
                 <span class="focus-stat-label">Total Opportunity</span>
             </div>
             <div class="focus-stat-card">
