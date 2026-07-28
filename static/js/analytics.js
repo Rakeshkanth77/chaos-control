@@ -107,23 +107,26 @@ document.addEventListener('DOMContentLoaded', () => {
         loadAnalytics();
     }
 
-    // Bind event listeners for view selector tabs
-    document.querySelectorAll('#analyticsViewTabs .focus-view-tab, #profileAnalyticsViewTabs .focus-view-tab').forEach(btn => {
-        btn.addEventListener('click', () => switchAnalyticsView(btn.dataset.view));
-    });
+    // Global Event Delegation for View Tabs & Date Controls
+    document.addEventListener('click', (e) => {
+        const viewTab = e.target.closest('#analyticsViewTabs .focus-view-tab, #profileAnalyticsViewTabs .focus-view-tab');
+        const prevBtn = e.target.closest('#analyticsPrevBtn, #profileAnalyticsPrevBtn');
+        const nextBtn = e.target.closest('#analyticsNextBtn, #profileAnalyticsNextBtn');
+        const todayBtn = e.target.closest('#analyticsTodayBtn, #profileAnalyticsTodayBtn');
 
-    // Bind event listeners for date navigator controls
-    ['analyticsPrevBtn', 'profileAnalyticsPrevBtn'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) btn.addEventListener('click', () => changeAnalyticsDate(-1));
-    });
-    ['analyticsNextBtn', 'profileAnalyticsNextBtn'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) btn.addEventListener('click', () => changeAnalyticsDate(1));
-    });
-    ['analyticsTodayBtn', 'profileAnalyticsTodayBtn'].forEach(id => {
-        const btn = document.getElementById(id);
-        if (btn) btn.addEventListener('click', () => resetAnalyticsToday());
+        if (viewTab) {
+            e.preventDefault();
+            switchAnalyticsView(viewTab.dataset.view);
+        } else if (prevBtn) {
+            e.preventDefault();
+            changeAnalyticsDate(-1);
+        } else if (nextBtn) {
+            e.preventDefault();
+            changeAnalyticsDate(1);
+        } else if (todayBtn) {
+            e.preventDefault();
+            resetAnalyticsToday();
+        }
     });
 
     async function loadAnalytics() {

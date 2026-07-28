@@ -3276,34 +3276,34 @@ body {
 
 .focus-view-tabs {
     display: flex;
-    background: rgba(255, 255, 255, 0.06);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    border-radius: 12px;
+    align-items: center;
+    background: rgba(12, 88, 85, 0.06);
     padding: 3px;
-    gap: 2px;
+    border-radius: 12px;
+    border: 1px solid rgba(12, 88, 85, 0.1);
 }
 
 .focus-view-tab {
     background: transparent;
     border: none;
-    padding: 6px 16px;
+    padding: 6px 14px;
     border-radius: 9px;
     font-family: 'Outfit', sans-serif;
     font-size: 0.82rem;
     font-weight: 600;
-    color: rgba(255, 255, 255, 0.6);
+    color: var(--text-secondary, #475569);
     cursor: pointer;
     transition: all 0.2s ease;
 }
 
 .focus-view-tab:hover {
-    color: #ffffff;
+    color: var(--text-primary, #0f172a);
 }
 
 .focus-view-tab.active {
-    background: #2dd4bf;
-    color: #061614;
-    box-shadow: 0 2px 8px rgba(45, 212, 191, 0.3);
+    background: #0c8882;
+    color: #ffffff;
+    box-shadow: 0 2px 8px rgba(12, 136, 130, 0.3);
 }
 
 .focus-date-navigator {
@@ -3313,32 +3313,33 @@ body {
 }
 
 .focus-nav-btn {
-    width: 30px;
-    height: 30px;
+    width: 32px;
+    height: 32px;
     border-radius: 50%;
-    background: rgba(255, 255, 255, 0.08);
-    border: 1px solid rgba(255, 255, 255, 0.15);
-    color: #ffffff;
+    background: rgba(12, 88, 85, 0.08);
+    border: 1px solid rgba(12, 88, 85, 0.15);
+    color: var(--text-primary, #0f172a);
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    font-size: 0.85rem;
+    font-size: 1rem;
+    font-weight: bold;
     transition: all 0.2s;
 }
 
 .focus-nav-btn:hover {
-    background: rgba(45, 212, 191, 0.2);
-    border-color: rgba(45, 212, 191, 0.4);
-    color: #2dd4bf;
+    background: #0c8882;
+    border-color: #0c8882;
+    color: #ffffff;
 }
 
 .focus-date-display {
     font-family: 'Outfit', sans-serif;
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: #ffffff;
-    min-width: 130px;
+    font-size: 0.92rem;
+    font-weight: 700;
+    color: var(--text-primary, #0f172a);
+    min-width: 140px;
     text-align: center;
 }
 
