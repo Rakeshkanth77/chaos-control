@@ -157,18 +157,10 @@ document.addEventListener('DOMContentLoaded', () => {
                     const hDayVal = document.getElementById('bracket-highest-day-val');
                     const hDaySub = document.getElementById('bracket-highest-day-sub');
                     const peakWeekVal = document.getElementById('bracket-peak-week-val');
-                    const hGapVal = document.getElementById('bracket-highest-gap-val');
-                    const hGapSub = document.getElementById('bracket-highest-gap-sub');
-                    const avgFocusVal = document.getElementById('bracket-avg-focus-val');
-                    const avgGapVal = document.getElementById('bracket-avg-gap-val');
 
                     if (hDayVal) hDayVal.textContent = formatDuration(res.weekly_highlights.highest_focus_day_minutes);
                     if (hDaySub) hDaySub.textContent = res.weekly_highlights.highest_focus_day_label;
                     if (peakWeekVal) peakWeekVal.textContent = formatDuration(res.weekly_highlights.total_weekly_focus_minutes);
-                    if (hGapVal) hGapVal.textContent = formatDuration(res.weekly_highlights.highest_gap_minutes);
-                    if (hGapSub) hGapSub.textContent = res.weekly_highlights.highest_gap_label;
-                    if (avgFocusVal) avgFocusVal.textContent = formatDuration(res.weekly_highlights.avg_daily_focus_minutes);
-                    if (avgGapVal) avgGapVal.textContent = formatDuration(res.weekly_highlights.avg_daily_gap_minutes);
                 }
 
                 // Render PhD vs In-House Insights Cards
