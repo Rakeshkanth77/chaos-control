@@ -3360,6 +3360,104 @@ body {
     color: #061614;
 }
 
+/* ── Mobile-First Responsive Analytics & Focus Highlights ── */
+@media (max-width: 900px) {
+    .pomo-split-grid {
+        grid-template-columns: 1fr !important;
+        gap: 16px !important;
+    }
+    
+    .pomo-chart-wrapper {
+        height: 320px !important;
+        min-height: 280px !important;
+    }
+
+    .pomo-stats-bracket {
+        display: grid !important;
+        grid-template-columns: repeat(2, 1fr) !important;
+        gap: 10px !important;
+        padding: 14px !important;
+    }
+
+    .pomo-stats-bracket > div:first-child {
+        grid-column: 1 / -1;
+        margin-bottom: 2px !important;
+    }
+
+    .pomo-stats-bracket > .bracket-metric-card:last-child {
+        grid-column: 1 / -1;
+    }
+
+    .bracket-metric-card {
+        padding: 10px 12px !important;
+    }
+
+    .bracket-metric-card div:first-child {
+        font-size: 0.72rem !important;
+    }
+
+    .bracket-metric-card span[id] {
+        font-size: 1.05rem !important;
+    }
+}
+
+@media (max-width: 600px) {
+    .analytics-header-bar {
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 12px !important;
+        padding: 14px !important;
+    }
+
+    .analytics-controls-wrap {
+        width: 100% !important;
+        flex-direction: column !important;
+        align-items: stretch !important;
+        gap: 10px !important;
+    }
+
+    .focus-view-tabs {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    .focus-view-tab {
+        flex: 1 !important;
+        text-align: center !important;
+        padding: 8px 0 !important;
+        font-size: 0.88rem !important;
+    }
+
+    .focus-date-navigator {
+        width: 100% !important;
+        justify-content: space-between !important;
+    }
+
+    .focus-nav-btn {
+        width: 36px !important;
+        height: 36px !important;
+        font-size: 1.1rem !important;
+    }
+
+    .focus-date-display {
+        font-size: 0.95rem !important;
+        flex: 1 !important;
+    }
+
+    .focus-today-badge {
+        padding: 6px 12px !important;
+        font-size: 0.82rem !important;
+    }
+
+    .pomo-stats-bracket {
+        grid-template-columns: 1fr !important;
+    }
+
+    .pomo-stats-bracket > .bracket-metric-card:last-child {
+        grid-column: auto !important;
+    }
+}
+
 /* ── Focus Stats Row ── */
 .focus-stats-row {
     display: grid;
