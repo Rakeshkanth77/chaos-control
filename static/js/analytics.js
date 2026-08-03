@@ -154,27 +154,29 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 // Render 30% Weekly Highlights Bracket Metrics
                 if (res.weekly_highlights) {
+                    const peakWeekVal = document.getElementById('bracket-peak-week-val');
                     const hDayVal = document.getElementById('bracket-highest-day-val');
                     const hDaySub = document.getElementById('bracket-highest-day-sub');
-                    const peakWeekVal = document.getElementById('bracket-peak-week-val');
                     const hGapVal = document.getElementById('bracket-highest-gap-val');
                     const hGapSub = document.getElementById('bracket-highest-gap-sub');
 
+                    if (peakWeekVal) peakWeekVal.textContent = formatDuration(res.weekly_highlights.total_weekly_focus_minutes);
                     if (hDayVal) hDayVal.textContent = formatDuration(res.weekly_highlights.highest_focus_day_minutes);
                     if (hDaySub) hDaySub.textContent = res.weekly_highlights.highest_focus_day_label;
-                    if (peakWeekVal) peakWeekVal.textContent = formatDuration(res.weekly_highlights.total_weekly_focus_minutes);
                     if (hGapVal) hGapVal.textContent = formatDuration(res.weekly_highlights.highest_gap_minutes);
                     if (hGapSub) hGapSub.textContent = res.weekly_highlights.highest_gap_label;
                 }
 
-                // Render PhD vs In-House Insights Cards
+                // Render PhD vs Other Insights Metrics
                 if (res.phd_insights) {
+                    const phdTotalVal = document.getElementById('phd-total-focus-val');
                     const phdTotal = document.getElementById('phd-total-focus');
                     const phdFocusVal = document.getElementById('phd-highest-focus-val');
                     const phdFocusSub = document.getElementById('phd-highest-focus-sub');
                     const phdGapVal = document.getElementById('phd-highest-gap-val');
                     const phdGapSub = document.getElementById('phd-highest-gap-sub');
 
+                    if (phdTotalVal) phdTotalVal.textContent = formatDuration(res.phd_insights.total_focus_minutes);
                     if (phdTotal) phdTotal.textContent = `Total: ${formatDurationShort(res.phd_insights.total_focus_minutes)}`;
                     if (phdFocusVal) phdFocusVal.textContent = formatDuration(res.phd_insights.highest_focus_minutes);
                     if (phdFocusSub) phdFocusSub.textContent = res.phd_insights.highest_focus_label;
@@ -183,12 +185,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
 
                 if (res.other_insights) {
+                    const otherTotalVal = document.getElementById('other-total-focus-val');
                     const otherTotal = document.getElementById('other-total-focus');
                     const otherFocusVal = document.getElementById('other-highest-focus-val');
                     const otherFocusSub = document.getElementById('other-highest-focus-sub');
                     const otherGapVal = document.getElementById('other-highest-gap-val');
                     const otherGapSub = document.getElementById('other-highest-gap-sub');
 
+                    if (otherTotalVal) otherTotalVal.textContent = formatDuration(res.other_insights.total_focus_minutes);
                     if (otherTotal) otherTotal.textContent = `Total: ${formatDurationShort(res.other_insights.total_focus_minutes)}`;
                     if (otherFocusVal) otherFocusVal.textContent = formatDuration(res.other_insights.highest_focus_minutes);
                     if (otherFocusSub) otherFocusSub.textContent = res.other_insights.highest_focus_label;
