@@ -268,6 +268,7 @@ document.addEventListener('DOMContentLoaded', () => {
         playChime();
         pomoSessionStatus.textContent = '🎉 Sprint Complete! Extend or Save Log';
         if (pomoPauseBtn) pomoPauseBtn.style.display = 'none';
+        updatePipPauseIcon();
 
         const graceEndTimestamp = Date.now() + remGraceSecs * 1000;
 
@@ -503,6 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.status === 'success') {
                     isTimerPaused = false;
                     pomoSessionStatus.textContent = 'Deep Focus Active';
+                    updatePipPauseIcon();
                     syncStatus();
                 }
             } else {
@@ -510,6 +512,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 if (data.status === 'success') {
                     isTimerPaused = true;
                     pomoSessionStatus.textContent = '⏸️ PAUSED — Taking a breather';
+                    updatePipPauseIcon();
                     updateTimerUI();
                 }
             }
@@ -1303,21 +1306,43 @@ document.addEventListener('DOMContentLoaded', () => {
             
             const container = pipDoc.createElement('div');
             container.style.textAlign = 'center';
-            
+
             const remaining = Math.max(0, Math.ceil((endTimestamp - Date.now()) / 1000));
             container.innerHTML = `
                 <div class="pomo-pip-time" id="pomoPipTime">${formatTime(remaining)}</div>
-                <div class="pomo-pip-label">Focus Sprint</div>
+                <div class="pomo-pip-controls">
+                    <button id="pomoPipPauseBtn" class="pomo-pip-icon-btn" title="Pause/Resume">
+                        <span id="pomoPipPauseIcon">⏸️</span>
+                    </button>
+                    <button id="pomoPipFinishBtn" class="pomo-pip-icon-btn" title="Finish &amp; Save">✔️</button>
+                </div>
             `;
-            
+
             pipDoc.body.appendChild(container);
-            
+
+            pipDoc.getElementById('pomoPipPauseBtn').addEventListener('click', togglePause);
+            pipDoc.getElementById('pomoPipFinishBtn').addEventListener('click', finishEarly);
+            updatePipPauseIcon();
+
             // Handle native window closing
             pipWindowInstance.addEventListener('pagehide', () => {
                 pipWindowInstance = null;
             });
         } catch (e) {
             console.error('Failed to launch Picture-in-Picture window:', e);
+        }
+    }
+
+    // Keeps the PiP pause/resume icon and visibility in sync with the main timer state
+    function updatePipPauseIcon() {
+        if (!pipWindowInstance) return;
+        const pipPauseBtn = pipWindowInstance.document.getElementById('pomoPipPauseBtn');
+        const pipPauseIcon = pipWindowInstance.document.getElementById('pomoPipPauseIcon');
+        if (pipPauseBtn) {
+            pipPauseBtn.style.display = isGracePeriodActive ? 'none' : 'inline-flex';
+        }
+        if (pipPauseIcon) {
+            pipPauseIcon.textContent = isTimerPaused ? '▶️' : '⏸️';
         }
     }
 

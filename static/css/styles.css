@@ -2930,6 +2930,32 @@ body {
     font-weight: 600 !important;
 }
 
+.pomo-pip-controls {
+    display: flex !important;
+    gap: 10px !important;
+    justify-content: center !important;
+    margin-top: 10px !important;
+}
+
+.pomo-pip-icon-btn {
+    display: inline-flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 50% !important;
+    background: rgba(45, 212, 191, 0.1) !important;
+    border: 1px solid rgba(45, 212, 191, 0.3) !important;
+    color: #2dd4bf !important;
+    font-size: 0.95rem !important;
+    cursor: pointer !important;
+    padding: 0 !important;
+}
+
+.pomo-pip-icon-btn:hover {
+    background: rgba(45, 212, 191, 0.2) !important;
+}
+
 .pomo-analytic-tag {
     cursor: default;
     display: inline-block;
