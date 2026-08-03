@@ -1307,14 +1307,18 @@ document.addEventListener('DOMContentLoaded', () => {
             const container = pipDoc.createElement('div');
             container.style.textAlign = 'center';
 
+            const pauseSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+            const playSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+            const checkSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>';
+
             const remaining = Math.max(0, Math.ceil((endTimestamp - Date.now()) / 1000));
             container.innerHTML = `
                 <div class="pomo-pip-time" id="pomoPipTime">${formatTime(remaining)}</div>
                 <div class="pomo-pip-controls">
-                    <button id="pomoPipPauseBtn" class="pomo-pip-icon-btn" title="Pause/Resume">
-                        <span id="pomoPipPauseIcon">⏸️</span>
+                    <button id="pomoPipPauseBtn" class="pomo-pip-icon-btn" title="Pause / Resume">
+                        <span id="pomoPipPauseIcon" style="display: flex; align-items: center; justify-content: center;">${isTimerPaused ? playSvg : pauseSvg}</span>
                     </button>
-                    <button id="pomoPipFinishBtn" class="pomo-pip-icon-btn" title="Finish &amp; Save">✔️</button>
+                    <button id="pomoPipFinishBtn" class="pomo-pip-icon-btn" title="Finish &amp; Save">${checkSvg}</button>
                 </div>
             `;
 
@@ -1338,11 +1342,14 @@ document.addEventListener('DOMContentLoaded', () => {
         if (!pipWindowInstance) return;
         const pipPauseBtn = pipWindowInstance.document.getElementById('pomoPipPauseBtn');
         const pipPauseIcon = pipWindowInstance.document.getElementById('pomoPipPauseIcon');
+        const pauseSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>';
+        const playSvg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor" style="margin-left: 2px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>';
+
         if (pipPauseBtn) {
             pipPauseBtn.style.display = isGracePeriodActive ? 'none' : 'inline-flex';
         }
         if (pipPauseIcon) {
-            pipPauseIcon.textContent = isTimerPaused ? '▶️' : '⏸️';
+            pipPauseIcon.innerHTML = isTimerPaused ? playSvg : pauseSvg;
         }
     }
 

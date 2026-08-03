@@ -2897,9 +2897,9 @@ body {
     }
 }
 
-/* Picture in Picture Window Styling */
+/* Picture in Picture Window Styling (Luxury Frosted Horizon) */
 .pomo-pip-body {
-    background: #081615 !important;
+    background: radial-gradient(circle at center, #0e2725 0%, #061514 100%) !important;
     color: #e2f1f0 !important;
     margin: 0 !important;
     padding: 0 !important;
@@ -2910,15 +2910,17 @@ body {
     height: 100vh !important;
     font-family: 'Outfit', 'Inter', sans-serif !important;
     overflow: hidden !important;
+    box-sizing: border-box !important;
 }
 
 .pomo-pip-time {
     font-family: 'JetBrains Mono', monospace !important;
-    font-size: 2.5rem !important;
+    font-size: 2.6rem !important;
     font-weight: 700 !important;
     color: #2dd4bf !important;
     line-height: 1.1 !important;
-    text-shadow: 0 0 10px rgba(45, 212, 191, 0.4) !important;
+    letter-spacing: -0.5px !important;
+    text-shadow: 0 0 18px rgba(45, 212, 191, 0.5) !important;
 }
 
 .pomo-pip-label {
@@ -2932,8 +2934,9 @@ body {
 
 .pomo-pip-controls {
     display: flex !important;
-    gap: 10px !important;
+    gap: 12px !important;
     justify-content: center !important;
+    align-items: center !important;
     margin-top: 10px !important;
 }
 
@@ -2941,19 +2944,28 @@ body {
     display: inline-flex !important;
     align-items: center !important;
     justify-content: center !important;
-    width: 34px !important;
-    height: 34px !important;
+    width: 32px !important;
+    height: 32px !important;
     border-radius: 50% !important;
-    background: rgba(45, 212, 191, 0.1) !important;
+    background: rgba(255, 255, 255, 0.08) !important;
+    backdrop-filter: blur(8px) !important;
+    -webkit-backdrop-filter: blur(8px) !important;
     border: 1px solid rgba(45, 212, 191, 0.3) !important;
     color: #2dd4bf !important;
-    font-size: 0.95rem !important;
     cursor: pointer !important;
     padding: 0 !important;
+    transition: background 0.2s, transform 0.15s, border-color 0.2s, box-shadow 0.2s !important;
 }
 
 .pomo-pip-icon-btn:hover {
-    background: rgba(45, 212, 191, 0.2) !important;
+    background: rgba(45, 212, 191, 0.22) !important;
+    border-color: rgba(45, 212, 191, 0.6) !important;
+    transform: scale(1.08) !important;
+    box-shadow: 0 0 12px rgba(45, 212, 191, 0.35) !important;
+}
+
+.pomo-pip-icon-btn:active {
+    transform: scale(0.95) !important;
 }
 
 .pomo-analytic-tag {
