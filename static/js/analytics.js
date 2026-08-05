@@ -577,12 +577,13 @@ document.addEventListener('DOMContentLoaded', () => {
         const totalHours = dataValues.reduce((a, b) => a + b, 0);
 
         const colorMap = {
-            'Research': '#10b981',
-            'Coding': '#3b82f6',
-            'Admin': '#f59e0b',
-            'Meeting': '#8b5cf6',
-            'Distraction': '#f43f5e',
-            'Break': '#6b7280',
+            'PhD': '#10b981',
+            'Projects': '#3b82f6',
+            'Life Skills': '#f59e0b',
+            'Spiritual': '#8b5cf6',
+            'Cooking': '#f97316',
+            'Driving': '#06b6d4',
+            'Distracted': '#f43f5e',
             'Other': '#9ca3af'
         };
 
@@ -591,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!categories || categories.length === 0 || totalHours === 0) {
             isPlaceholder = true;
-            labels = ['Research', 'Coding', 'Admin', 'Distraction', 'Break'];
+            labels = ['PhD', 'Projects', 'Life Skills', 'Spiritual', 'Distracted'];
             dataValues = [1, 1, 1, 1, 1];
             backgroundColors = labels.map(lbl => colorMap[lbl]);
         } else {
@@ -716,14 +717,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 }
             }
 
-            // Render Timeline Grid (08:00 to 22:00)
+            // Render Timeline Grid (05:00 to 22:00)
             if (grid) {
                 const todayRes = await fetch('/api/time-audit/today/');
                 const todayData = await todayRes.json();
                 grid.innerHTML = '';
                 const slots = todayData.slots || {};
                 
-                for (let hour = 8; hour <= 21; hour++) {
+                for (let hour = 5; hour <= 21; hour++) {
                     for (let min = 0; min < 60; min += 15) {
                         const slotStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
                         const logged = slots[slotStr];
@@ -733,18 +734,19 @@ document.addEventListener('DOMContentLoaded', () => {
                         
                         if (logged) {
                             const catColors = {
-                                'research': 'rgba(16, 185, 129, 0.15)',
-                                'coding': 'rgba(59, 130, 246, 0.15)',
-                                'admin': 'rgba(245, 158, 11, 0.15)',
-                                'meeting': 'rgba(139, 92, 246, 0.15)',
-                                'distraction': 'rgba(244, 63, 94, 0.18)',
-                                'break': 'rgba(107, 114, 128, 0.15)'
+                                'phd': 'rgba(16, 185, 129, 0.18)',
+                                'projects': 'rgba(59, 130, 246, 0.18)',
+                                'life_skills': 'rgba(245, 158, 11, 0.18)',
+                                'spiritual': 'rgba(139, 92, 246, 0.18)',
+                                'cooking': 'rgba(249, 115, 22, 0.18)',
+                                'driving': 'rgba(6, 182, 212, 0.18)',
+                                'distracted': 'rgba(244, 63, 94, 0.2)'
                             };
                             card.style.background = catColors[logged.category] || 'rgba(0,0,0,0.04)';
                             card.innerHTML = `
-                                <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--text-primary); font-size: 0.7rem;">
+                                <div style="display: flex; justify-content: space-between; align-items: center; font-weight: 700; color: var(--text-primary); font-size: 0.7rem;">
                                     <span>${slotStr}</span>
-                                    <span style="font-size: 0.65rem; text-transform: uppercase; opacity: 0.8;">${logged.category}</span>
+                                    <span class="change-cat-badge" data-slot="${slotStr}" data-cat="${logged.category}" style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800; cursor: pointer; background: rgba(0,0,0,0.08); padding: 1px 5px; border-radius: 4px;" title="Click to change category">${logged.category} ✏️</span>
                                 </div>
                                 <div style="font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${logged.raw_text}">${logged.raw_text}</div>
                             `;
@@ -759,12 +761,38 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 }
 
+                // Add category edit listeners
+                grid.querySelectorAll('.change-cat-badge').forEach(badge => {
+                    badge.addEventListener('click', async (e) => {
+                        const slot = e.currentTarget.dataset.slot;
+                        const currentCat = e.currentTarget.dataset.cat;
+                        const catChoices = "phd, projects, life_skills, spiritual, cooking, driving, distracted, other";
+                        const newCat = prompt(`Change category for ${slot} (current: ${currentCat}):\nOptions: ${catChoices}`, currentCat);
+                        if (newCat && newCat.trim() !== '' && newCat !== currentCat) {
+                            const res = await fetch('/api/time-audit/update-category/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCsrfToken()
+                                },
+                                body: JSON.stringify({ time_slot: slot, category: newCat.trim().toLowerCase() })
+                            });
+                            const resData = await res.json();
+                            if (resData.status === 'success') {
+                                loadTimeAuditData();
+                            } else {
+                                alert(resData.message || 'Failed to update category');
+                            }
+                        }
+                    });
+                });
+
                 // Add backfill click listeners
                 grid.querySelectorAll('.backfill-btn').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const slot = e.target.dataset.slot;
                         const text = prompt(`Log activity for ${slot}:`);
-                        if (text && text.strip !== '') {
+                        if (text && text.trim() !== '') {
                             const res = await fetch('/api/time-audit/save/', {
                                 method: 'POST',
                                 headers: {

@@ -90,12 +90,13 @@ class PomodoroSession(models.Model):
 
 class TimeAuditLog(models.Model):
     CATEGORY_CHOICES = [
-        ('research', 'Research / Reading'),
-        ('coding', 'Coding / Building'),
-        ('admin', 'Admin / Email / Planning'),
-        ('meeting', 'Meeting / Call'),
-        ('distraction', 'Distraction / Social Media'),
-        ('break', 'Break / Lunch / Resting'),
+        ('phd', 'PhD'),
+        ('projects', 'Projects'),
+        ('life_skills', 'Life Skills'),
+        ('spiritual', 'Spiritual'),
+        ('cooking', 'Cooking'),
+        ('driving', 'Driving'),
+        ('distracted', 'Distracted'),
         ('other', 'Other'),
     ]
 

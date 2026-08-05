@@ -64,6 +64,8 @@ urlpatterns = [
 
     # Time Audit API endpoints
     path('api/time-audit/save/', api.save_time_audit, name='api_save_time_audit'),
+    path('api/time-audit/update-category/', api.update_time_audit_category, name='api_update_time_audit_category'),
+    path('api/time-audit/export-md/', api.export_time_audit_md, name='api_export_time_audit_md'),
     path('api/time-audit/today/', api.get_time_audit_today, name='api_get_time_audit_today'),
     path('api/time-audit/stats/', api.get_time_audit_stats, name='api_get_time_audit_stats'),
 ]

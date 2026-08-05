@@ -1536,18 +1536,20 @@ from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfi
 
 def auto_categorize_text(text):
     t = text.lower().strip()
-    if t in ('d', 'distraction') or any(kw in t for kw in ['reel', 'reels', 'insta', 'instagram', 'youtube', 'yt', 'twitter', 'x.com', 'tiktok', 'scroll', 'scrolling', 'game', 'reddit', 'meme']):
-        return 'distraction'
-    if t in ('r', 'research') or any(kw in t for kw in ['paper', 'read', 'reading', 'thesis', 'phd', 'research', 'article', 'study', 'literature']):
-        return 'research'
-    if t in ('c', 'coding') or any(kw in t for kw in ['code', 'coding', 'debug', 'bug', 'django', 'python', 'js', 'html', 'css', 'build', 'github', 'dev']):
-        return 'coding'
-    if t in ('a', 'admin') or any(kw in t for kw in ['email', 'mail', 'plan', 'planning', 'todo', 'admin', 'organize', 'schedule']):
-        return 'admin'
-    if t in ('m', 'meeting') or any(kw in t for kw in ['meet', 'meeting', 'call', 'zoom', 'teams', 'sync', 'discussion']):
-        return 'meeting'
-    if t in ('b', 'break', 'l', 'lunch') or any(kw in t for kw in ['lunch', 'dinner', 'breakfast', 'break', 'eat', 'eating', 'rest', 'coffee', 'walk', 'gym']):
-        return 'break'
+    if t in ('p', 'phd') or any(kw in t for kw in ['phd', 'paper', 'thesis', 'research', 'article', 'study', 'literature', 'experiment']):
+        return 'phd'
+    if t in ('j', 'project', 'projects') or any(kw in t for kw in ['code', 'coding', 'debug', 'bug', 'django', 'python', 'js', 'html', 'css', 'build', 'github', 'dev', 'app', 'project']):
+        return 'projects'
+    if t in ('l', 'life_skills', 'lifeskills') or any(kw in t for kw in ['read', 'book', 'skill', 'learn', 'course', 'finance', 'budget', 'plan']):
+        return 'life_skills'
+    if t in ('s', 'spiritual') or any(kw in t for kw in ['pray', 'prayer', 'bible', 'church', 'meditat', 'god', 'worship', 'spiritual']):
+        return 'spiritual'
+    if t in ('c', 'cook', 'cooking') or any(kw in t for kw in ['cook', 'cooking', 'meal', 'prep', 'kitchen', 'bake', 'baking', 'recipe']):
+        return 'cooking'
+    if t in ('v', 'drive', 'driving') or any(kw in t for kw in ['drive', 'driving', 'car', 'commute', 'travel', 'road']):
+        return 'driving'
+    if t in ('d', 'distraction', 'distracted') or any(kw in t for kw in ['reel', 'reels', 'insta', 'instagram', 'youtube', 'yt', 'twitter', 'x.com', 'tiktok', 'scroll', 'scrolling', 'game', 'reddit', 'meme', 'distract']):
+        return 'distracted'
     return 'other'
 
 
@@ -1560,7 +1562,7 @@ def save_time_audit(request):
         "time_slot": "10:15",
         "raw_text": "debugging django view",
         "date": "2026-08-05" (optional),
-        "category": "coding" (optional, auto-detected if missing/other),
+        "category": "projects" (optional, auto-detected if missing/other),
         "source": "desktop" (optional)
     }
     """
@@ -1599,6 +1601,83 @@ def save_time_audit(request):
             'category': audit_entry.category,
             'category_display': audit_entry.get_category_display()
         })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@require_POST
+@api_login_required
+def update_time_audit_category(request):
+    """
+    POST /api/time-audit/update-category/
+    Payload: {
+        "date": "2026-08-05" (optional, default today),
+        "time_slot": "10:00",
+        "category": "phd"
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        time_slot = data.get('time_slot')
+        category = data.get('category')
+
+        if not time_slot or not category:
+            return JsonResponse({'status': 'error', 'message': 'time_slot and category are required'}, status=400)
+
+        date_val = get_date_from_request(data)
+        valid_cats = [c[0] for c in TimeAuditLog.CATEGORY_CHOICES]
+        if category not in valid_cats:
+            return JsonResponse({'status': 'error', 'message': f'Invalid category: {category}'}, status=400)
+
+        audit_entry = TimeAuditLog.objects.get(user=request.user, date=date_val, time_slot=time_slot)
+        audit_entry.category = category
+        audit_entry.save()
+
+        return JsonResponse({
+            'status': 'success',
+            'time_slot': audit_entry.time_slot,
+            'category': audit_entry.category,
+            'category_display': audit_entry.get_category_display()
+        })
+    except TimeAuditLog.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Audit entry not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+from django.http import HttpResponse
+
+@api_login_required
+def export_time_audit_md(request):
+    """
+    GET /api/time-audit/export-md/?days=7
+    Generates downloadable .md file of time audit logs.
+    """
+    try:
+        days = int(request.GET.get('days', 30))
+        today = timezone.localdate()
+        start_date = today - timedelta(days=days - 1)
+
+        audits = TimeAuditLog.objects.filter(
+            user=request.user, 
+            date__gte=start_date, 
+            date__lte=today
+        ).order_by('-date', '-time_slot')
+
+        lines = [
+            f"# ⏱️ 15-Minute Time Audit Logs ({start_date.strftime('%Y-%m-%d')} to {today.strftime('%Y-%m-%d')})",
+            f"*Exported on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n",
+            "| Date | Time Slot | Category | Description | Source |",
+            "|---|---|---|---|---|"
+        ]
+
+        for a in audits:
+            lines.append(f"| {a.date} | `{a.time_slot}` | **{a.get_category_display()}** | {a.raw_text} | {a.source} |")
+
+        md_content = "\n".join(lines)
+        response = HttpResponse(md_content, content_type='text/markdown')
+        response['Content-Disposition'] = f'attachment; filename="time_audit_logs_{today.strftime("%Y%m%d")}.md"'
+        return response
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
@@ -1673,7 +1752,7 @@ def get_time_audit_stats(request):
             })
 
         distractions = list(
-            audits.filter(category='distraction')
+            audits.filter(category='distracted')
             .values('time_slot', 'date', 'raw_text')
             .order_by('-date', '-time_slot')[:15]
         )

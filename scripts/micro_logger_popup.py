@@ -24,8 +24,8 @@ DJANGO_API_URL = "http://127.0.0.1:8000/api/time-audit/save/"
 INTERVAL_MINUTES = 15
 
 CATEGORIES_HELP = (
-    "[R] Research   [C] Coding   [A] Admin\n"
-    "[M] Meeting    [D] Distraction   [B] Break\n"
+    "[P] PhD     [J] Projects   [L] Life Skills   [S] Spiritual\n"
+    "[C] Cooking [V] Driving    [D] Distracted\n"
     "(or type custom description & press Enter)"
 )
 
@@ -137,15 +137,15 @@ def show_popup():
     
     root.mainloop()
 
-def is_after_5pm_uk():
-    """Checks if current time in UK timezone (Europe/London) is >= 17:00 (5:00 PM)."""
+def is_outside_audit_hours_uk():
+    """Checks if current time in UK timezone is outside 05:00 AM - 10:00 PM (05:00 - 22:00)."""
     try:
         import zoneinfo
         uk_tz = zoneinfo.ZoneInfo("Europe/London")
         uk_now = datetime.datetime.now(uk_tz)
     except Exception:
         uk_now = datetime.datetime.now()
-    return uk_now.hour >= 17
+    return uk_now.hour < 5 or uk_now.hour >= 22
 
 
 def run_timer_loop():
@@ -153,14 +153,13 @@ def run_timer_loop():
     print(" ⏰ 15-MINUTE TIME AUDIT DESKTOP POPUP ACTIVE ")
     print(f" Log File: {LOG_FILE}")
     print(f" Django API: {DJANGO_API_URL}")
-    print(" Auto-stop cutoff: 5:00 PM UK Time (17:00)")
+    print(" Active Window: 5:00 AM to 10:00 PM (05:00 - 22:00 UK Time)")
     print(" Auto-dismiss: 30 seconds if unhandled")
     print(" Press Ctrl+C in terminal to stop.")
     print("=" * 60)
 
-    if is_after_5pm_uk():
-        print("🛑 Current UK time is past 5:00 PM (17:00). Time Audit auto-stopped for today!")
-        return
+    if is_outside_audit_hours_uk():
+        print("🛑 Current UK time is outside audit window (5:00 AM - 10:00 PM). Auto-paused!")
 
     while True:
         # Sleep until exact next 15-minute boundary (:00, :15, :30, :45)
@@ -175,9 +174,10 @@ def run_timer_loop():
             print(f"Next 15-min slot ends in {rem_m}m {rem_s}s...")
             time.sleep(secs_until_boundary)
 
-        if is_after_5pm_uk():
-            print("\n🛑 5:00 PM UK Time reached! Time Audit auto-stopped for today. Have a great evening!")
-            break
+        if is_outside_audit_hours_uk():
+            print("\n🌙 10:00 PM UK Time reached / outside hours! Pausing until 5:00 AM.")
+            time.sleep(60)
+            continue
 
         show_popup()
         # Avoid double trigger within the same second

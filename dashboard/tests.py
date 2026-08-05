@@ -324,14 +324,14 @@ class TimeAuditApiTestCase(TestCase):
         self.assertEqual(response.status_code, 200)
         data = response.json()
         self.assertEqual(data['status'], 'success')
-        self.assertEqual(data['category'], 'distraction')
+        self.assertEqual(data['category'], 'distracted')
 
     def test_get_time_audit_today_and_stats(self):
         # Create 2 logs
         self.client.post('/api/time-audit/save/', data=json.dumps({
             'time_slot': '09:00',
             'raw_text': 'reading thesis paper',
-            'category': 'research',
+            'category': 'phd',
             'date': self.today_str
         }), content_type='application/json')
 
