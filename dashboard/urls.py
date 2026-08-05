@@ -68,5 +68,11 @@ urlpatterns = [
     path('api/time-audit/export-md/', api.export_time_audit_md, name='api_export_time_audit_md'),
     path('api/time-audit/today/', api.get_time_audit_today, name='api_get_time_audit_today'),
     path('api/time-audit/stats/', api.get_time_audit_stats, name='api_get_time_audit_stats'),
+
+    # Habit Protocol API endpoints
+    path('api/protocols/list/', api.get_habit_protocols, name='api_get_habit_protocols'),
+    path('api/protocols/create/', api.create_habit_protocol, name='api_create_habit_protocol'),
+    path('api/protocols/complete/', api.complete_habit_protocol, name='api_complete_habit_protocol'),
+    path('api/protocols/delete/', api.delete_habit_protocol, name='api_delete_habit_protocol'),
 ]
 

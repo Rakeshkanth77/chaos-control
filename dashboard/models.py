@@ -117,6 +117,45 @@ class TimeAuditLog(models.Model):
         return f"{self.date} {self.time_slot} - {self.raw_text} ({self.get_category_display()})"
 
 
+class HabitProtocol(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habit_protocols')
+    title = models.CharField(max_length=150, help_text="e.g., Take Isabgol, Night Reflection")
+    category = models.CharField(max_length=20, choices=TimeAuditLog.CATEGORY_CHOICES, default='life_skills')
+    target_time = models.CharField(max_length=5, blank=True, default='', help_text="Target slot e.g. 11:30 or 22:00")
+    keywords = models.CharField(max_length=255, blank=True, default='', help_text="Comma-separated keywords for auto-matching in 15-min logs e.g. isabgol, fibre")
+    icon = models.CharField(max_length=10, default='⚡', help_text="Icon symbol")
+    streak_count = models.IntegerField(default=0)
+    last_completed_date = models.DateField(null=True, blank=True)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['target_time', '-created_at']
+
+    def __str__(self):
+        return f"{self.title} ({self.user.username}) - Streak: {self.streak_count}d"
+
+    def is_completed_today(self):
+        if not self.last_completed_date:
+            return False
+        return self.last_completed_date == timezone.now().date()
+
+
+class HabitProtocolLog(models.Model):
+    protocol = models.ForeignKey(HabitProtocol, on_delete=models.CASCADE, related_name='logs')
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    date = models.DateField(default=timezone.now)
+    completed_at = models.DateTimeField(auto_now_add=True)
+    source = models.CharField(max_length=30, default='manual', help_text="manual, audit_log_auto")
+
+    class Meta:
+        unique_together = ('protocol', 'date')
+        ordering = ['-date', '-completed_at']
+
+    def __str__(self):
+        return f"{self.protocol.title} logged on {self.date}"
+
+
 class UserProfile(models.Model):
     PLAN_CHOICES = [
         ('free', 'Free'),

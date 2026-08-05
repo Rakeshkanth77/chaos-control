@@ -1418,8 +1418,18 @@
                             if (window.showToast) {
                                 window.showToast(`Logged "${rawText}" for ${activeSlot}!`, 'success');
                             }
+                            if (data.auto_executed_protocols && data.auto_executed_protocols.length > 0) {
+                                data.auto_executed_protocols.forEach(ap => {
+                                    if (window.showToast) {
+                                        window.showToast(`⚡ PROTOCOL EXECUTED: ${ap.title} (🔥 ${ap.streak_count}-Day Streak!)`, 'success');
+                                    }
+                                });
+                            }
                             if (typeof loadTimeAuditData === 'function') {
                                 loadTimeAuditData();
+                            }
+                            if (typeof loadHabitProtocols === 'function') {
+                                loadHabitProtocols();
                             }
                             loadTodayAuditFeed();
                         } else {

@@ -347,4 +347,72 @@ class TimeAuditApiTestCase(TestCase):
         self.assertEqual(stats_data['total_blocks'], 1)
 
 
+class HabitProtocolTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='testuser', password='password')
+        self.client.login(username='testuser', password='password')
+        self.today = timezone.localdate()
+        self.today_str = str(self.today)
+
+    def test_create_and_list_habit_protocols(self):
+        from dashboard.models import HabitProtocol
+        resp = self.client.post('/api/protocols/create/', data=json.dumps({
+            'title': 'Take Isabgol',
+            'target_time': '11:30',
+            'keywords': 'isabgol, fibre',
+            'category': 'life_skills',
+            'icon': '💊'
+        }), content_type='application/json')
+        self.assertEqual(resp.status_code, 200)
+        data = resp.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['protocol']['title'], 'Take Isabgol')
+
+        list_resp = self.client.get('/api/protocols/list/')
+        self.assertEqual(list_resp.status_code, 200)
+        l_data = list_resp.json()
+        self.assertEqual(l_data['total_count'], 1)
+        self.assertFalse(l_data['protocols'][0]['is_completed_today'])
+
+    def test_auto_trigger_habit_protocol_from_time_audit_log(self):
+        from dashboard.models import HabitProtocol
+        protocol = HabitProtocol.objects.create(
+            user=self.user,
+            title='Take Isabgol',
+            keywords='isabgol, fibre',
+            target_time='11:30',
+            icon='💊'
+        )
+
+        save_resp = self.client.post('/api/time-audit/save/', data=json.dumps({
+            'time_slot': '11:30',
+            'raw_text': 'took isabgol with water',
+            'category': 'life_skills',
+            'date': self.today_str
+        }), content_type='application/json')
+        self.assertEqual(save_resp.status_code, 200)
+        save_data = save_resp.json()
+        self.assertEqual(len(save_data['auto_executed_protocols']), 1)
+        self.assertEqual(save_data['auto_executed_protocols'][0]['title'], 'Take Isabgol')
+
+        protocol.refresh_from_db()
+        self.assertTrue(protocol.is_completed_today())
+        self.assertEqual(protocol.streak_count, 1)
+
+    def test_toggle_complete_habit_protocol(self):
+        from dashboard.models import HabitProtocol
+        protocol = HabitProtocol.objects.create(
+            user=self.user,
+            title='Night Reflection',
+            target_time='22:00'
+        )
+        toggle_resp = self.client.post('/api/protocols/complete/', data=json.dumps({
+            'id': protocol.id
+        }), content_type='application/json')
+        self.assertEqual(toggle_resp.status_code, 200)
+        t_data = toggle_resp.json()
+        self.assertTrue(t_data['completed'])
+        self.assertEqual(t_data['streak_count'], 1)
+
+
 

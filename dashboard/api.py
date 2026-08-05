@@ -5,7 +5,7 @@ from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from datetime import datetime, timedelta
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project, TaskBreakdown, AIUsage
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project, TaskBreakdown, AIUsage, TimeAuditLog, HabitProtocol, HabitProtocolLog
 from .services import parse_brain_dump, generate_ai_reflection
 
 
@@ -1592,6 +1592,8 @@ def save_time_audit(request):
             }
         )
 
+        auto_executed = check_and_trigger_habit_protocols(request.user, raw_text, date_val)
+
         return JsonResponse({
             'status': 'success',
             'created': created,
@@ -1599,7 +1601,8 @@ def save_time_audit(request):
             'time_slot': audit_entry.time_slot,
             'raw_text': audit_entry.raw_text,
             'category': audit_entry.category,
-            'category_display': audit_entry.get_category_display()
+            'category_display': audit_entry.get_category_display(),
+            'auto_executed_protocols': auto_executed
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
@@ -1790,3 +1793,202 @@ def today_summary(request):
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+def check_and_trigger_habit_protocols(user, raw_text, date_val):
+    """
+    Scans active HabitProtocols for the user. If raw_text matches title or any keywords,
+    auto-completes the protocol for date_val and updates streak.
+    """
+    if not raw_text or not user or not user.is_authenticated:
+        return []
+
+    raw_lower = raw_text.lower()
+    active_protocols = HabitProtocol.objects.filter(user=user, is_active=True)
+    executed_list = []
+
+    for protocol in active_protocols:
+        already_logged = HabitProtocolLog.objects.filter(protocol=protocol, date=date_val).exists()
+        
+        kw_list = [k.strip().lower() for k in protocol.keywords.split(',') if k.strip()]
+        kw_list.append(protocol.title.lower())
+
+        is_matched = any(kw in raw_lower for kw in kw_list if len(kw) >= 2)
+
+        if is_matched and not already_logged:
+            HabitProtocolLog.objects.create(
+                protocol=protocol,
+                user=user,
+                date=date_val,
+                source='audit_log_auto'
+            )
+            
+            prev_date = date_val - timedelta(days=1)
+            if protocol.last_completed_date == prev_date:
+                protocol.streak_count += 1
+            elif protocol.last_completed_date != date_val:
+                protocol.streak_count = 1
+
+            protocol.last_completed_date = date_val
+            protocol.save()
+
+            executed_list.append({
+                'id': protocol.id,
+                'title': protocol.title,
+                'streak_count': protocol.streak_count,
+                'icon': protocol.icon
+            })
+
+    return executed_list
+
+
+@api_login_required
+def get_habit_protocols(request):
+    """
+    GET /api/protocols/list/
+    Returns list of active habit protocols for today.
+    """
+    try:
+        today = timezone.localdate()
+        protocols = HabitProtocol.objects.filter(user=request.user, is_active=True)
+        data = []
+        for p in protocols:
+            completed = HabitProtocolLog.objects.filter(protocol=p, date=today).exists()
+            data.append({
+                'id': p.id,
+                'title': p.title,
+                'category': p.category,
+                'category_display': p.get_category_display(),
+                'target_time': p.target_time,
+                'keywords': p.keywords,
+                'icon': p.icon,
+                'streak_count': p.streak_count,
+                'is_completed_today': completed,
+                'last_completed_date': str(p.last_completed_date) if p.last_completed_date else None
+            })
+
+        completed_count = sum(1 for item in data if item['is_completed_today'])
+        total_count = len(data)
+
+        return JsonResponse({
+            'status': 'success',
+            'protocols': data,
+            'completed_count': completed_count,
+            'total_count': total_count,
+            'date': str(today)
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@require_POST
+@api_login_required
+def create_habit_protocol(request):
+    """
+    POST /api/protocols/create/
+    Payload: { "title": "Take Isabgol", "target_time": "11:30", "keywords": "isabgol, fibre", "category": "life_skills", "icon": "💊" }
+    """
+    try:
+        data = json.loads(request.body)
+        title = data.get('title', '').strip()
+        if not title:
+            return JsonResponse({'status': 'error', 'message': 'Title is required'}, status=400)
+
+        target_time = data.get('target_time', '').strip()
+        keywords = data.get('keywords', '').strip()
+        category = data.get('category', 'life_skills')
+        icon = data.get('icon', '⚡')
+
+        protocol = HabitProtocol.objects.create(
+            user=request.user,
+            title=title,
+            target_time=target_time,
+            keywords=keywords,
+            category=category,
+            icon=icon
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'protocol': {
+                'id': protocol.id,
+                'title': protocol.title,
+                'target_time': protocol.target_time,
+                'keywords': protocol.keywords,
+                'icon': protocol.icon,
+                'streak_count': protocol.streak_count,
+                'is_completed_today': False
+            }
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@require_POST
+@api_login_required
+def complete_habit_protocol(request):
+    """
+    POST /api/protocols/complete/
+    Payload: { "id": 1 }
+    """
+    try:
+        data = json.loads(request.body)
+        protocol_id = data.get('id')
+        protocol = HabitProtocol.objects.get(id=protocol_id, user=request.user)
+        today = timezone.localdate()
+
+        log, created = HabitProtocolLog.objects.get_or_create(
+            protocol=protocol,
+            user=request.user,
+            date=today,
+            defaults={'source': 'manual'}
+        )
+
+        if created:
+            prev_date = today - timedelta(days=1)
+            if protocol.last_completed_date == prev_date:
+                protocol.streak_count += 1
+            elif protocol.last_completed_date != today:
+                protocol.streak_count = 1
+
+            protocol.last_completed_date = today
+            protocol.save()
+            completed = True
+        else:
+            # Un-complete protocol if toggled off today
+            log.delete()
+            if protocol.streak_count > 0:
+                protocol.streak_count -= 1
+            protocol.save()
+            completed = False
+
+        return JsonResponse({
+            'status': 'success',
+            'completed': completed,
+            'streak_count': protocol.streak_count,
+            'title': protocol.title
+        })
+    except HabitProtocol.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Protocol not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@require_POST
+@api_login_required
+def delete_habit_protocol(request):
+    """
+    POST /api/protocols/delete/
+    Payload: { "id": 1 }
+    """
+    try:
+        data = json.loads(request.body)
+        protocol_id = data.get('id')
+        protocol = HabitProtocol.objects.get(id=protocol_id, user=request.user)
+        protocol.delete()
+        return JsonResponse({'status': 'success', 'message': 'Protocol deleted'})
+    except HabitProtocol.DoesNotExist:
+        return JsonResponse({'status': 'error', 'message': 'Protocol not found'}, status=404)
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
