@@ -461,15 +461,12 @@
 
                 <!-- Desktop Nav -->
                 <nav class="app-nav desktop-nav" style="display: flex; align-items: center; gap: 12px;">
-                    <!-- 1. Log & Audit Toggle -->
+                    <!-- 1. Log -->
                     <div style="display: flex; align-items: center; gap: 4px;">
                         <button id="quick-log-nav-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 12px;" title="Quick 15-Minute Log">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                             <span>Log</span>
                             <span id="audit-slot-timer-badge" style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: bold; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-variant-numeric: tabular-nums;">--:--</span>
-                        </button>
-                        <button id="toggle-audit-session-btn" class="nav-link" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #047857; cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 4px; outline: none; padding: 6px 10px; border-radius: 8px;" title="Start / Stop 15-Min Auto-Audit (Auto-stops at 5:00 PM UK)">
-                            <span id="audit-session-status-text">▶️ Start Audit</span>
                         </button>
                     </div>
 
@@ -536,10 +533,10 @@
                                 <span>Practice Portal</span>
                             </a>
 
-                            <button type="button" class="dropdown-item reminder-toggle-btn dropdown-reminder-btn" title="Turn on task reminders">
+                            <button type="button" class="dropdown-item reminder-toggle-btn dropdown-reminder-btn" title="Workflows & Systems">
                                 <span style="display: flex; align-items: center; gap: 10px;">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                                    <span>Task Reminders</span>
+                                    <span>Workflows &amp; Systems</span>
                                 </span>
                                 <span class="reminder-status-badge">OFF</span>
                             </button>
@@ -560,7 +557,7 @@
                 </button>
 
                 <!-- Mobile reminders bell -->
-                <button class="nav-btn reminder-toggle-btn mobile-reminder-btn" style="display: none; width: 34px; height: 34px; margin-right: 8px; align-items: center; justify-content: center; border-radius: 10px;" title="Turn on task reminders">
+                <button class="nav-btn reminder-toggle-btn mobile-reminder-btn" style="display: none; width: 34px; height: 34px; margin-right: 8px; align-items: center; justify-content: center; border-radius: 10px;" title="Workflows &amp; Systems">
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
                 </button>
 

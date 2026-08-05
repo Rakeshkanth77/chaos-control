@@ -479,19 +479,19 @@
 <div class="glass-panel" id="onboarding-banner" style="margin-bottom: 20px; padding: 24px; position: relative;">
     <button id="onboarding-dismiss" title="Dismiss" style="position: absolute; top: 12px; right: 14px; background: none; border: none; font-size: 1.1rem; color: var(--text-secondary); cursor: pointer;">✕</button>
     <h2 style="font-family: 'Outfit', sans-serif; font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin-bottom: 6px;">👋 Welcome! Here's how this works</h2>
-    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">This isn't another to-do list — you don't have to arrive organized. Dump the chaos, we'll sort it.</p>
+    <p style="font-size: 0.9rem; color: var(--text-secondary); margin-bottom: 16px;">This isn't another To-DO list — you don't have to arrive organized. Unload into the brain dump, we'll sort it.</p>
     <div style="display: flex; gap: 14px; flex-wrap: wrap; margin-bottom: 18px;">
         <div style="flex: 1; min-width: 180px; background: rgba(12,88,85,0.04); border: 1px solid rgba(12,88,85,0.1); border-radius: 12px; padding: 12px 14px;">
             <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-color); margin-bottom: 4px;">1 · Brain dump</div>
-            <div style="font-size: 0.82rem; color: var(--text-secondary);">Type (or 🎤 speak) everything on your mind into the box below — messy is fine.</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Type (or 🎤 speak) everything into the brain dump below — messy is fine.</div>
         </div>
         <div style="flex: 1; min-width: 180px; background: rgba(12,88,85,0.04); border: 1px solid rgba(12,88,85,0.1); border-radius: 12px; padding: 12px 14px;">
             <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-color); margin-bottom: 4px;">2 · Smart Extract</div>
-            <div style="font-size: 0.82rem; color: var(--text-secondary);">Hit <strong>Smart Extract</strong> — AI turns your ramble into a clean to-do list.</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Hit <strong>Smart Extract</strong> — AI turns your ramble into a clean To-DO list.</div>
         </div>
         <div style="flex: 1; min-width: 180px; background: rgba(12,88,85,0.04); border: 1px solid rgba(12,88,85,0.1); border-radius: 12px; padding: 12px 14px;">
             <div style="font-weight: 700; font-size: 0.85rem; color: var(--accent-color); margin-bottom: 4px;">3 · Prioritize &amp; focus</div>
-            <div style="font-size: 0.82rem; color: var(--text-secondary);">Sort tasks into the priority matrix, then start a Pomodoro and execute.</div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary);">Sort tasks into Signal or Noise, then start a Pomodoro and execute.</div>
         </div>
     </div>
     <button id="onboarding-example-btn" class="btn">✨ Try an example dump</button>
@@ -520,13 +520,13 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Brain Dump Section -->
         <div class="glass-panel braindump-card" data-mobile-tab="1">
             <h2 class="panel-title">
-                What's on your mind?
+                Brain Dump
                 <span class="panel-subtitle" id="dump-save-status">All changes saved</span>
             </h2>
             <textarea 
                 id="braindump-input" 
                 class="braindump-textarea" 
-                placeholder="Unload everything on your mind... tasks, ideas, raw thoughts. We'll extract actionable objectives below."
+                placeholder="Unload your thoughts into the brain dump... tasks, ideas, raw thoughts. We'll extract actionable objectives below."
             >{% if braindump %}{{ braindump.content }}{% endif %}</textarea>
             <div class="card-footer" style="gap: 8px; flex-wrap: wrap; justify-content: space-between; width: 100%;">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap;">
@@ -550,7 +550,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <!-- Auto-Generated Todos Section -->
         <div class="glass-panel autotodos-card" data-mobile-tab="1">
             <h2 class="panel-title">
-                Your to-do list
+                To-DO list
             </h2>
             
             <!-- Mini Quick Add Form -->
@@ -737,11 +737,9 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="breakdown-priority-selector">
                 <span class="priority-label">Category:</span>
                 <div class="priority-buttons">
-                    <button class="p-btn urgent-important" data-priority-val="urgent_important" title="Urgent & Important"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #ef4444; vertical-align: middle;"></span></button>
-                    <button class="p-btn important-not-urgent" data-priority-val="important_not_urgent" title="Important & Not Urgent"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #f59e0b; vertical-align: middle;"></span></button>
-                    <button class="p-btn urgent-not-important" data-priority-val="urgent_not_important" title="Urgent & Not Important"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #3b82f6; vertical-align: middle;"></span></button>
-                    <button class="p-btn neither" data-priority-val="neither" title="Neither"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #10b981; vertical-align: middle;"></span></button>
-                    <button class="p-btn unassigned" data-priority-val="unassigned" title="Unassigned"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #9ca3af; vertical-align: middle;"></span></button>
+                    <button class="p-btn urgent-important" data-priority-val="urgent_important" title="⚡ SIGNAL (Focus Objectives)"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #2dd4bf; vertical-align: middle;"></span> ⚡ SIGNAL</button>
+                    <button class="p-btn neither" data-priority-val="neither" title="💤 NOISE (Low Priority &amp; Boundaries)"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #9ca3af; vertical-align: middle;"></span> 💤 NOISE</button>
+                    <button class="p-btn unassigned" data-priority-val="unassigned" title="Unassigned"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #6b7280; vertical-align: middle;"></span> Prioritize</button>
                 </div>
             </div>
             

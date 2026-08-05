@@ -249,11 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">${todo.title}</span>
                                 <select class="todo-priority-select" data-id="${todo.id}" title="Change priority">
                                     <option value="unassigned" selected>Prioritize</option>
-                                    <option value="stop_todo">⛔ Stop-Do</option>
-                                    <option value="urgent_important">Urgent &amp; Important</option>
-                                    <option value="important_not_urgent">Important &amp; Not Urgent</option>
-                                    <option value="urgent_not_important">Urgent &amp; Not Important</option>
-                                    <option value="neither">Neither</option>
+                                    <option value="urgent_important">⚡ SIGNAL</option>
+                                    <option value="neither">💤 NOISE</option>
                                 </select>
                             </div>
                             <div class="todo-actions">
@@ -412,11 +409,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">${todo.title}</span>
                                 <select class="todo-priority-select" data-id="${todo.id}" title="Change priority">
                                     <option value="unassigned" ${todo.priority === 'unassigned' ? 'selected' : ''}>Prioritize</option>
-                                    <option value="stop_todo" ${todo.priority === 'stop_todo' ? 'selected' : ''}>⛔ Stop-Do</option>
-                                    <option value="urgent_important" ${todo.priority === 'urgent_important' ? 'selected' : ''}>Urgent &amp; Important</option>
-                                    <option value="important_not_urgent" ${todo.priority === 'important_not_urgent' ? 'selected' : ''}>Important &amp; Not Urgent</option>
-                                    <option value="urgent_not_important" ${todo.priority === 'urgent_not_important' ? 'selected' : ''}>Urgent &amp; Not Important</option>
-                                    <option value="neither" ${todo.priority === 'neither' ? 'selected' : ''}>Neither</option>
+                                    <option value="urgent_important" ${todo.priority === 'urgent_important' || todo.priority === 'important_not_urgent' ? 'selected' : ''}>⚡ SIGNAL</option>
+                                    <option value="neither" ${todo.priority === 'neither' || todo.priority === 'urgent_not_important' || todo.priority === 'stop_todo' ? 'selected' : ''}>💤 NOISE</option>
                                 </select>
                             </div>
                             <div class="todo-actions">

@@ -36,7 +36,7 @@ document.addEventListener('DOMContentLoaded', () => {
     function updateToggleUI() {
         toggleBtns.forEach(btn => {
             btn.classList.toggle('active', isEnabled());
-            btn.title = isEnabled() ? 'Reminders on — click to turn off' : 'Turn on task reminders';
+            btn.title = isEnabled() ? 'Workflows active — click to turn off' : 'Workflows & Systems';
         });
     }
 
@@ -69,10 +69,10 @@ document.addEventListener('DOMContentLoaded', () => {
         if (slot === 'morning' || slot === 'open') {
             if (s.total === 0 && s.missed === 0) return;
             const missedPart = s.missed > 0 ? ` ${s.missed} missed task${s.missed === 1 ? '' : 's'} need attention.` : '';
-            notify('☀️ Your day at a glance', `${s.total} task${s.total === 1 ? '' : 's'} today, ${s.completed} done.${missedPart}`);
+            notify('⚡ Daily System Overview', `${s.total} task${s.total === 1 ? '' : 's'} today, ${s.completed} done.${missedPart}`);
         } else if (slot === 'evening') {
             if (s.pending === 0) return;
-            notify('🌙 Evening check-in', `${s.pending} task${s.pending === 1 ? '' : 's'} still open today. A small push now beats a missed task tomorrow.`);
+            notify('🌙 Workflow System Check-in', `${s.pending} task${s.pending === 1 ? '' : 's'} still open today. Maintain momentum to complete your system goals.`);
         }
     }
 
