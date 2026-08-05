@@ -821,7 +821,10 @@
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     <span>Quick 15-Min Log</span>
                 </span>
-                <div style="display: flex; align-items: center; gap: 8px;">
+                <div style="display: flex; align-items: center; gap: 6px;">
+                    <button id="popupToggleAuditBtn" style="font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; cursor: pointer; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.15); color: #dc2626;" title="Pause or enable time audit prompts">
+                        <span id="popupAuditStatusText">⏹ Pause Audit</span>
+                    </button>
                     <a href="/api/time-audit/export-md/" target="_blank" download style="font-size: 0.75rem; background: rgba(45, 212, 191, 0.15); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.3); padding: 3px 8px; border-radius: 6px; text-decoration: none; font-weight: 700;">📥 Export .md</a>
                     <button id="closeQuickLogBtn" class="pomo-close-btn" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-secondary);">✕</button>
                 </div>
@@ -1114,6 +1117,8 @@
             const quickTagContainer = document.getElementById('quickLogTagContainer');
 
             if (quickModal) {
+                let todayLoggedSlots = {};
+
                 function getCurrentTimeSlot() {
                     const now = new Date();
                     const minutes = now.getMinutes();
@@ -1190,8 +1195,10 @@
                         }
                     }
 
+                    const selectedVal = targetSlot || activeSlot || completedSlot;
+
                     select.innerHTML = options.map(o => 
-                        `<option value="${o.value}" ${o.value === targetSlot ? 'selected' : ''}>${o.label}</option>`
+                        `<option value="${o.value}" ${o.value === selectedVal ? 'selected' : ''}>${o.label}</option>`
                     ).join('');
 
                     activeSlot = select.value;
@@ -1216,6 +1223,7 @@
                         const data = await res.json();
 
                         if (data.status === 'success' && data.slots) {
+                            todayLoggedSlots = data.slots;
                             const slots = data.slots;
                             const slotKeys = Object.keys(slots).sort().reverse(); // Latest at top
 
@@ -1322,9 +1330,16 @@
                 function openQuickLogModal(e, targetSlot) {
                     if (e) { e.preventDefault(); e.stopPropagation(); }
                     
-                    const selectedSlot = targetSlot || getCompletedTimeSlot();
-                    populateSlotPicker(selectedSlot);
-                    if (quickInput) quickInput.value = '';
+                    const isAlreadyOpen = quickModal && quickModal.style.display === 'flex';
+
+                    if (!isAlreadyOpen) {
+                        const selectedSlot = targetSlot || getCompletedTimeSlot();
+                        populateSlotPicker(selectedSlot);
+                        if (quickInput) quickInput.value = '';
+                    } else if (targetSlot) {
+                        // Modal is already open; only update picker if targetSlot provided
+                        populateSlotPicker(activeSlot);
+                    }
                     
                     if (quickOverlay) {
                         quickOverlay.style.display = 'block';
@@ -1364,8 +1379,24 @@
                 }
 
                 async function submitQuickLog(text) {
-                    const rawText = text || quickInput?.value.trim();
-                    if (!rawText) return;
+                    const rawText = text || (quickInput ? quickInput.value.trim() : '');
+                    if (!rawText) {
+                        if (window.showToast) window.showToast('Please type a task or select a category tag first!', 'info');
+                        quickInput?.focus();
+                        return;
+                    }
+
+                    // Check if slot already has a log and warn before overwriting!
+                    if (todayLoggedSlots && todayLoggedSlots[activeSlot]) {
+                        const existingSlotObj = todayLoggedSlots[activeSlot];
+                        const existingText = (typeof existingSlotObj === 'string') ? existingSlotObj : (existingSlotObj.raw_text || '');
+                        if (existingText && existingText.trim() !== '' && existingText.trim() !== rawText.trim()) {
+                            const confirmOverwrite = confirm(`⚠️ Slot ${activeSlot} is already logged as:\n"${existingText}"\n\nAre you sure you want to overwrite it with:\n"${rawText}"?`);
+                            if (!confirmOverwrite) {
+                                return;
+                            }
+                        }
+                    }
 
                     try {
                         const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
@@ -1385,6 +1416,7 @@
                         });
                         const data = await res.json();
                         if (data.status === 'success') {
+                            if (quickInput) quickInput.value = '';
                             closeQuickLogModal();
                             if (window.showToast) {
                                 window.showToast(`Logged "${rawText}" for ${activeSlot}!`, 'success');
@@ -1418,28 +1450,42 @@
                             submitQuickLog();
                         }
                     });
+
+                    // Cancel auto-dismiss on typing
+                    quickInput.addEventListener('input', () => {
+                        if (autoDismissTimer) {
+                            clearTimeout(autoDismissTimer);
+                            autoDismissTimer = null;
+                        }
+                    });
                 }
 
                 if (quickTagContainer) {
                     quickTagContainer.querySelectorAll('.quick-tag-btn').forEach(btn => {
                         btn.addEventListener('click', () => {
+                            if (autoDismissTimer) {
+                                clearTimeout(autoDismissTimer);
+                                autoDismissTimer = null;
+                            }
                             const tag = btn.dataset.tag;
                             if (quickInput) {
-                                if (quickInput.value.trim() && !quickInput.value.includes(tag)) {
-                                    quickInput.value = `${tag}: ${quickInput.value.trim()}`;
+                                const currentVal = quickInput.value.trim();
+                                if (currentVal && !currentVal.includes(tag)) {
+                                    quickInput.value = `${tag}: ${currentVal}`;
                                 } else {
                                     quickInput.value = tag;
                                 }
                                 quickInput.focus();
                             }
-                            submitQuickLog(quickInput ? quickInput.value : tag);
                         });
                     });
                 }
 
                 // --- AUDIT SESSION AUTO-START & 5:00 AM - 10:00 PM WINDOW ---
                 const toggleAuditBtn = document.getElementById('toggle-audit-session-btn');
+                const popupToggleAuditBtn = document.getElementById('popupToggleAuditBtn');
                 const auditStatusText = document.getElementById('audit-session-status-text');
+                const popupAuditStatusText = document.getElementById('popupAuditStatusText');
 
                 function isUkTimeOutsideAuditHours() {
                     try {
@@ -1460,42 +1506,52 @@
                 }
 
                 function updateAuditBtnUI() {
-                    if (!toggleAuditBtn || !auditStatusText) return;
-                    if (isAuditRunningNow()) {
-                        toggleAuditBtn.style.background = 'rgba(239, 68, 68, 0.15)';
-                        toggleAuditBtn.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-                        toggleAuditBtn.style.color = '#dc2626';
-                        auditStatusText.textContent = '⏹ Pause Audit';
-                    } else if (auditSessionEnabled && isUkTimeOutsideAuditHours()) {
-                        toggleAuditBtn.style.background = 'rgba(107, 114, 128, 0.15)';
-                        toggleAuditBtn.style.borderColor = 'rgba(107, 114, 128, 0.4)';
-                        toggleAuditBtn.style.color = '#9ca3af';
-                        auditStatusText.textContent = '🌙 Sleeping (Resumes 5 AM)';
-                    } else {
-                        toggleAuditBtn.style.background = 'rgba(16, 185, 129, 0.12)';
-                        toggleAuditBtn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-                        toggleAuditBtn.style.color = '#047857';
-                        auditStatusText.textContent = '▶️ Enable Audit';
-                    }
+                    const isRunning = isAuditRunningNow();
+                    const isOutside = isUkTimeOutsideAuditHours();
+
+                    const setBtnState = (btn, textEl) => {
+                        if (!btn || !textEl) return;
+                        if (isRunning) {
+                            btn.style.background = 'rgba(239, 68, 68, 0.15)';
+                            btn.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                            btn.style.color = '#dc2626';
+                            textEl.textContent = '⏹ Pause Audit';
+                        } else if (auditSessionEnabled && isOutside) {
+                            btn.style.background = 'rgba(107, 114, 128, 0.15)';
+                            btn.style.borderColor = 'rgba(107, 114, 128, 0.4)';
+                            btn.style.color = '#9ca3af';
+                            textEl.textContent = '🌙 Sleeping (Resumes 5 AM)';
+                        } else {
+                            btn.style.background = 'rgba(16, 185, 129, 0.12)';
+                            btn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                            btn.style.color = '#047857';
+                            textEl.textContent = '▶️ Enable Audit';
+                        }
+                    };
+
+                    setBtnState(toggleAuditBtn, auditStatusText);
+                    setBtnState(popupToggleAuditBtn, popupAuditStatusText);
                 }
 
-                if (toggleAuditBtn) {
-                    toggleAuditBtn.addEventListener('click', (e) => {
-                        e.preventDefault();
-                        if (!auditSessionEnabled) {
-                            auditSessionEnabled = true;
-                            localStorage.setItem('audit_session_enabled', 'true');
-                            updateAuditBtnUI();
-                            if (window.showToast) window.showToast('▶️ 15-Min Time Audit Enabled! Prompts active daily 5:00 AM - 10:00 PM.', 'success');
-                        } else {
-                            auditSessionEnabled = false;
-                            localStorage.setItem('audit_session_enabled', 'false');
-                            updateAuditBtnUI();
-                            if (window.showToast) window.showToast('⏹ Time Audit Explicitly Paused.', 'info');
-                        }
-                    });
-                    updateAuditBtnUI();
-                }
+                const handleAuditToggle = (e) => {
+                    if (e) { e.preventDefault(); e.stopPropagation(); }
+                    if (!auditSessionEnabled) {
+                        auditSessionEnabled = true;
+                        localStorage.setItem('audit_session_enabled', 'true');
+                        updateAuditBtnUI();
+                        if (window.showToast) window.showToast('▶️ 15-Min Time Audit Enabled! Prompts active daily 5:00 AM - 10:00 PM.', 'success');
+                    } else {
+                        auditSessionEnabled = false;
+                        localStorage.setItem('audit_session_enabled', 'false');
+                        updateAuditBtnUI();
+                        if (window.showToast) window.showToast('⏹ Time Audit Explicitly Paused.', 'info');
+                    }
+                };
+
+                if (toggleAuditBtn) toggleAuditBtn.addEventListener('click', handleAuditToggle);
+                if (popupToggleAuditBtn) popupToggleAuditBtn.addEventListener('click', handleAuditToggle);
+
+                updateAuditBtnUI();
 
                 // Trigger popup ONLY when a 15-minute slot finishes (:00, :15, :30, :45) during 5am - 10pm window
                 let lastPromptedSlot = '';
@@ -1512,7 +1568,12 @@
                         const completedSlot = getCompletedTimeSlot();
                         if (completedSlot !== lastPromptedSlot) {
                             lastPromptedSlot = completedSlot;
-                            openQuickLogModal(null, completedSlot);
+                            if (!quickModal || quickModal.style.display === 'none') {
+                                openQuickLogModal(null, completedSlot);
+                            } else {
+                                populateSlotPicker(activeSlot);
+                                loadTodayAuditFeed();
+                            }
                         }
                     }
                 }, 1000); // Check every second for exact boundary match
