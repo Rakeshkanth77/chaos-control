@@ -1256,6 +1256,7 @@
                             // 2. Render Suggested Pattern for active slot
                             if (suggestedChip && data.suggested_patterns && data.suggested_patterns[activeSlot]) {
                                 const pattern = data.suggested_patterns[activeSlot];
+                                suggestedChip.dataset.pattern = pattern;
                                 suggestedChip.innerHTML = `💡 Suggested pattern for ${formatSlotRange(activeSlot)}: <strong>"${pattern}"</strong> <span style="font-size:0.7rem; opacity:0.8; margin-left:4px;">(Click to fill)</span>`;
                                 suggestedChip.style.display = 'block';
                                 suggestedChip.onclick = () => {
@@ -1426,7 +1427,14 @@
                 }
 
                 async function submitQuickLog(text) {
-                    const rawText = text || (quickInput ? quickInput.value.trim() : '');
+                    let rawText = text || (quickInput ? quickInput.value.trim() : '');
+                    if (!rawText) {
+                        const suggestedChip = document.getElementById('quickLogSuggestedChip');
+                        if (suggestedChip && suggestedChip.style.display !== 'none' && suggestedChip.dataset.pattern) {
+                            rawText = suggestedChip.dataset.pattern;
+                            if (quickInput) quickInput.value = rawText;
+                        }
+                    }
                     if (!rawText) {
                         if (window.showToast) window.showToast('Please type a task or select a category tag first!', 'info');
                         quickInput?.focus();
@@ -1490,20 +1498,29 @@
                     }
                 }
 
-                if (quickLogBtn) quickLogBtn.addEventListener('click', openQuickLogModal);
-                if (mobileQuickLogBtn) mobileQuickLogBtn.addEventListener('click', openQuickLogModal);
-                if (quickCloseBtn) quickCloseBtn.addEventListener('click', closeQuickLogModal);
-                if (quickCancelBtn) quickCancelBtn.addEventListener('click', closeQuickLogModal);
-                if (quickOverlay) quickOverlay.addEventListener('click', closeQuickLogModal);
+                window.openQuickLogModal = openQuickLogModal;
+                window.closeQuickLogModal = closeQuickLogModal;
+                window.submitQuickLog = submitQuickLog;
+
+                if (quickLogBtn) quickLogBtn.addEventListener('click', (e) => openQuickLogModal(e));
+                if (mobileQuickLogBtn) mobileQuickLogBtn.addEventListener('click', (e) => openQuickLogModal(e));
+                if (quickCloseBtn) quickCloseBtn.addEventListener('click', (e) => { e.preventDefault(); closeQuickLogModal(); });
+                if (quickCancelBtn) quickCancelBtn.addEventListener('click', (e) => { e.preventDefault(); closeQuickLogModal(); });
+                if (quickOverlay) quickOverlay.addEventListener('click', (e) => { e.preventDefault(); closeQuickLogModal(); });
 
                 if (quickSaveBtn) {
-                    quickSaveBtn.addEventListener('click', () => submitQuickLog());
+                    quickSaveBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+                        submitQuickLog();
+                    });
                 }
 
                 if (quickInput) {
                     quickInput.addEventListener('keydown', (e) => {
                         if (e.key === 'Enter') {
                             e.preventDefault();
+                            e.stopPropagation();
                             submitQuickLog();
                         }
                     });
