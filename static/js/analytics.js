@@ -565,6 +565,67 @@ document.addEventListener('DOMContentLoaded', () => {
         return 4;
     }
 
+    let auditDonutChartInstance = null;
+
+    function renderAuditDonutChart(categories) {
+        const canvas = document.getElementById('auditDonutChart');
+        if (!canvas) return;
+
+        const labels = categories.map(c => c.name);
+        const dataValues = categories.map(c => c.hours);
+
+        const colorMap = {
+            'Research': '#10b981',
+            'Coding': '#3b82f6',
+            'Admin': '#f59e0b',
+            'Meeting': '#8b5cf6',
+            'Distraction': '#f43f5e',
+            'Break': '#6b7280',
+            'Other': '#9ca3af'
+        };
+        const backgroundColors = labels.map(lbl => colorMap[lbl] || '#9ca3af');
+
+        if (auditDonutChartInstance) auditDonutChartInstance.destroy();
+
+        auditDonutChartInstance = new Chart(canvas.getContext('2d'), {
+            type: 'doughnut',
+            data: {
+                labels: labels,
+                datasets: [{
+                    data: dataValues,
+                    backgroundColor: backgroundColors,
+                    borderWidth: 2,
+                    borderColor: 'rgba(255, 255, 255, 0.8)'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: {
+                            boxWidth: 10,
+                            padding: 8,
+                            font: { size: 10, weight: '600' }
+                        }
+                    },
+                    tooltip: {
+                        callbacks: {
+                            label: function(context) {
+                                const val = context.parsed;
+                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
+                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
+                                return ` ${context.label}: ${val} hrs (${pct}%)`;
+                            }
+                        }
+                    }
+                },
+                cutout: '65%'
+            }
+        });
+    }
+
     // --- 15-MINUTE TIME AUDIT MODULE ---
     async function loadTimeAuditData() {
         const catList = document.getElementById('auditCategoryList');
@@ -580,26 +641,30 @@ document.addEventListener('DOMContentLoaded', () => {
             const statsData = await statsRes.json();
             const todayData = await todayRes.json();
 
-            // Render stats
-            if (statsData.status === 'success' && catList) {
-                catList.innerHTML = '';
-                statsData.categories.forEach(cat => {
-                    const row = document.createElement('div');
-                    row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; padding: 4px 0; border-bottom: 1px dashed rgba(0,0,0,0.04);';
-                    const colorMap = {
-                        'research': '#10b981', 'coding': '#3b82f6', 'admin': '#f59e0b',
-                        'meeting': '#8b5cf6', 'distraction': '#f43f5e', 'break': '#6b7280', 'other': '#9ca3af'
-                    };
-                    const color = colorMap[cat.code] || '#9ca3af';
-                    row.innerHTML = `
-                        <div style="display: flex; align-items: center; gap: 6px;">
-                            <span style="width: 10px; height: 10px; border-radius: 50%; background: ${color}; display: inline-block;"></span>
-                            <span style="font-weight: 600;">${cat.name}</span>
-                        </div>
-                        <span style="font-weight: 700; color: var(--text-primary);">${cat.hours}h (${cat.percentage}%)</span>
-                    `;
-                    catList.appendChild(row);
-                });
+            // Render Donut Chart & Category Stats
+            if (statsData.status === 'success' && statsData.categories) {
+                renderAuditDonutChart(statsData.categories);
+
+                if (catList) {
+                    catList.innerHTML = '';
+                    statsData.categories.forEach(cat => {
+                        const row = document.createElement('div');
+                        row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; padding: 4px 0; border-bottom: 1px dashed rgba(0,0,0,0.04);';
+                        const colorMap = {
+                            'research': '#10b981', 'coding': '#3b82f6', 'admin': '#f59e0b',
+                            'meeting': '#8b5cf6', 'distraction': '#f43f5e', 'break': '#6b7280', 'other': '#9ca3af'
+                        };
+                        const color = colorMap[cat.code] || '#9ca3af';
+                        row.innerHTML = `
+                            <div style="display: flex; align-items: center; gap: 6px;">
+                                <span style="width: 10px; height: 10px; border-radius: 50%; background: ${color}; display: inline-block;"></span>
+                                <span style="font-weight: 600;">${cat.name}</span>
+                            </div>
+                            <span style="font-weight: 700; color: var(--text-primary);">${cat.hours}h (${cat.percentage}%)</span>
+                        `;
+                        catList.appendChild(row);
+                    });
+                }
             }
 
             // Render Distractions
