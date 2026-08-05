@@ -748,7 +748,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                     <span>${slotStr}</span>
                                     <span class="change-cat-badge" data-slot="${slotStr}" data-cat="${logged.category}" style="font-size: 0.65rem; text-transform: uppercase; font-weight: 800; cursor: pointer; background: rgba(0,0,0,0.08); padding: 1px 5px; border-radius: 4px;" title="Click to change category">${logged.category} ✏️</span>
                                 </div>
-                                <div style="font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${logged.raw_text}">${logged.raw_text}</div>
+                                <div class="edit-text-slot" data-slot="${slotStr}" style="font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; cursor: pointer;" title="Click to edit description (${logged.raw_text})">${logged.raw_text} ✏️</div>
                             `;
                         } else {
                             card.style.background = 'rgba(255,255,255,0.7)';
@@ -760,6 +760,29 @@ document.addEventListener('DOMContentLoaded', () => {
                         grid.appendChild(card);
                     }
                 }
+
+                // Add text edit listeners for logged slots
+                grid.querySelectorAll('.edit-text-slot').forEach(txtEl => {
+                    txtEl.addEventListener('click', async (e) => {
+                        const slot = e.currentTarget.dataset.slot;
+                        const oldText = e.currentTarget.innerText.replace(' ✏️', '');
+                        const newText = prompt(`Edit description for slot ${slot}:`, oldText);
+                        if (newText && newText.trim() !== '' && newText.trim() !== oldText) {
+                            const res = await fetch('/api/time-audit/save/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCsrfToken()
+                                },
+                                body: JSON.stringify({ time_slot: slot, raw_text: newText.trim() })
+                            });
+                            const resData = await res.json();
+                            if (resData.status === 'success') {
+                                loadTimeAuditData();
+                            }
+                        }
+                    });
+                });
 
                 // Add category edit listeners
                 grid.querySelectorAll('.change-cat-badge').forEach(badge => {
