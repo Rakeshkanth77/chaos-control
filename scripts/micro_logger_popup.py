@@ -25,7 +25,7 @@ INTERVAL_MINUTES = 15
 
 CATEGORIES_HELP = (
     "[P] PhD     [J] Side Projects   [L] Life Skills   [S] Spiritual\n"
-    "[C] Cooking [V] Driving         [D] Distracted\n"
+    "[C] Cooking [V] Driving         [D] Distracted    [B] Break\n"
     "(or type custom description & press Enter)"
 )
 

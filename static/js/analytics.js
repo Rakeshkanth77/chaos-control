@@ -547,6 +547,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                     stack: 'audit'
                                 },
                                 {
+                                    label: '☕ Break',
+                                    data: ab.break_hours,
+                                    backgroundColor: 'rgba(20, 184, 166, 0.85)',
+                                    borderColor: '#14b8a6',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
                                     label: '🚨 Distracted',
                                     data: ab.distracted_hours,
                                     backgroundColor: 'rgba(244, 63, 94, 0.85)',
@@ -626,39 +635,21 @@ document.addEventListener('DOMContentLoaded', () => {
             contributions[item.date] = item.count;
         });
 
-        const startDayOfWeek = startDate.getDay();
+        for (let d = new Date(startDate); d <= today; d.setDate(d.getDate() + 1)) {
+            const dateStr = d.toISOString().split('T')[0];
+            const count = contributions[dateStr] || 0;
+            const dayElem = document.createElement('div');
+            dayElem.className = 'contribution-day';
 
-        let currentDate = new Date(startDate);
-        let weekCol = document.createElement('div');
-        weekCol.className = 'contrib-week';
-        gridContainer.appendChild(weekCol);
-
-        for (let i = 0; i < startDayOfWeek; i++) {
-            const spacer = document.createElement('div');
-            spacer.className = 'contrib-cell spacer';
-            weekCol.appendChild(spacer);
-        }
-
-        while (currentDate <= today) {
-            if (currentDate.getDay() === 0 && currentDate > startDate) {
-                weekCol = document.createElement('div');
-                weekCol.className = 'contrib-week';
-                gridContainer.appendChild(weekCol);
+            if (count > 0) {
+                if (count <= 2) dayElem.classList.add('level-1');
+                else if (count <= 4) dayElem.classList.add('level-2');
+                else if (count <= 6) dayElem.classList.add('level-3');
+                else dayElem.classList.add('level-4');
             }
 
-            const year = currentDate.getFullYear();
-            const month = String(currentDate.getMonth() + 1).padStart(2, '0');
-            const day = String(currentDate.getDate()).padStart(2, '0');
-            const dateStr = `${year}-${month}-${day}`;
-
-            const count = contributions[dateStr] || 0;
-
-            const cell = document.createElement('div');
-            cell.className = `contrib-cell level-${getCellLevel(count)}`;
-            cell.title = `${count} task${count !== 1 ? 's' : ''} completed on ${currentDate.toLocaleDateString()}`;
-
-            weekCol.appendChild(cell);
-            currentDate.setDate(currentDate.getDate() + 1);
+            dayElem.title = `${dateStr}: ${count} task${count === 1 ? '' : 's'} completed`;
+            gridContainer.appendChild(dayElem);
         }
     }
 
@@ -690,6 +681,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'Cooking': '#f97316',
             'Driving': '#06b6d4',
             'Distracted': '#f43f5e',
+            'Break': '#14b8a6',
             'Other': '#9ca3af'
         };
 
@@ -793,7 +785,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; padding: 4px 0; border-bottom: 1px dashed rgba(0,0,0,0.04);';
                         const colorMap = {
                             'research': '#10b981', 'coding': '#3b82f6', 'admin': '#f59e0b',
-                            'meeting': '#8b5cf6', 'distraction': '#f43f5e', 'break': '#6b7280', 'other': '#9ca3af'
+                            'meeting': '#8b5cf6', 'distraction': '#f43f5e', 'break': '#14b8a6', 'other': '#9ca3af'
                         };
                         const color = colorMap[cat.code] || '#9ca3af';
                         row.innerHTML = `
@@ -846,7 +838,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 'spiritual': 'rgba(139, 92, 246, 0.18)',
                                 'cooking': 'rgba(249, 115, 22, 0.18)',
                                 'driving': 'rgba(6, 182, 212, 0.18)',
-                                'distracted': 'rgba(244, 63, 94, 0.2)'
+                                'distracted': 'rgba(244, 63, 94, 0.2)',
+                                'break': 'rgba(20, 184, 166, 0.2)'
                             };
                             card.style.background = catColors[logged.category] || 'rgba(0,0,0,0.04)';
                             card.innerHTML = `
@@ -895,7 +888,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     badge.addEventListener('click', async (e) => {
                         const slot = e.currentTarget.dataset.slot;
                         const currentCat = e.currentTarget.dataset.cat;
-                        const catChoices = "phd, projects, life_skills, spiritual, cooking, driving, distracted, other";
+                        const catChoices = "phd, projects, life_skills, spiritual, cooking, driving, distracted, break, other";
                         const newCat = prompt(`Change category for ${slot} (current: ${currentCat}):\nOptions: ${catChoices}`, currentCat);
                         if (newCat && newCat.trim() !== '' && newCat !== currentCat) {
                             const res = await fetch('/api/time-audit/update-category/', {

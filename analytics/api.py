@@ -339,6 +339,7 @@ def get_summary_stats(request):
         audit_phd_hours = [0.0] * num_slots
         audit_projects_hours = [0.0] * num_slots
         audit_life_spiritual_hours = [0.0] * num_slots
+        audit_break_hours = [0.0] * num_slots
         audit_other_hours = [0.0] * num_slots
         audit_distracted_hours = [0.0] * num_slots
 
@@ -354,6 +355,8 @@ def get_summary_stats(request):
                         audit_projects_hours[s_idx] += 0.25
                     elif cat in ['life_skills', 'spiritual']:
                         audit_life_spiritual_hours[s_idx] += 0.25
+                    elif cat == 'break':
+                        audit_break_hours[s_idx] += 0.25
                     elif cat == 'distracted':
                         audit_distracted_hours[s_idx] += 0.25
                     else:
@@ -372,6 +375,8 @@ def get_summary_stats(request):
                         audit_projects_hours[s_idx] += 0.25
                     elif cat in ['life_skills', 'spiritual']:
                         audit_life_spiritual_hours[s_idx] += 0.25
+                    elif cat == 'break':
+                        audit_break_hours[s_idx] += 0.25
                     elif cat == 'distracted':
                         audit_distracted_hours[s_idx] += 0.25
                     else:
@@ -380,10 +385,11 @@ def get_summary_stats(request):
         tot_audit_phd_mins = int(round(sum(audit_phd_hours) * 60))
         tot_audit_projects_mins = int(round(sum(audit_projects_hours) * 60))
         tot_audit_life_spiritual_mins = int(round(sum(audit_life_spiritual_hours) * 60))
+        tot_audit_break_mins = int(round(sum(audit_break_hours) * 60))
         tot_audit_other_mins = int(round(sum(audit_other_hours) * 60))
         tot_audit_distracted_mins = int(round(sum(audit_distracted_hours) * 60))
         distracted_slots_count = audit_qs.filter(category='distracted').count()
-        total_audit_mins = tot_audit_phd_mins + tot_audit_projects_mins + tot_audit_life_spiritual_mins + tot_audit_other_mins + tot_audit_distracted_mins
+        total_audit_mins = tot_audit_phd_mins + tot_audit_projects_mins + tot_audit_life_spiritual_mins + tot_audit_break_mins + tot_audit_other_mins + tot_audit_distracted_mins
 
         return JsonResponse({
             'status': 'success',
@@ -429,12 +435,14 @@ def get_summary_stats(request):
                 'phd_hours': [round(x, 2) for x in audit_phd_hours],
                 'projects_hours': [round(x, 2) for x in audit_projects_hours],
                 'life_spiritual_hours': [round(x, 2) for x in audit_life_spiritual_hours],
+                'break_hours': [round(x, 2) for x in audit_break_hours],
                 'other_hours': [round(x, 2) for x in audit_other_hours],
                 'distracted_hours': [round(x, 2) for x in audit_distracted_hours],
                 'total_audit_minutes': total_audit_mins,
                 'phd_minutes': tot_audit_phd_mins,
                 'projects_minutes': tot_audit_projects_mins,
                 'life_spiritual_minutes': tot_audit_life_spiritual_mins,
+                'break_minutes': tot_audit_break_mins,
                 'distracted_slots_count': distracted_slots_count
             },
             'eisenhower_distribution': dist_data,
