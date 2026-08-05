@@ -1076,6 +1076,39 @@
             });
         }
 
+        // Standalone Live Audit Slot Countdown Timer IIFE (Runs immediately)
+        (function initAuditSlotTimer() {
+            function tick() {
+                try {
+                    var timerBadge = document.getElementById('audit-slot-timer-badge');
+                    if (!timerBadge) return;
+
+                    var now = new Date();
+                    var hours = now.getHours();
+                    var minutes = now.getMinutes();
+                    var seconds = now.getSeconds();
+
+                    var slotStartMin = Math.floor(minutes / 15) * 15;
+                    var slotHourStr = String(hours).padStart(2, '0');
+                    var slotMinStr = String(slotStartMin).padStart(2, '0');
+                    var rawSlot = slotHourStr + ':' + slotMinStr;
+
+                    var elapsedSecondsInSlot = ((minutes % 15) * 60) + seconds;
+                    var remainingSeconds = Math.max(0, (15 * 60) - elapsedSecondsInSlot);
+
+                    var remMins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+                    var remSecs = String(remainingSeconds % 60).padStart(2, '0');
+
+                    timerBadge.textContent = rawSlot + ' (' + remMins + ':' + remSecs + ')';
+                } catch (err) {
+                    console.error('Timer error:', err);
+                }
+            }
+            tick();
+            setInterval(tick, 1000);
+            window.updateAuditSlotTimer = tick;
+        })();
+
         // Profile Dropdown Interactivity
         document.addEventListener('DOMContentLoaded', () => {
             const wrapper = document.getElementById('profileDropdownWrapper');
@@ -1150,38 +1183,6 @@
                 return `${h}:${m}`;
             }
             window.getCompletedTimeSlot = getCompletedTimeSlot;
-
-            // --- LIVE 15-MINUTE SLOT COUNTDOWN TIMER ---
-            function updateAuditSlotTimer() {
-                try {
-                    const timerBadge = document.getElementById('audit-slot-timer-badge');
-                    if (!timerBadge) return;
-
-                    const now = new Date();
-                    const hours = now.getHours();
-                    const minutes = now.getMinutes();
-                    const seconds = now.getSeconds();
-
-                    const slotStartMin = Math.floor(minutes / 15) * 15;
-                    const slotHourStr = String(hours).padStart(2, '0');
-                    const slotMinStr = String(slotStartMin).padStart(2, '0');
-                    const rawSlot = `${slotHourStr}:${slotMinStr}`;
-
-                    const elapsedSecondsInSlot = ((minutes % 15) * 60) + seconds;
-                    const remainingSeconds = Math.max(0, (15 * 60) - elapsedSecondsInSlot);
-
-                    const remMins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
-                    const remSecs = String(remainingSeconds % 60).padStart(2, '0');
-
-                    timerBadge.textContent = `${rawSlot} (${remMins}:${remSecs})`;
-                } catch (err) {
-                    console.error('Error updating timer badge:', err);
-                }
-            }
-            window.updateAuditSlotTimer = updateAuditSlotTimer;
-
-            updateAuditSlotTimer();
-            setInterval(updateAuditSlotTimer, 1000);
 
             // --- QUICK 15-MINUTE LOG MODAL CONTROLLER ---
             const quickLogBtn = document.getElementById('quick-log-nav-btn');
