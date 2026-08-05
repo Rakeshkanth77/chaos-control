@@ -1072,6 +1072,8 @@
                 updateBadge();
                 const observer = new MutationObserver(updateBadge);
                 observer.observe(reminderBtn, { attributes: true, attributeFilter: ['class'] });
+            }
+
             // --- QUICK 15-MINUTE LOG MODAL CONTROLLER ---
             const quickLogBtn = document.getElementById('quick-log-nav-btn');
             const mobileQuickLogBtn = document.getElementById('mobile-quick-log-nav-btn');
@@ -1096,19 +1098,33 @@
 
                 let activeSlot = getCurrentTimeSlot();
 
-                function openQuickLogModal() {
+                function openQuickLogModal(e) {
+                    if (e) { e.preventDefault(); e.stopPropagation(); }
                     activeSlot = getCurrentTimeSlot();
                     if (quickSlotTitle) quickSlotTitle.textContent = `Current Slot: ${activeSlot}`;
                     if (quickInput) quickInput.value = '';
-                    if (quickOverlay) quickOverlay.style.display = 'block';
-                    quickModal.style.display = 'block';
+                    
+                    if (quickOverlay) {
+                        quickOverlay.style.display = 'block';
+                        quickOverlay.classList.add('open');
+                    }
+                    if (quickModal) {
+                        quickModal.style.display = 'flex';
+                        quickModal.classList.add('open');
+                    }
                     setTimeout(() => quickInput?.focus(), 100);
                     if (typeof closeMobileNav === 'function') closeMobileNav();
                 }
 
                 function closeQuickLogModal() {
-                    if (quickOverlay) quickOverlay.style.display = 'none';
-                    quickModal.style.display = 'none';
+                    if (quickOverlay) {
+                        quickOverlay.classList.remove('open');
+                        quickOverlay.style.display = 'none';
+                    }
+                    if (quickModal) {
+                        quickModal.classList.remove('open');
+                        quickModal.style.display = 'none';
+                    }
                 }
 
                 async function submitQuickLog(text) {
