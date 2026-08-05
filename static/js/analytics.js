@@ -662,22 +662,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 
+    // Render initial placeholder or existing chart immediately
+    renderAuditDonutChart(null);
+
     // --- 15-MINUTE TIME AUDIT MODULE ---
     async function loadTimeAuditData() {
         const catList = document.getElementById('auditCategoryList');
         const distList = document.getElementById('auditDistractionList');
         const grid = document.getElementById('auditTimelineGrid');
-        if (!grid) return;
 
         try {
-            const [statsRes, todayRes] = await Promise.all([
-                fetch('/api/time-audit/stats/?days=3'),
-                fetch('/api/time-audit/today/')
-            ]);
+            const statsRes = await fetch('/api/time-audit/stats/?days=3');
             const statsData = await statsRes.json();
-            const todayData = await todayRes.json();
 
-            // Render Donut Chart & Category Stats
+            // Render Donut Chart & Category Stats FIRST
             if (statsData.status === 'success' && statsData.categories) {
                 renderAuditDonutChart(statsData.categories);
 
@@ -720,6 +718,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
             // Render Timeline Grid (08:00 to 22:00)
             if (grid) {
+                const todayRes = await fetch('/api/time-audit/today/');
+                const todayData = await todayRes.json();
                 grid.innerHTML = '';
                 const slots = todayData.slots || {};
                 
