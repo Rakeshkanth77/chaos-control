@@ -839,6 +839,17 @@
             </div>
 
             <input type="text" id="quickLogInput" class="pomo-prompt-textarea" style="height: 42px; min-height: 42px; width: 100%; font-size: 0.92rem; padding: 8px 12px; border-radius: 8px; box-sizing: border-box;" placeholder="Or type custom task (e.g. debugging view)..." />
+
+            <!-- Today's Logged Timeline Feed -->
+            <div style="margin-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Today's Logged Timeline</span>
+                    <span id="quickLogTodayCount" style="font-size: 0.72rem; background: rgba(45, 212, 191, 0.15); color: #2dd4bf; padding: 2px 8px; border-radius: 10px; font-weight: 800;">0 logs</span>
+                </div>
+                <div id="quickLogTimelineFeed" style="max-height: 150px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+                    <div style="font-size: 0.78rem; color: var(--text-secondary); text-align: center; padding: 10px 0;">Loading today's logs...</div>
+                </div>
+            </div>
         </div>
         <div class="pomo-prompt-actions" style="display: flex; gap: 10px; justify-content: space-between; align-items: center;">
             <a href="/analytics/#time-audit" style="font-size: 0.78rem; color: var(--accent-color); font-weight: 600; text-decoration: none;">View 3-Day Analytics →</a>
@@ -1137,6 +1148,55 @@
 
                 let autoDismissTimer = null;
 
+                async function loadTodayAuditFeed() {
+                    const feed = document.getElementById('quickLogTimelineFeed');
+                    const countBadge = document.getElementById('quickLogTodayCount');
+                    if (!feed) return;
+
+                    try {
+                        const res = await fetch('/api/time-audit/today/');
+                        const data = await res.json();
+
+                        if (data.status === 'success' && data.slots) {
+                            const slots = data.slots;
+                            const slotKeys = Object.keys(slots).sort();
+
+                            if (countBadge) countBadge.textContent = `${slotKeys.length} logged`;
+
+                            if (slotKeys.length === 0) {
+                                feed.innerHTML = '<div style="font-size: 0.78rem; color: var(--text-secondary); text-align: center; padding: 10px 0;">No logs yet today. Enter your first 15-min log above!</div>';
+                                return;
+                            }
+
+                            const categoryColors = {
+                                'coding': { bg: 'rgba(59,130,246,0.15)', text: '#3b82f6', label: 'Coding' },
+                                'research': { bg: 'rgba(16,185,129,0.15)', text: '#10b981', label: 'Research' },
+                                'admin': { bg: 'rgba(245,158,11,0.15)', text: '#f59e0b', label: 'Admin' },
+                                'meeting': { bg: 'rgba(139,92,246,0.15)', text: '#8b5cf6', label: 'Meeting' },
+                                'distraction': { bg: 'rgba(244,63,94,0.15)', text: '#f43f5e', label: 'Distraction' },
+                                'break': { bg: 'rgba(107,114,128,0.15)', text: '#9ca3af', label: 'Break' },
+                                'other': { bg: 'rgba(255,255,255,0.1)', text: '#94a3b8', label: 'Other' }
+                            };
+
+                            feed.innerHTML = slotKeys.map(slot => {
+                                const item = slots[slot];
+                                const catInfo = categoryColors[item.category] || categoryColors.other;
+                                return `
+                                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(0,0,0,0.25); border: 1px solid rgba(255,255,255,0.08); padding: 6px 10px; border-radius: 8px; font-size: 0.8rem;">
+                                        <div style="display: flex; align-items: center; gap: 8px; min-width: 0;">
+                                            <span style="font-family: 'JetBrains Mono', monospace; font-weight: bold; color: var(--accent-color); font-size: 0.76rem; background: rgba(255,255,255,0.08); padding: 2px 6px; border-radius: 4px;">${slot}</span>
+                                            <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: var(--text-primary); font-weight: 500;">${item.raw_text}</span>
+                                        </div>
+                                        <span style="font-size: 0.68rem; font-weight: 700; background: ${catInfo.bg}; color: ${catInfo.text}; padding: 2px 6px; border-radius: 4px; flex-shrink: 0; text-transform: uppercase;">${catInfo.label}</span>
+                                    </div>
+                                `;
+                            }).join('');
+                        }
+                    } catch (err) {
+                        console.error('Error loading today audit feed:', err);
+                    }
+                }
+
                 function openQuickLogModal(e) {
                     if (e) { e.preventDefault(); e.stopPropagation(); }
                     activeSlot = getCurrentTimeSlot();
@@ -1153,6 +1213,9 @@
                     }
                     setTimeout(() => quickInput?.focus(), 100);
                     if (typeof closeMobileNav === 'function') closeMobileNav();
+
+                    // Load today's logs inside modal
+                    loadTodayAuditFeed();
 
                     // Auto-dismiss after 30 seconds if untouched
                     if (autoDismissTimer) clearTimeout(autoDismissTimer);
@@ -1206,6 +1269,7 @@
                             if (typeof loadTimeAuditData === 'function') {
                                 loadTimeAuditData();
                             }
+                            loadTodayAuditFeed();
                         } else {
                             alert(data.message || 'Error saving log');
                         }
