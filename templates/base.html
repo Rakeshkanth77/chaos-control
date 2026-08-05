@@ -467,24 +467,6 @@
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                             <span>Log</span>
                             <span id="audit-slot-timer-badge" style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: bold; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-variant-numeric: tabular-nums;">--:--</span>
-                            <script>
-                                (function() {
-                                    try {
-                                        var b = document.getElementById('audit-slot-timer-badge');
-                                        if (b) {
-                                            var now = new Date();
-                                            var h = String(now.getHours()).padStart(2, '0');
-                                            var startMin = Math.floor(now.getMinutes() / 15) * 15;
-                                            var m = String(startMin).padStart(2, '0');
-                                            var endM = (startMin + 15) % 60;
-                                            var endH = endM === 0 ? (now.getHours() + 1) % 24 : now.getHours();
-                                            var endHStr = String(endH).padStart(2, '0');
-                                            var endMStr = String(endM).padStart(2, '0');
-                                            b.textContent = h + ':' + m + ' - ' + endHStr + ':' + endMStr;
-                                        }
-                                    } catch(e) {}
-                                })();
-                            </script>
                         </button>
                     </div>
 
@@ -1184,7 +1166,6 @@
                     const slotHourStr = String(hours).padStart(2, '0');
                     const slotMinStr = String(slotStartMin).padStart(2, '0');
                     const rawSlot = `${slotHourStr}:${slotMinStr}`;
-                    const slotLabel = formatSlotRange(rawSlot);
 
                     const elapsedSecondsInSlot = ((minutes % 15) * 60) + seconds;
                     const remainingSeconds = Math.max(0, (15 * 60) - elapsedSecondsInSlot);
@@ -1192,7 +1173,7 @@
                     const remMins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
                     const remSecs = String(remainingSeconds % 60).padStart(2, '0');
 
-                    timerBadge.textContent = `${slotLabel} (${remMins}:${remSecs})`;
+                    timerBadge.textContent = `${rawSlot} (${remMins}:${remSecs})`;
                 } catch (err) {
                     console.error('Error updating timer badge:', err);
                 }
@@ -1407,18 +1388,22 @@
                     }
                 }
 
-                function openQuickLogModal(e, targetSlot) {
-                    if (e) { e.preventDefault(); e.stopPropagation(); }
+                function openQuickLogModal(eOrSlot, targetSlot) {
+                    let slot = targetSlot;
+                    if (typeof eOrSlot === 'string') {
+                        slot = eOrSlot;
+                    } else if (eOrSlot && typeof eOrSlot.preventDefault === 'function') {
+                        eOrSlot.preventDefault();
+                        eOrSlot.stopPropagation();
+                    }
                     
-                    const isAlreadyOpen = quickModal && quickModal.style.display === 'flex';
+                    const isAlreadyOpen = quickModal && (quickModal.style.display === 'flex' || quickModal.classList.contains('open'));
 
-                    if (!isAlreadyOpen) {
-                        const selectedSlot = targetSlot || getCompletedTimeSlot();
-                        populateSlotPicker(selectedSlot);
-                        if (quickInput) quickInput.value = '';
-                    } else if (targetSlot) {
-                        // Modal is already open; only update picker if targetSlot provided
-                        populateSlotPicker(activeSlot);
+                    const selectedSlot = slot || activeSlot || getCompletedTimeSlot();
+                    populateSlotPicker(selectedSlot);
+
+                    if (!isAlreadyOpen && quickInput) {
+                        quickInput.value = '';
                     }
                     
                     if (quickOverlay) {
