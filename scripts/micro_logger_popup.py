@@ -142,6 +142,7 @@ def run_timer_loop():
     print(f" Log File: {LOG_FILE}")
     print(f" Django API: {DJANGO_API_URL}")
     print(" Auto-stop cutoff: 5:00 PM UK Time (17:00)")
+    print(" Auto-dismiss: 30 seconds if unhandled")
     print(" Press Ctrl+C in terminal to stop.")
     print("=" * 60)
 
@@ -149,16 +150,28 @@ def run_timer_loop():
         print("🛑 Current UK time is past 5:00 PM (17:00). Time Audit auto-stopped for today!")
         return
 
-    # Show initial popup
-    show_popup()
-
     while True:
-        time.sleep(INTERVAL_MINUTES * 60)
+        # Sleep until exact next 15-minute boundary (:00, :15, :30, :45)
+        now = datetime.datetime.now()
+        mins_mod = now.minute % 15
+        secs_mod = now.second
+        secs_until_boundary = (15 - mins_mod) * 60 - secs_mod
+        
+        if secs_until_boundary > 0:
+            rem_m = secs_until_boundary // 60
+            rem_s = secs_until_boundary % 60
+            print(f"Next 15-min slot ends in {rem_m}m {rem_s}s...")
+            time.sleep(secs_until_boundary)
+
         if is_after_5pm_uk():
             print("\n🛑 5:00 PM UK Time reached! Time Audit auto-stopped for today. Have a great evening!")
             break
+
         show_popup()
+        # Avoid double trigger within the same second
+        time.sleep(2)
 
 if __name__ == "__main__":
     run_timer_loop()
+
 

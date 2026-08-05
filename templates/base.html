@@ -1135,6 +1135,8 @@
 
                 let activeSlot = getCurrentTimeSlot();
 
+                let autoDismissTimer = null;
+
                 function openQuickLogModal(e) {
                     if (e) { e.preventDefault(); e.stopPropagation(); }
                     activeSlot = getCurrentTimeSlot();
@@ -1151,9 +1153,20 @@
                     }
                     setTimeout(() => quickInput?.focus(), 100);
                     if (typeof closeMobileNav === 'function') closeMobileNav();
+
+                    // Auto-dismiss after 30 seconds if untouched
+                    if (autoDismissTimer) clearTimeout(autoDismissTimer);
+                    autoDismissTimer = setTimeout(() => {
+                        closeQuickLogModal();
+                        if (window.showToast) showToast('⏰ Slot prompt auto-closed after 30s. Backfill anytime from Log grid!', 'info');
+                    }, 30000);
                 }
 
                 function closeQuickLogModal() {
+                    if (autoDismissTimer) {
+                        clearTimeout(autoDismissTimer);
+                        autoDismissTimer = null;
+                    }
                     if (quickOverlay) {
                         quickOverlay.classList.remove('open');
                         quickOverlay.style.display = 'none';
@@ -1272,8 +1285,7 @@
                             auditActive = true;
                             localStorage.setItem('audit_session_active', 'true');
                             updateAuditBtnUI();
-                            openQuickLogModal();
-                            if (window.showToast) showToast('▶️ 15-Min Time Audit Started! (Auto-stops at 5:00 PM UK)', 'success');
+                            if (window.showToast) showToast('▶️ 15-Min Time Audit Active! Prompt will pop up at the end of each 15-min block (auto-stops at 5:00 PM UK).', 'success');
                         } else {
                             auditActive = false;
                             localStorage.setItem('audit_session_active', 'false');
@@ -1284,7 +1296,7 @@
                     updateAuditBtnUI();
                 }
 
-                // Auto-check 5 PM UK Cutoff & 15-minute interval timer
+                // Trigger popup ONLY when a 15-minute slot finishes (:00, :15, :30, :45)
                 let lastPromptedSlot = '';
                 setInterval(() => {
                     if (!auditActive) return;
@@ -1297,12 +1309,19 @@
                         return;
                     }
 
-                    const currentSlot = getCurrentTimeSlot();
-                    if (currentSlot !== lastPromptedSlot && quickModal.style.display !== 'flex') {
-                        lastPromptedSlot = currentSlot;
-                        openQuickLogModal();
+                    const now = new Date();
+                    const minutes = now.getMinutes();
+                    const seconds = now.getSeconds();
+
+                    // Check if exact 15-minute slot boundary is reached
+                    if (minutes % 15 === 0 && seconds === 0) {
+                        const currentSlot = getCurrentTimeSlot();
+                        if (currentSlot !== lastPromptedSlot) {
+                            lastPromptedSlot = currentSlot;
+                            openQuickLogModal();
+                        }
                     }
-                }, 30000);
+                }, 1000); // Check every second for exact boundary match
             }
         });
     </script>
