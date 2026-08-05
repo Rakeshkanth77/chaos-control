@@ -1,4 +1,5 @@
 import json
+import re
 from collections import Counter
 from functools import wraps
 from django.conf import settings
@@ -1535,23 +1536,66 @@ def reorder_projects(request):
 from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project, TaskBreakdown, AIUsage, TimeAuditLog
 
 
+# Typing just a shortcode (or the bare category name) pins the category directly.
+CATEGORY_SHORTCODES = {
+    'p': 'phd', 'phd': 'phd',
+    'j': 'projects', 'project': 'projects', 'projects': 'projects',
+    'l': 'life_skills', 'life_skills': 'life_skills', 'lifeskills': 'life_skills',
+    's': 'spiritual', 'spiritual': 'spiritual',
+    'c': 'cooking', 'cook': 'cooking', 'cooking': 'cooking',
+    'v': 'driving', 'drive': 'driving', 'driving': 'driving',
+    'd': 'distracted', 'distraction': 'distracted', 'distracted': 'distracted',
+}
+
+# Keyword rules, most specific domain first. Order only breaks ties: a log that
+# matches several categories goes to whichever scored most keyword hits, and the
+# earlier entry here wins an equal score. Generic buckets (life_skills) sit last
+# so their broad words ('plan', 'learn') don't outrank a concrete match.
+CATEGORY_KEYWORDS = [
+    ('distracted', ['reel', 'insta', 'instagram', 'youtube', 'yt', 'twitter', 'x.com',
+                    'tiktok', 'scroll', 'game', 'gaming', 'gameplay', 'reddit', 'meme',
+                    'distract', 'distraction']),
+    ('spiritual', ['pray', 'prayer', 'bible', 'church', 'meditate', 'meditation',
+                   'god', 'worship', 'devotion', 'spiritual']),
+    ('cooking', ['cook', 'cooking', 'meal', 'meal prep', 'kitchen', 'bake', 'baking', 'recipe']),
+    ('driving', ['drive', 'driving', 'car', 'commute', 'commuting', 'travel',
+                 'travelling', 'traveling', 'road']),
+    ('phd', ['phd', 'paper', 'thesis', 'research', 'article', 'study', 'literature',
+             'experiment', 'supervisor']),
+    ('projects', ['code', 'coding', 'debug', 'debugging', 'bug', 'django', 'python',
+                  'js', 'html', 'css', 'build', 'github', 'app', 'project']),
+    ('life_skills', ['read', 'book', 'skill', 'learn', 'course', 'finance', 'budget',
+                     'plan', 'planning']),
+]
+
+# Whole-word match with common inflections, so 'read' hits "reading" but not
+# "bread", and 'car' hits "car"/"cars" but not "carrots".
+_CATEGORY_PATTERNS = [
+    (category, [re.compile(r'\b' + re.escape(kw) + r'(?:s|es|ed|ing)?\b') for kw in keywords])
+    for category, keywords in CATEGORY_KEYWORDS
+]
+
+
 def auto_categorize_text(text):
+    """
+    Guesses a category for a 15-minute audit log from its text.
+    Returns 'other' when nothing matches — the user can always correct it
+    from the category dropdown in the log feed.
+    """
+    if not text:
+        return 'other'
+
     t = text.lower().strip()
-    if t in ('p', 'phd') or any(kw in t for kw in ['phd', 'paper', 'thesis', 'research', 'article', 'study', 'literature', 'experiment']):
-        return 'phd'
-    if t in ('j', 'project', 'projects') or any(kw in t for kw in ['code', 'coding', 'debug', 'bug', 'django', 'python', 'js', 'html', 'css', 'build', 'github', 'dev', 'app', 'project']):
-        return 'projects'
-    if t in ('l', 'life_skills', 'lifeskills') or any(kw in t for kw in ['read', 'book', 'skill', 'learn', 'course', 'finance', 'budget', 'plan']):
-        return 'life_skills'
-    if t in ('s', 'spiritual') or any(kw in t for kw in ['pray', 'prayer', 'bible', 'church', 'meditat', 'god', 'worship', 'spiritual']):
-        return 'spiritual'
-    if t in ('c', 'cook', 'cooking') or any(kw in t for kw in ['cook', 'cooking', 'meal', 'prep', 'kitchen', 'bake', 'baking', 'recipe']):
-        return 'cooking'
-    if t in ('v', 'drive', 'driving') or any(kw in t for kw in ['drive', 'driving', 'car', 'commute', 'travel', 'road']):
-        return 'driving'
-    if t in ('d', 'distraction', 'distracted') or any(kw in t for kw in ['reel', 'reels', 'insta', 'instagram', 'youtube', 'yt', 'twitter', 'x.com', 'tiktok', 'scroll', 'scrolling', 'game', 'reddit', 'meme', 'distract']):
-        return 'distracted'
-    return 'other'
+    if t in CATEGORY_SHORTCODES:
+        return CATEGORY_SHORTCODES[t]
+
+    best_category, best_score = 'other', 0
+    for category, patterns in _CATEGORY_PATTERNS:
+        score = sum(1 for pattern in patterns if pattern.search(t))
+        if score > best_score:
+            best_category, best_score = category, score
+
+    return best_category
 
 
 @require_POST
@@ -1689,8 +1733,9 @@ def export_time_audit_md(request):
 @api_login_required
 def get_time_audit_today(request):
     """
-    GET /api/time-audit/today/?date=YYYY-MM-DD
-    Returns logged slots for specified date.
+    GET /api/time-audit/today/?date=YYYY-MM-DD&slot=HH:MM
+    Returns logged slots for specified date. Passing `slot` also returns ranked
+    predictions of what the user is about to log for that slot.
     """
     try:
         date_str = request.GET.get('date')
@@ -1720,6 +1765,7 @@ def get_time_audit_today(request):
             'count': audits.count(),
             'slots': slots_data,
             'suggested_patterns': get_slot_suggestions(request.user),
+            'predictions': get_slot_predictions(request.user, request.GET.get('slot', ''), date_val),
             'daily_summary': get_daily_log_summary(request.user, date_val)
         })
     except Exception as e:
@@ -1758,6 +1804,105 @@ def get_slot_suggestions(user):
             suggestions[slot] = most_common
             
     return suggestions
+
+
+SLOT_RE = re.compile(r'^\d{2}:\d{2}$')
+
+# How far back to learn from. Four weeks gives each weekday four samples.
+PREDICTION_LOOKBACK_DAYS = 28
+
+# Evidence weights. A log scores under every signal that applies and the totals
+# are ranked, so "every Tuesday 09:00" beats "sometimes at 09:00" beats "you do
+# this a lot lately".
+PREDICTION_WEIGHTS = {
+    'weekday_slot': 3.0,   # same weekday AND same slot - the strongest routine signal
+    'continuation': 2.5,   # what usually follows whatever you logged in the previous slot
+    'slot': 2.0,           # same slot, any weekday
+    'recent': 0.15,        # weak global prior, only surfaces when a slot has no history
+}
+
+# Older habits fade rather than drop off a cliff: weight halves every 14 days.
+PREDICTION_HALF_LIFE_DAYS = 14.0
+
+
+def previous_slot(time_slot):
+    """Returns the 15-minute slot immediately before the given one, wrapping at midnight."""
+    if not SLOT_RE.match(time_slot or ''):
+        return None
+    hours, minutes = int(time_slot[:2]), int(time_slot[3:5])
+    total = (hours * 60 + minutes - 15) % (24 * 60)
+    return f"{total // 60:02d}:{total % 60:02d}"
+
+
+def get_slot_predictions(user, time_slot, date_val=None, limit=3):
+    """
+    Predicts what the user is about to log for `time_slot`, learned purely from
+    their own history. Returns up to `limit` candidates, highest score first:
+        [{'text': ..., 'category': ..., 'score': ...}, ...]
+    Returns [] for a user with no usable history - the caller should just fall
+    back to the normal empty input.
+    """
+    if not user or not user.is_authenticated or not SLOT_RE.match(time_slot or ''):
+        return []
+    if not date_val:
+        date_val = timezone.localdate()
+
+    start_date = date_val - timedelta(days=PREDICTION_LOOKBACK_DAYS)
+    history = TimeAuditLog.objects.filter(
+        user=user, date__gte=start_date, date__lte=date_val
+    ).exclude(
+        date=date_val, time_slot=time_slot  # never suggest the slot back to itself
+    ).values_list('date', 'time_slot', 'raw_text', 'category')
+
+    scores = {}
+    display = {}
+
+    def add(text, category, weight):
+        key = (text or '').strip().lower()
+        if len(key) < 2 or weight <= 0:
+            return
+        scores[key] = scores.get(key, 0.0) + weight
+        display.setdefault(key, (text.strip(), category))
+
+    def recency_weight(log_date):
+        return 0.5 ** ((date_val - log_date).days / PREDICTION_HALF_LIFE_DAYS)
+
+    target_weekday = date_val.weekday()
+    days = {}
+
+    for log_date, slot, text, category in history:
+        if not text or not text.strip():
+            continue
+        days.setdefault(log_date, {})[slot] = (text, category)
+
+        decay = recency_weight(log_date)
+        add(text, category, PREDICTION_WEIGHTS['recent'] * decay)
+        if slot == time_slot:
+            add(text, category, PREDICTION_WEIGHTS['slot'] * decay)
+            if log_date.weekday() == target_weekday:
+                add(text, category, PREDICTION_WEIGHTS['weekday_slot'] * decay)
+
+    # Continuation: if the previous slot today says "writing chapter 3", find what
+    # usually came next after that same entry on earlier days. This is what catches
+    # a long task still running, without assuming every task spans two slots.
+    prev_slot = previous_slot(time_slot)
+    if prev_slot:
+        prev_entry = TimeAuditLog.objects.filter(
+            user=user, date=date_val, time_slot=prev_slot
+        ).first()
+        if prev_entry and prev_entry.raw_text:
+            anchor = prev_entry.raw_text.strip().lower()
+            for log_date, slots in days.items():
+                previous_log = slots.get(prev_slot)
+                next_log = slots.get(time_slot)
+                if previous_log and next_log and previous_log[0].strip().lower() == anchor:
+                    add(next_log[0], next_log[1], PREDICTION_WEIGHTS['continuation'] * recency_weight(log_date))
+
+    ranked = sorted(scores.items(), key=lambda item: (-item[1], item[0]))[:limit]
+    return [
+        {'text': display[key][0], 'category': display[key][1], 'score': round(score, 2)}
+        for key, score in ranked
+    ]
 
 
 def get_daily_log_summary(user, date_val=None):

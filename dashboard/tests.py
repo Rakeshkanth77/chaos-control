@@ -4,8 +4,10 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 import unittest.mock as mock
 import os
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile
+from datetime import timedelta
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, TimeAuditLog
 from .services import parse_brain_dump, generate_ai_reflection, clean_ramble_text
+from .api import get_slot_predictions, previous_slot
 
 
 class DashboardServicesTestCase(TestCase):
@@ -345,6 +347,86 @@ class TimeAuditApiTestCase(TestCase):
         self.assertEqual(stats_resp.status_code, 200)
         stats_data = stats_resp.json()
         self.assertEqual(stats_data['total_blocks'], 1)
+
+
+class SlotPredictionTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='predictor', password='password123')
+        self.client.login(username='predictor', password='password123')
+        self.today = timezone.localdate()
+
+    def log(self, days_ago, time_slot, raw_text, category='other'):
+        return TimeAuditLog.objects.create(
+            user=self.user,
+            date=self.today - timedelta(days=days_ago),
+            time_slot=time_slot,
+            raw_text=raw_text,
+            category=category,
+        )
+
+    def test_previous_slot_wraps_at_midnight(self):
+        self.assertEqual(previous_slot('09:15'), '09:00')
+        self.assertEqual(previous_slot('09:00'), '08:45')
+        self.assertEqual(previous_slot('00:00'), '23:45')
+        self.assertIsNone(previous_slot('nonsense'))
+
+    def test_no_history_returns_no_predictions(self):
+        self.assertEqual(get_slot_predictions(self.user, '09:00', self.today), [])
+
+    def test_same_weekday_routine_outranks_other_days(self):
+        # Same weekday as today, 7 and 14 days back.
+        self.log(7, '09:00', 'supervisor meeting', 'phd')
+        self.log(14, '09:00', 'supervisor meeting', 'phd')
+        # Same slot but different weekdays, logged more often.
+        for days_ago in (1, 2, 3):
+            self.log(days_ago, '09:00', 'checking email', 'other')
+
+        predictions = get_slot_predictions(self.user, '09:00', self.today)
+
+        self.assertEqual(predictions[0]['text'], 'supervisor meeting')
+        self.assertEqual(predictions[0]['category'], 'phd')
+        self.assertIn('checking email', [p['text'] for p in predictions])
+
+    def test_continuation_uses_previous_slot_logged_today(self):
+        # On earlier days, "writing chapter 3" at 14:00 was always followed by
+        # more of the same at 14:15.
+        for days_ago in (1, 2, 3):
+            self.log(days_ago, '14:00', 'writing chapter 3', 'phd')
+            self.log(days_ago, '14:15', 'writing chapter 3', 'phd')
+        # An unrelated entry that is otherwise frequent at 14:15.
+        for days_ago in (4, 5):
+            self.log(days_ago, '14:15', 'lunch washing up', 'cooking')
+
+        # Today the previous slot says the same thing, so continuation should fire.
+        TimeAuditLog.objects.create(
+            user=self.user, date=self.today, time_slot='14:00',
+            raw_text='writing chapter 3', category='phd',
+        )
+
+        predictions = get_slot_predictions(self.user, '14:15', self.today)
+        self.assertEqual(predictions[0]['text'], 'writing chapter 3')
+
+    def test_predictions_respect_limit_and_skip_target_slot_today(self):
+        for days_ago in (1, 2, 3, 4):
+            self.log(days_ago, '11:00', f'task {days_ago}', 'other')
+        TimeAuditLog.objects.create(
+            user=self.user, date=self.today, time_slot='11:00',
+            raw_text='already logged this one', category='other',
+        )
+
+        predictions = get_slot_predictions(self.user, '11:00', self.today)
+
+        self.assertLessEqual(len(predictions), 3)
+        self.assertNotIn('already logged this one', [p['text'] for p in predictions])
+
+    def test_today_endpoint_returns_predictions_only_when_slot_given(self):
+        self.log(7, '09:00', 'supervisor meeting', 'phd')
+
+        with_slot = self.client.get('/api/time-audit/today/?slot=09:00').json()
+        self.assertEqual(with_slot['predictions'][0]['text'], 'supervisor meeting')
+
+        without_slot = self.client.get('/api/time-audit/today/').json()
+        self.assertEqual(without_slot['predictions'], [])
 
 
 class HabitProtocolTestCase(TestCase):
