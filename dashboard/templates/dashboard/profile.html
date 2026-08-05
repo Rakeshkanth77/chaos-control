@@ -854,7 +854,6 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 });
 
-<script>
     // ── Tab Switching Mechanics ──
     const tabButtons = document.querySelectorAll('.profile-tab-btn');
     const tabContents = document.querySelectorAll('.profile-tab-content');
@@ -901,12 +900,14 @@ document.addEventListener('DOMContentLoaded', () => {
     // ── Toast Helper ──
     function showToast(message) {
         const toast = document.getElementById('status-toast');
+        if (!toast) return;
         toast.textContent = message;
         toast.classList.add('show');
         setTimeout(() => {
             toast.classList.remove('show');
         }, 3000);
     }
+    window.showToast = showToast;
 
     // ── Avatar Upload handler ──
     const avatarInput = document.getElementById('avatar-input');
