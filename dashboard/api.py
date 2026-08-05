@@ -4,7 +4,7 @@ from django.conf import settings
 from django.http import JsonResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
-from datetime import datetime
+from datetime import datetime, timedelta
 from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project, TaskBreakdown, AIUsage
 from .services import parse_brain_dump, generate_ai_reflection
 
@@ -1526,14 +1526,168 @@ def save_task_breakdown(request):
 @api_login_required
 def reorder_projects(request):
     try:
-        data = json.loads(request.body)
-        project_ids = data.get('project_ids', [])
-        for index, pid in enumerate(project_ids):
-            Project.objects.filter(id=pid, user=request.user).update(order=index)
         return JsonResponse({'status': 'success'})
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
+
+from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, Project, TaskBreakdown, AIUsage, TimeAuditLog
+
+
+def auto_categorize_text(text):
+    t = text.lower().strip()
+    if t in ('d', 'distraction') or any(kw in t for kw in ['reel', 'reels', 'insta', 'instagram', 'youtube', 'yt', 'twitter', 'x.com', 'tiktok', 'scroll', 'scrolling', 'game', 'reddit', 'meme']):
+        return 'distraction'
+    if t in ('r', 'research') or any(kw in t for kw in ['paper', 'read', 'reading', 'thesis', 'phd', 'research', 'article', 'study', 'literature']):
+        return 'research'
+    if t in ('c', 'coding') or any(kw in t for kw in ['code', 'coding', 'debug', 'bug', 'django', 'python', 'js', 'html', 'css', 'build', 'github', 'dev']):
+        return 'coding'
+    if t in ('a', 'admin') or any(kw in t for kw in ['email', 'mail', 'plan', 'planning', 'todo', 'admin', 'organize', 'schedule']):
+        return 'admin'
+    if t in ('m', 'meeting') or any(kw in t for kw in ['meet', 'meeting', 'call', 'zoom', 'teams', 'sync', 'discussion']):
+        return 'meeting'
+    if t in ('b', 'break', 'l', 'lunch') or any(kw in t for kw in ['lunch', 'dinner', 'breakfast', 'break', 'eat', 'eating', 'rest', 'coffee', 'walk', 'gym']):
+        return 'break'
+    return 'other'
+
+
+@require_POST
+@api_login_required
+def save_time_audit(request):
+    """
+    POST /api/time-audit/save/
+    Payload: {
+        "time_slot": "10:15",
+        "raw_text": "debugging django view",
+        "date": "2026-08-05" (optional),
+        "category": "coding" (optional, auto-detected if missing/other),
+        "source": "desktop" (optional)
+    }
+    """
+    try:
+        data = json.loads(request.body)
+        time_slot = data.get('time_slot')
+        raw_text = data.get('raw_text', '').strip()
+
+        if not time_slot or not raw_text:
+            return JsonResponse({'status': 'error', 'message': 'time_slot and raw_text are required'}, status=400)
+
+        date_val = get_date_from_request(data)
+        category = data.get('category')
+        if not category or category == 'other':
+            category = auto_categorize_text(raw_text)
+
+        source = data.get('source', 'web')
+
+        audit_entry, created = TimeAuditLog.objects.update_or_create(
+            user=request.user,
+            date=date_val,
+            time_slot=time_slot,
+            defaults={
+                'raw_text': raw_text,
+                'category': category,
+                'source': source
+            }
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'created': created,
+            'id': audit_entry.id,
+            'time_slot': audit_entry.time_slot,
+            'raw_text': audit_entry.raw_text,
+            'category': audit_entry.category,
+            'category_display': audit_entry.get_category_display()
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@api_login_required
+def get_time_audit_today(request):
+    """
+    GET /api/time-audit/today/?date=YYYY-MM-DD
+    Returns logged slots for specified date.
+    """
+    try:
+        date_str = request.GET.get('date')
+        if date_str:
+            try:
+                date_val = datetime.strptime(date_str, '%Y-%m-%d').date()
+            except ValueError:
+                date_val = timezone.localdate()
+        else:
+            date_val = timezone.localdate()
+
+        audits = TimeAuditLog.objects.filter(user=request.user, date=date_val)
+        slots_data = {}
+        for entry in audits:
+            slots_data[entry.time_slot] = {
+                'id': entry.id,
+                'raw_text': entry.raw_text,
+                'category': entry.category,
+                'category_display': entry.get_category_display(),
+                'source': entry.source
+            }
+
+        return JsonResponse({
+            'status': 'success',
+            'date': str(date_val),
+            'count': audits.count(),
+            'slots': slots_data
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@api_login_required
+def get_time_audit_stats(request):
+    """
+    GET /api/time-audit/stats/?days=3
+    Returns category breakdown and distraction list for past N days.
+    """
+    try:
+        days = int(request.GET.get('days', 3))
+        today = timezone.localdate()
+        start_date = today - timedelta(days=days - 1)
+
+        audits = TimeAuditLog.objects.filter(user=request.user, date__gte=start_date, date__lte=today)
+        total_blocks = audits.count()
+        
+        category_counts = {}
+        for entry in audits:
+            cat = entry.category
+            category_counts[cat] = category_counts.get(cat, 0) + 1
+
+        category_stats = []
+        for cat_code, display in TimeAuditLog.CATEGORY_CHOICES:
+            count = category_counts.get(cat_code, 0)
+            hours = round(count * 0.25, 2)
+            pct = round((count / total_blocks * 100), 1) if total_blocks > 0 else 0
+            category_stats.append({
+                'code': cat_code,
+                'name': display,
+                'blocks': count,
+                'hours': hours,
+                'percentage': pct
+            })
+
+        distractions = list(
+            audits.filter(category='distraction')
+            .values('time_slot', 'date', 'raw_text')
+            .order_by('-date', '-time_slot')[:15]
+        )
+
+        return JsonResponse({
+            'status': 'success',
+            'days': days,
+            'total_blocks': total_blocks,
+            'total_hours': round(total_blocks * 0.25, 2),
+            'categories': category_stats,
+            'distractions': distractions
+        })
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
 @api_login_required

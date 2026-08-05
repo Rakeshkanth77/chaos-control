@@ -308,3 +308,43 @@ class PomodoroApiTestCase(TestCase):
         self.assertFalse(PomodoroSession.objects.filter(id=session.id).exists())
 
 
+class TimeAuditApiTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='auditor', password='password123')
+        self.client.login(username='auditor', password='password123')
+        self.today_str = timezone.localdate().strftime("%Y-%m-%d")
+
+    def test_save_time_audit_auto_categorize(self):
+        response = self.client.post('/api/time-audit/save/', data=json.dumps({
+            'time_slot': '10:15',
+            'raw_text': 'scrolling instagram reels',
+            'date': self.today_str
+        }), content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['category'], 'distraction')
+
+    def test_get_time_audit_today_and_stats(self):
+        # Create 2 logs
+        self.client.post('/api/time-audit/save/', data=json.dumps({
+            'time_slot': '09:00',
+            'raw_text': 'reading thesis paper',
+            'category': 'research',
+            'date': self.today_str
+        }), content_type='application/json')
+
+        response = self.client.get(f'/api/time-audit/today/?date={self.today_str}')
+        self.assertEqual(response.status_code, 200)
+        today_data = response.json()
+        self.assertEqual(today_data['count'], 1)
+        self.assertIn('09:00', today_data['slots'])
+
+        stats_resp = self.client.get('/api/time-audit/stats/?days=3')
+        self.assertEqual(stats_resp.status_code, 200)
+        stats_data = stats_resp.json()
+        self.assertEqual(stats_data['total_blocks'], 1)
+
+
+

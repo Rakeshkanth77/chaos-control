@@ -87,6 +87,34 @@ class PomodoroSession(models.Model):
         status = "Completed" if self.completed else "Incomplete"
         return f"Pomodoro at {self.started_at} - {status}"
 
+
+class TimeAuditLog(models.Model):
+    CATEGORY_CHOICES = [
+        ('research', 'Research / Reading'),
+        ('coding', 'Coding / Building'),
+        ('admin', 'Admin / Email / Planning'),
+        ('meeting', 'Meeting / Call'),
+        ('distraction', 'Distraction / Social Media'),
+        ('break', 'Break / Lunch / Resting'),
+        ('other', 'Other'),
+    ]
+
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='time_audits', null=True, blank=True)
+    date = models.DateField(default=timezone.now)
+    time_slot = models.CharField(max_length=5, help_text="Format HH:MM e.g. 10:15")
+    raw_text = models.CharField(max_length=255, help_text="User's typed description or code")
+    category = models.CharField(max_length=20, choices=CATEGORY_CHOICES, default='other')
+    source = models.CharField(max_length=20, default='desktop', help_text="desktop, web, mobile")
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'time_slot']
+        unique_together = ('user', 'date', 'time_slot')
+
+    def __str__(self):
+        return f"{self.date} {self.time_slot} - {self.raw_text} ({self.get_category_display()})"
+
+
 class UserProfile(models.Model):
     PLAN_CHOICES = [
         ('free', 'Free'),

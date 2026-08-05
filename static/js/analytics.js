@@ -565,5 +565,137 @@ document.addEventListener('DOMContentLoaded', () => {
         return 4;
     }
 
+    // --- 15-MINUTE TIME AUDIT MODULE ---
+    async function loadTimeAuditData() {
+        const catList = document.getElementById('auditCategoryList');
+        const distList = document.getElementById('auditDistractionList');
+        const grid = document.getElementById('auditTimelineGrid');
+        if (!grid) return;
+
+        try {
+            const [statsRes, todayRes] = await Promise.all([
+                fetch('/api/time-audit/stats/?days=3'),
+                fetch('/api/time-audit/today/')
+            ]);
+            const statsData = await statsRes.json();
+            const todayData = await todayRes.json();
+
+            // Render stats
+            if (statsData.status === 'success' && catList) {
+                catList.innerHTML = '';
+                statsData.categories.forEach(cat => {
+                    const row = document.createElement('div');
+                    row.style.cssText = 'display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; padding: 4px 0; border-bottom: 1px dashed rgba(0,0,0,0.04);';
+                    const colorMap = {
+                        'research': '#10b981', 'coding': '#3b82f6', 'admin': '#f59e0b',
+                        'meeting': '#8b5cf6', 'distraction': '#f43f5e', 'break': '#6b7280', 'other': '#9ca3af'
+                    };
+                    const color = colorMap[cat.code] || '#9ca3af';
+                    row.innerHTML = `
+                        <div style="display: flex; align-items: center; gap: 6px;">
+                            <span style="width: 10px; height: 10px; border-radius: 50%; background: ${color}; display: inline-block;"></span>
+                            <span style="font-weight: 600;">${cat.name}</span>
+                        </div>
+                        <span style="font-weight: 700; color: var(--text-primary);">${cat.hours}h (${cat.percentage}%)</span>
+                    `;
+                    catList.appendChild(row);
+                });
+            }
+
+            // Render Distractions
+            if (statsData.status === 'success' && distList) {
+                distList.innerHTML = '';
+                if (statsData.distractions && statsData.distractions.length > 0) {
+                    statsData.distractions.forEach(d => {
+                        const item = document.createElement('div');
+                        item.style.cssText = 'font-size: 0.78rem; padding: 5px 8px; background: rgba(244, 63, 94, 0.08); border-left: 3px solid #f43f5e; border-radius: 4px; color: #9f1239;';
+                        item.innerHTML = `<strong>${d.time_slot}</strong>: ${d.raw_text}`;
+                        distList.appendChild(item);
+                    });
+                } else {
+                    distList.innerHTML = '<div style="font-size: 0.8rem; color: #10b981; font-weight: 600;">🎉 No distractions logged in past 3 days!</div>';
+                }
+            }
+
+            // Render Timeline Grid (08:00 to 22:00)
+            if (grid) {
+                grid.innerHTML = '';
+                const slots = todayData.slots || {};
+                
+                for (let hour = 8; hour <= 21; hour++) {
+                    for (let min = 0; min < 60; min += 15) {
+                        const slotStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+                        const logged = slots[slotStr];
+                        
+                        const card = document.createElement('div');
+                        card.style.cssText = 'padding: 6px 8px; border-radius: 6px; font-size: 0.75rem; border: 1px solid rgba(0,0,0,0.06); display: flex; flex-direction: column; justify-content: space-between; min-height: 52px; transition: all 0.2s;';
+                        
+                        if (logged) {
+                            const catColors = {
+                                'research': 'rgba(16, 185, 129, 0.15)',
+                                'coding': 'rgba(59, 130, 246, 0.15)',
+                                'admin': 'rgba(245, 158, 11, 0.15)',
+                                'meeting': 'rgba(139, 92, 246, 0.15)',
+                                'distraction': 'rgba(244, 63, 94, 0.18)',
+                                'break': 'rgba(107, 114, 128, 0.15)'
+                            };
+                            card.style.background = catColors[logged.category] || 'rgba(0,0,0,0.04)';
+                            card.innerHTML = `
+                                <div style="display: flex; justify-content: space-between; font-weight: 700; color: var(--text-primary); font-size: 0.7rem;">
+                                    <span>${slotStr}</span>
+                                    <span style="font-size: 0.65rem; text-transform: uppercase; opacity: 0.8;">${logged.category}</span>
+                                </div>
+                                <div style="font-weight: 600; margin-top: 4px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="${logged.raw_text}">${logged.raw_text}</div>
+                            `;
+                        } else {
+                            card.style.background = 'rgba(255,255,255,0.7)';
+                            card.innerHTML = `
+                                <div style="font-weight: 700; color: var(--text-secondary); font-size: 0.7rem;">${slotStr}</div>
+                                <button class="backfill-btn" data-slot="${slotStr}" style="margin-top: 4px; padding: 2px 6px; font-size: 0.68rem; background: transparent; border: 1px dashed #3b82f6; color: #3b82f6; border-radius: 4px; cursor: pointer; font-weight: 600;">+ Log</button>
+                            `;
+                        }
+                        grid.appendChild(card);
+                    }
+                }
+
+                // Add backfill click listeners
+                grid.querySelectorAll('.backfill-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const slot = e.target.dataset.slot;
+                        const text = prompt(`Log activity for ${slot}:`);
+                        if (text && text.strip !== '') {
+                            const res = await fetch('/api/time-audit/save/', {
+                                method: 'POST',
+                                headers: {
+                                    'Content-Type': 'application/json',
+                                    'X-CSRFToken': getCsrfToken()
+                                },
+                                body: JSON.stringify({ time_slot: slot, raw_text: text })
+                            });
+                            const resData = await res.json();
+                            if (resData.status === 'success') {
+                                loadTimeAuditData();
+                            }
+                        }
+                    });
+                });
+            }
+        } catch (err) {
+            console.error('Error loading time audit data:', err);
+        }
+    }
+
+    function getCsrfToken() {
+        const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+        return cookie ? cookie.split('=')[1] : '';
+    }
+
+    const refreshAuditBtn = document.getElementById('refreshTimeAuditBtn');
+    if (refreshAuditBtn) {
+        refreshAuditBtn.addEventListener('click', loadTimeAuditData);
+    }
+
+    loadTimeAuditData();
     loadAnalytics();
 });
+

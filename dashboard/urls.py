@@ -61,4 +61,10 @@ urlpatterns = [
     path('api/bible-memory/seed/', api.seed_bible_verses, name='api_seed_bible_verses'),
     path('api/bible-memory/fetch-daily-vocab/', api.fetch_daily_vocab, name='api_fetch_daily_vocab'),
     path('api/bible-memory/word-of-the-day/', api.word_of_the_day, name='api_word_of_the_day'),
+
+    # Time Audit API endpoints
+    path('api/time-audit/save/', api.save_time_audit, name='api_save_time_audit'),
+    path('api/time-audit/today/', api.get_time_audit_today, name='api_get_time_audit_today'),
+    path('api/time-audit/stats/', api.get_time_audit_stats, name='api_get_time_audit_stats'),
 ]
+
