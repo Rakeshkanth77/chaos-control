@@ -48,7 +48,7 @@
     </div>
 
     <!-- ROW 2: Three Plots (Operational Achievement, Signal & Noise Focus, 15-Min Time Audit Logs) -->
-    <div class="analytics-two-plots-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
+    <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 20px; margin-bottom: 24px;">
         <!-- Plot 1: Todo Trends (Created vs Completed) -->
         <div class="glass-panel analytics-chart-panel">
             <h3 class="panel-title">Operational Achievement Rate</h3>
@@ -68,8 +68,52 @@
         <!-- Plot 3: 15-Minute Time Audit Log Breakdown -->
         <div class="glass-panel analytics-chart-panel">
             <h3 class="panel-title">⏱️ 15-Min Time Audit Logs</h3>
-            <div class="chart-wrapper">
+            <div class="chart-wrapper" style="position: relative; height: 250px;">
                 <canvas id="auditDonutChartMain"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <!-- ROW 2.5: 15-Minute Micro-Audit Panel (3-Day Time Audit & Today's 15-Min Timeline) -->
+    <div class="glass-panel" style="margin-bottom: 24px; width: 100%; padding: 24px;">
+        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+            <div>
+                <h3 class="panel-title" style="margin: 0; font-size: 1.15rem; font-weight: 700;">⏱️ 15-Minute Micro-Audit (3-Day Goal Alignment)</h3>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Track 15-min blocks to identify top distractions stealing goal progress.</div>
+            </div>
+            <button id="refreshTimeAuditBtn" style="background: rgba(12, 88, 85, 0.1); border: 1px solid rgba(12, 88, 85, 0.2); color: var(--accent-color); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">🔄 Refresh Audit Data</button>
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: start;">
+            <!-- Left Column: Donut Chart, Category Stats & Top Distractions -->
+            <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 12px; padding: 16px;">
+                <h4 style="margin-top: 0; font-size: 0.92rem; font-weight: 700; color: var(--text-primary); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">📊 3-Day Time Audit Budget</h4>
+                
+                <!-- Category Donut Chart -->
+                <div style="position: relative; height: 190px; margin: 12px 0;">
+                    <canvas id="auditDonutChart"></canvas>
+                </div>
+
+                <div id="auditCategoryList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
+                    <div style="font-size: 0.82rem; color: var(--text-secondary);">Loading stats...</div>
+                </div>
+
+                <h4 style="margin-top: 20px; font-size: 0.92rem; font-weight: 700; color: #e11d48; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">🚫 Top Logged Distractions</h4>
+                <div id="auditDistractionList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; max-height: 160px; overflow-y: auto;">
+                    <div style="font-size: 0.8rem; color: var(--text-secondary);">No distractions logged yet!</div>
+                </div>
+            </div>
+
+            <!-- Right Column: Today's 15-Min Interactive Timeline Grid -->
+            <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 12px; padding: 16px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
+                    <h4 style="margin: 0; font-size: 0.92rem; font-weight: 700; color: var(--text-primary);">🕒 Today's 15-Minute Timeline Grid</h4>
+                    <span style="font-size: 0.75rem; color: var(--text-secondary);">Click any unlogged slot to backfill</span>
+                </div>
+                
+                <div id="auditTimelineGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 4px;">
+                    <div style="font-size: 0.82rem; color: var(--text-secondary);">Loading timeline...</div>
+                </div>
             </div>
         </div>
     </div>
@@ -133,50 +177,6 @@
                         <span id="other-highest-focus-val" style="font-size: 0.98rem; font-weight: 800; color: var(--text-primary);">--</span>
                         <span id="other-highest-focus-sub" style="font-size: 0.7rem; color: #1d4ed8; font-weight: 600; background: rgba(59, 130, 246, 0.15); padding: 1px 5px; border-radius: 4px;">--</span>
                     </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- ROW 3.5: 15-Minute Micro-Audit Panel (3-Day Time Audit) -->
-    <div class="glass-panel" style="margin-bottom: 24px; width: 100%; padding: 24px;">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
-            <div>
-                <h3 class="panel-title" style="margin: 0; font-size: 1.15rem; font-weight: 700;">⏱️ 15-Minute Micro-Audit (3-Day Goal Alignment)</h3>
-                <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Track 15-min blocks to identify top distractions stealing goal progress.</div>
-            </div>
-            <button id="refreshTimeAuditBtn" style="background: rgba(12, 88, 85, 0.1); border: 1px solid rgba(12, 88, 85, 0.2); color: var(--accent-color); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">🔄 Refresh Audit Data</button>
-        </div>
-
-        <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: start;">
-            <!-- Left Column: Donut Chart, Category Stats & Top Distractions -->
-            <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 12px; padding: 16px;">
-                <h4 style="margin-top: 0; font-size: 0.92rem; font-weight: 700; color: var(--text-primary); border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">📊 3-Day Time Audit Budget</h4>
-                
-                <!-- Category Donut Chart -->
-                <div style="position: relative; height: 190px; margin: 12px 0;">
-                    <canvas id="auditDonutChart"></canvas>
-                </div>
-
-                <div id="auditCategoryList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 8px;">
-                    <div style="font-size: 0.82rem; color: var(--text-secondary);">Loading stats...</div>
-                </div>
-
-                <h4 style="margin-top: 20px; font-size: 0.92rem; font-weight: 700; color: #e11d48; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 8px;">🚫 Top Logged Distractions</h4>
-                <div id="auditDistractionList" style="display: flex; flex-direction: column; gap: 6px; margin-top: 10px; max-height: 160px; overflow-y: auto;">
-                    <div style="font-size: 0.8rem; color: var(--text-secondary);">No distractions logged yet!</div>
-                </div>
-            </div>
-
-            <!-- Right Column: Today's 15-Min Interactive Timeline Grid -->
-            <div style="background: rgba(255, 255, 255, 0.6); border: 1px solid rgba(0, 0, 0, 0.05); border-radius: 12px; padding: 16px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-                    <h4 style="margin: 0; font-size: 0.92rem; font-weight: 700; color: var(--text-primary);">🕒 Today's 15-Minute Timeline Grid</h4>
-                    <span style="font-size: 0.75rem; color: var(--text-secondary);">Click any unlogged slot to backfill</span>
-                </div>
-                
-                <div id="auditTimelineGrid" style="display: grid; grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 8px; max-height: 380px; overflow-y: auto; padding-right: 4px;">
-                    <div style="font-size: 0.82rem; color: var(--text-secondary);">Loading timeline...</div>
                 </div>
             </div>
         </div>
