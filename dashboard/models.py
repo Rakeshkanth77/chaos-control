@@ -118,10 +118,18 @@ class TimeAuditLog(models.Model):
 
 
 class HabitProtocol(models.Model):
+    FREQUENCY_CHOICES = [
+        ('everyday', 'Every day'),
+        ('weekdays', 'Weekdays (Mon-Fri)'),
+        ('weekends', 'Weekends (Sat-Sun)'),
+        ('once', 'Once'),
+    ]
+
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='habit_protocols')
     title = models.CharField(max_length=150, help_text="e.g., Take Isabgol, Night Reflection")
     category = models.CharField(max_length=20, choices=TimeAuditLog.CATEGORY_CHOICES, default='life_skills')
     target_time = models.CharField(max_length=5, blank=True, default='', help_text="Target slot e.g. 11:30 or 22:00")
+    frequency = models.CharField(max_length=20, choices=FREQUENCY_CHOICES, default='everyday')
     keywords = models.CharField(max_length=255, blank=True, default='', help_text="Comma-separated keywords for auto-matching in 15-min logs e.g. isabgol, fibre")
     icon = models.CharField(max_length=10, default='⚡', help_text="Icon symbol")
     streak_count = models.IntegerField(default=0)

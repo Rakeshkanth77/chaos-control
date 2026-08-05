@@ -1860,6 +1860,8 @@ def get_habit_protocols(request):
                 'category': p.category,
                 'category_display': p.get_category_display(),
                 'target_time': p.target_time,
+                'frequency': p.frequency,
+                'frequency_display': p.get_frequency_display(),
                 'keywords': p.keywords,
                 'icon': p.icon,
                 'streak_count': p.streak_count,
@@ -1886,7 +1888,7 @@ def get_habit_protocols(request):
 def create_habit_protocol(request):
     """
     POST /api/protocols/create/
-    Payload: { "title": "Take Isabgol", "target_time": "11:30", "keywords": "isabgol, fibre", "category": "life_skills", "icon": "💊" }
+    Payload: { "title": "Take Isabgol", "target_time": "11:30", "frequency": "everyday", "keywords": "isabgol, fibre", "category": "life_skills", "icon": "⚡" }
     """
     try:
         data = json.loads(request.body)
@@ -1895,6 +1897,7 @@ def create_habit_protocol(request):
             return JsonResponse({'status': 'error', 'message': 'Title is required'}, status=400)
 
         target_time = data.get('target_time', '').strip()
+        frequency = data.get('frequency', 'everyday')
         keywords = data.get('keywords', '').strip()
         category = data.get('category', 'life_skills')
         icon = data.get('icon', '⚡')
@@ -1903,6 +1906,7 @@ def create_habit_protocol(request):
             user=request.user,
             title=title,
             target_time=target_time,
+            frequency=frequency,
             keywords=keywords,
             category=category,
             icon=icon
@@ -1914,6 +1918,8 @@ def create_habit_protocol(request):
                 'id': protocol.id,
                 'title': protocol.title,
                 'target_time': protocol.target_time,
+                'frequency': protocol.frequency,
+                'frequency_display': protocol.get_frequency_display(),
                 'keywords': protocol.keywords,
                 'icon': protocol.icon,
                 'streak_count': protocol.streak_count,

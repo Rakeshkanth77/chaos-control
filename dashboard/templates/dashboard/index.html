@@ -587,34 +587,42 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
 
-        <!-- Daily Habit Protocols Panel -->
+        <!-- Daily Habits Panel -->
         <div class="glass-panel habit-protocols-card" style="margin-top: 16px;" data-mobile-tab="1">
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
                 <div>
                     <h2 class="panel-title" style="margin-bottom: 2px; display: flex; align-items: center; gap: 8px;">
-                        <span>⚡ Daily Habit Protocols</span>
-                        <span id="protocol-progress-badge" style="font-size: 0.72rem; background: rgba(45, 212, 191, 0.18); color: #2dd4bf; padding: 2px 8px; border-radius: 10px; font-weight: 800; font-family: 'JetBrains Mono', monospace;">0/0 EXECUTED</span>
+                        <span>Daily Habits</span>
+                        <span id="protocol-progress-badge" style="font-size: 0.72rem; background: rgba(45, 212, 191, 0.18); color: #2dd4bf; padding: 2px 8px; border-radius: 10px; font-weight: 800; font-family: 'JetBrains Mono', monospace;">0/0 COMPLETED</span>
                     </h2>
-                    <div style="font-size: 0.78rem; color: var(--text-secondary);">Auto-executed when logged in 15-min audit or executed manually.</div>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary);">Auto-completed when logged in 15-min audit or checked manually.</div>
                 </div>
-                <button id="add-protocol-btn" class="btn btn-secondary" style="font-size: 0.78rem; padding: 4px 10px; border-radius: 8px; font-weight: 700;">+ New Protocol</button>
+                <button id="add-protocol-btn" class="btn btn-secondary" style="font-size: 0.78rem; padding: 4px 10px; border-radius: 8px; font-weight: 700;">+ New Habit</button>
             </div>
 
-            <!-- New Protocol Form -->
+            <!-- New Habit Form -->
             <form id="new-protocol-form" style="display: none; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(45, 212, 191, 0.3); border-radius: 12px; padding: 12px; margin-bottom: 14px;">
                 <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 8px;">
-                    <input type="text" id="protocol-title-input" class="inline-input" placeholder="Protocol name (e.g., Take Isabgol)" required style="flex: 2; min-width: 140px; font-size: 0.84rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 10px; color: #fff;">
-                    <input type="text" id="protocol-time-input" class="inline-input" placeholder="Time (11:30)" style="flex: 1; max-width: 90px; font-size: 0.84rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 8px; color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-weight: 700;">
-                    <input type="text" id="protocol-keywords-input" class="inline-input" placeholder="Keywords (isabgol, fibre)" style="flex: 2; min-width: 140px; font-size: 0.84rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 10px; color: #fff;">
+                    <input type="text" id="protocol-title-input" class="inline-input" placeholder="Habit title (e.g., Take Isabgol)" required style="flex: 2; min-width: 150px; font-size: 0.84rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 10px; color: #fff;">
+                    <input type="time" id="protocol-time-input" class="inline-input" style="flex: 1; min-width: 110px; font-size: 0.84rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 8px; color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-weight: 700;">
+                    <select id="protocol-freq-input" class="inline-input" style="flex: 1; min-width: 130px; font-size: 0.84rem; background: rgba(15, 23, 42, 0.9); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 8px; color: #fff;">
+                        <option value="everyday">Repeat: Every day</option>
+                        <option value="weekdays">Repeat: Weekdays (Mon-Fri)</option>
+                        <option value="weekends">Repeat: Weekends (Sat-Sun)</option>
+                        <option value="once">Repeat: Once</option>
+                    </select>
+                </div>
+                <div style="display: flex; gap: 8px; margin-bottom: 8px;">
+                    <input type="text" id="protocol-keywords-input" class="inline-input" placeholder="Auto-log keywords (e.g., isabgol, fibre)" style="flex: 1; font-size: 0.84rem; background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); border-radius: 6px; padding: 6px 10px; color: #fff;">
                 </div>
                 <div style="display: flex; justify-content: flex-end; gap: 6px;">
                     <button type="button" id="cancel-protocol-btn" class="btn btn-secondary" style="font-size: 0.75rem; padding: 3px 10px;">Cancel</button>
-                    <button type="submit" class="btn" style="font-size: 0.75rem; padding: 3px 12px;">Save Protocol</button>
+                    <button type="submit" class="btn" style="font-size: 0.75rem; padding: 3px 12px;">Save Habit</button>
                 </div>
             </form>
 
             <div id="habit-protocols-container" style="display: flex; flex-direction: column; gap: 8px;">
-                <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 10px 0;">Loading protocols...</div>
+                <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 10px 0;">Loading habits...</div>
             </div>
         </div>
     </div>
@@ -1171,7 +1179,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 
 
-// --- DAILY HABIT PROTOCOLS ENGINE ---
+// --- DAILY HABITS ENGINE ---
 async function loadHabitProtocols() {
     const container = document.getElementById('habit-protocols-container');
     const badge = document.getElementById('protocol-progress-badge');
@@ -1182,12 +1190,12 @@ async function loadHabitProtocols() {
         const data = await res.json();
 
         if (data.status === 'success') {
-            if (badge) badge.textContent = `${data.completed_count}/${data.total_count} EXECUTED`;
+            if (badge) badge.textContent = `${data.completed_count}/${data.total_count} COMPLETED`;
             
             if (!data.protocols || data.protocols.length === 0) {
                 container.innerHTML = `
                     <div style="font-size: 0.8rem; color: var(--text-secondary); text-align: center; padding: 14px; background: rgba(0,0,0,0.15); border-radius: 10px; border: 1px dashed rgba(255,255,255,0.1);">
-                        No active daily protocols yet. Click <strong>+ New Protocol</strong> above to set recurring habits (e.g. 11:30 AM Take Isabgol).
+                        No active daily habits yet. Click <strong>+ New Habit</strong> above to add recurring habits (e.g. 11:30 AM Take Isabgol).
                     </div>
                 `;
                 return;
@@ -1195,9 +1203,10 @@ async function loadHabitProtocols() {
 
             container.innerHTML = data.protocols.map(p => {
                 const isDone = p.is_completed_today;
-                const timeStr = p.target_time ? `<span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #38bdf8; font-size: 0.76rem; background: rgba(56, 189, 248, 0.12); padding: 2px 6px; border-radius: 5px; border: 1px solid rgba(56, 189, 248, 0.25);">${p.target_time}</span>` : '';
-                const streakStr = p.streak_count > 0 ? `<span style="font-weight: 800; color: #f59e0b; font-size: 0.74rem; background: rgba(245, 158, 11, 0.15); padding: 2px 6px; border-radius: 5px; border: 1px solid rgba(245, 158, 11, 0.3);" title="Current execution streak">🔥 ${p.streak_count}d STREAK</span>` : '';
-                const statusBtnText = isDone ? '✓ EXECUTED' : 'EXECUTE';
+                const timeStr = p.target_time ? `<span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #38bdf8; font-size: 0.76rem; background: rgba(56, 189, 248, 0.12); padding: 2px 6px; border-radius: 5px; border: 1px solid rgba(56, 189, 248, 0.25);">⏰ ${p.target_time}</span>` : '';
+                const freqStr = p.frequency_display ? `<span style="font-size: 0.72rem; color: #a7f3d0; background: rgba(16, 185, 129, 0.12); padding: 2px 6px; border-radius: 5px; border: 1px solid rgba(16, 185, 129, 0.25);">🔁 ${p.frequency_display}</span>` : '';
+                const streakStr = p.streak_count > 0 ? `<span style="font-weight: 800; color: #f59e0b; font-size: 0.74rem; background: rgba(245, 158, 11, 0.15); padding: 2px 6px; border-radius: 5px; border: 1px solid rgba(245, 158, 11, 0.3);" title="Current completion streak">🔥 ${p.streak_count}d STREAK</span>` : '';
+                const statusBtnText = isDone ? '✓ COMPLETED' : 'COMPLETE';
                 const statusBtnStyle = isDone 
                     ? 'background: rgba(16, 185, 129, 0.18); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.4);' 
                     : 'background: rgba(45, 212, 191, 0.1); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.3);';
@@ -1208,8 +1217,9 @@ async function loadHabitProtocols() {
                             <span style="font-size: 1rem; flex-shrink: 0;">${p.icon || '⚡'}</span>
                             <div style="min-width: 0;">
                                 <div style="font-weight: 700; font-size: 0.88rem; color: ${isDone ? '#34d399' : '#f8fafc'}; text-decoration: ${isDone ? 'line-through' : 'none'}; opacity: ${isDone ? '0.85' : '1'}; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${p.title}</div>
-                                <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 2px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                                <div style="font-size: 0.72rem; color: var(--text-secondary); margin-top: 3px; display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
                                     ${timeStr}
+                                    ${freqStr}
                                     ${p.keywords ? `<span style="font-style: italic; opacity: 0.8;">Matches: ${p.keywords}</span>` : ''}
                                 </div>
                             </div>
@@ -1217,7 +1227,7 @@ async function loadHabitProtocols() {
                         <div style="display: flex; align-items: center; gap: 8px; flex-shrink: 0;">
                             ${streakStr}
                             <button class="toggle-protocol-btn" data-id="${p.id}" style="padding: 4px 10px; font-size: 0.74rem; font-weight: 800; border-radius: 6px; cursor: pointer; transition: all 0.2s; ${statusBtnStyle}">${statusBtnText}</button>
-                            <button class="delete-protocol-btn" data-id="${p.id}" style="background: none; border: none; color: rgba(244,63,94,0.7); cursor: pointer; font-size: 0.85rem; padding: 2px 4px;" title="Delete protocol">✕</button>
+                            <button class="delete-protocol-btn" data-id="${p.id}" style="background: none; border: none; color: rgba(244,63,94,0.7); cursor: pointer; font-size: 0.85rem; padding: 2px 4px;" title="Delete habit">✕</button>
                         </div>
                     </div>
                 `;
@@ -1239,8 +1249,8 @@ async function loadHabitProtocols() {
                     if (pData.status === 'success') {
                         if (window.showToast) {
                             const msg = pData.completed 
-                                ? `⚡ PROTOCOL EXECUTED: ${pData.title} | 🔥 ${pData.streak_count}-Day Streak!` 
-                                : `Protocol ${pData.title} reset`;
+                                ? `⚡ HABIT COMPLETED: ${pData.title} | 🔥 ${pData.streak_count}-Day Streak!` 
+                                : `Habit ${pData.title} reset`;
                             window.showToast(msg, 'success');
                         }
                         loadHabitProtocols();
@@ -1250,7 +1260,7 @@ async function loadHabitProtocols() {
 
             container.querySelectorAll('.delete-protocol-btn').forEach(btn => {
                 btn.addEventListener('click', async (e) => {
-                    if (!confirm('Delete this habit protocol?')) return;
+                    if (!confirm('Delete this habit?')) return;
                     const id = e.currentTarget.dataset.id;
                     const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
                     const csrfToken = cookie ? cookie.split('=')[1] : '';
@@ -1268,7 +1278,7 @@ async function loadHabitProtocols() {
             });
         }
     } catch (err) {
-        console.error('Error loading habit protocols:', err);
+        console.error('Error loading habits:', err);
     }
 }
 
@@ -1299,6 +1309,7 @@ document.addEventListener('DOMContentLoaded', () => {
             e.preventDefault();
             const title = document.getElementById('protocol-title-input').value.trim();
             const target_time = document.getElementById('protocol-time-input').value.trim();
+            const frequency = document.getElementById('protocol-freq-input').value;
             const keywords = document.getElementById('protocol-keywords-input').value.trim();
             if (!title) return;
 
@@ -1309,19 +1320,19 @@ document.addEventListener('DOMContentLoaded', () => {
                 const res = await fetch('/api/protocols/create/', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrfToken },
-                    body: JSON.stringify({ title, target_time, keywords })
+                    body: JSON.stringify({ title, target_time, frequency, keywords })
                 });
                 const data = await res.json();
                 if (data.status === 'success') {
-                    if (window.showToast) window.showToast(`⚡ Protocol Created: ${title}`, 'success');
+                    if (window.showToast) window.showToast(`⚡ Habit Created: ${title}`, 'success');
                     form.reset();
                     form.style.display = 'none';
                     loadHabitProtocols();
                 } else {
-                    alert(data.message || 'Error creating protocol');
+                    alert(data.message || 'Error creating habit');
                 }
             } catch (err) {
-                console.error('Error creating protocol:', err);
+                console.error('Error creating habit:', err);
             }
         });
     }
