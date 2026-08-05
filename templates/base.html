@@ -415,7 +415,7 @@
             <button class="mobile-nav-close" onclick="closeMobileNav()" aria-label="Close menu">✕</button>
         </div>
         {% if request.user.is_authenticated %}
-            <a href="/analytics/#time-audit" class="mobile-nav-link">Log</a>
+            <button id="mobile-quick-log-nav-btn" class="mobile-nav-link" style="background:none; border:none; width:100%; text-align:left; cursor:pointer; font-family:inherit; font-size:inherit;">Log</button>
             <a href="/analytics/" class="mobile-nav-link {% if '/analytics' in request.path or request.GET.tab == 'analytics' %}active{% endif %}">Analytics</a>
             <a href="/bible-memory/" class="mobile-nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">Practice Portal</a>
             <div class="mobile-nav-divider"></div>
@@ -462,10 +462,10 @@
                 <!-- Desktop Nav -->
                 <nav class="app-nav desktop-nav" style="display: flex; align-items: center; gap: 12px;">
                     <!-- 1. Log -->
-                    <a href="/analytics/#time-audit" class="nav-link" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;" title="15-Minute Micro-Audit Log">
+                    <button id="quick-log-nav-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px;" title="Quick 15-Minute Log">
                         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                         <span>Log</span>
-                    </a>
+                    </button>
 
                     <!-- 2. Pomodoro -->
                     <button id="pomo-nav-btn" class="nav-link pomo-nav-btn" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px; position: relative;" title="Pomodoro Focus Timer">
@@ -806,6 +806,43 @@
         </div>
     </div>
 
+    <!-- ── Quick 15-Minute Micro-Audit Log Popup ── -->
+    <div class="pomo-prompt-overlay" id="quickLogOverlay" style="display: none;"></div>
+    <div class="glass-panel pomo-prompt-modal" id="quickLogModal" style="display: none; max-width: 440px; border-radius: 16px; padding: 20px;">
+        <div class="pomo-prompt-header">
+            <h3 style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin: 0; font-size: 1.1rem;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Quick 15-Min Log</span>
+                </span>
+                <button id="closeQuickLogBtn" class="pomo-close-btn" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-secondary);">✕</button>
+            </h3>
+        </div>
+        <div class="pomo-prompt-body" style="padding: 14px 0;">
+            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-color); margin-bottom: 6px;" id="quickLogSlotTitle">Current Slot: --:--</div>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">What did you work on in this 15-minute block?</p>
+
+            <!-- Quick Shortcut Buttons -->
+            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;" id="quickLogTagContainer">
+                <button type="button" class="quick-tag-btn" data-tag="Research" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; border: 1px solid rgba(16,185,129,0.3); background: rgba(16,185,129,0.1); color: #047857; font-weight: 600; cursor: pointer;">[R] Research</button>
+                <button type="button" class="quick-tag-btn" data-tag="Coding" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; border: 1px solid rgba(59,130,246,0.3); background: rgba(59,130,246,0.1); color: #1d4ed8; font-weight: 600; cursor: pointer;">[C] Coding</button>
+                <button type="button" class="quick-tag-btn" data-tag="Admin" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; border: 1px solid rgba(245,158,11,0.3); background: rgba(245,158,11,0.1); color: #b45309; font-weight: 600; cursor: pointer;">[A] Admin</button>
+                <button type="button" class="quick-tag-btn" data-tag="Meeting" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; border: 1px solid rgba(139,92,246,0.3); background: rgba(139,92,246,0.1); color: #6d28d9; font-weight: 600; cursor: pointer;">[M] Meeting</button>
+                <button type="button" class="quick-tag-btn" data-tag="Distraction" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; border: 1px solid rgba(244,63,94,0.3); background: rgba(244,63,94,0.1); color: #be123c; font-weight: 600; cursor: pointer;">[D] Distraction</button>
+                <button type="button" class="quick-tag-btn" data-tag="Break" style="padding: 4px 10px; font-size: 0.78rem; border-radius: 6px; border: 1px solid rgba(107,114,128,0.3); background: rgba(107,114,128,0.1); color: #374151; font-weight: 600; cursor: pointer;">[B] Break</button>
+            </div>
+
+            <input type="text" id="quickLogInput" class="pomo-prompt-textarea" style="height: 42px; min-height: 42px; width: 100%; font-size: 0.92rem; padding: 8px 12px; border-radius: 8px; box-sizing: border-box;" placeholder="Or type custom task (e.g. debugging view)..." />
+        </div>
+        <div class="pomo-prompt-actions" style="display: flex; gap: 10px; justify-content: space-between; align-items: center;">
+            <a href="/analytics/#time-audit" style="font-size: 0.78rem; color: var(--accent-color); font-weight: 600; text-decoration: none;">View 3-Day Analytics →</a>
+            <div style="display: flex; gap: 8px;">
+                <button id="closeQuickLogCancelBtn" class="btn btn-secondary">Cancel</button>
+                <button id="saveQuickLogBtn" class="btn">Save Log</button>
+            </div>
+        </div>
+    </div>
+
     <!-- ── Focus History Modal (Day / Week / Month Views) ── -->
     <div class="day-view-overlay" id="dayViewOverlay"></div>
     <div class="day-view-modal" id="dayViewModal">
@@ -1035,6 +1072,110 @@
                 updateBadge();
                 const observer = new MutationObserver(updateBadge);
                 observer.observe(reminderBtn, { attributes: true, attributeFilter: ['class'] });
+            // --- QUICK 15-MINUTE LOG MODAL CONTROLLER ---
+            const quickLogBtn = document.getElementById('quick-log-nav-btn');
+            const mobileQuickLogBtn = document.getElementById('mobile-quick-log-nav-btn');
+            const quickOverlay = document.getElementById('quickLogOverlay');
+            const quickModal = document.getElementById('quickLogModal');
+            const quickCloseBtn = document.getElementById('closeQuickLogBtn');
+            const quickCancelBtn = document.getElementById('closeQuickLogCancelBtn');
+            const quickSaveBtn = document.getElementById('saveQuickLogBtn');
+            const quickInput = document.getElementById('quickLogInput');
+            const quickSlotTitle = document.getElementById('quickLogSlotTitle');
+            const quickTagContainer = document.getElementById('quickLogTagContainer');
+
+            if (quickModal) {
+                function getCurrentTimeSlot() {
+                    const now = new Date();
+                    const minutes = now.getMinutes();
+                    const slotMin = Math.floor(minutes / 15) * 15;
+                    const h = String(now.getHours()).padStart(2, '0');
+                    const m = String(slotMin).padStart(2, '0');
+                    return `${h}:${m}`;
+                }
+
+                let activeSlot = getCurrentTimeSlot();
+
+                function openQuickLogModal() {
+                    activeSlot = getCurrentTimeSlot();
+                    if (quickSlotTitle) quickSlotTitle.textContent = `Current Slot: ${activeSlot}`;
+                    if (quickInput) quickInput.value = '';
+                    if (quickOverlay) quickOverlay.style.display = 'block';
+                    quickModal.style.display = 'block';
+                    setTimeout(() => quickInput?.focus(), 100);
+                    if (typeof closeMobileNav === 'function') closeMobileNav();
+                }
+
+                function closeQuickLogModal() {
+                    if (quickOverlay) quickOverlay.style.display = 'none';
+                    quickModal.style.display = 'none';
+                }
+
+                async function submitQuickLog(text) {
+                    const rawText = text || quickInput?.value.trim();
+                    if (!rawText) return;
+
+                    try {
+                        const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+                        const csrfToken = cookie ? cookie.split('=')[1] : '';
+
+                        const res = await fetch('/api/time-audit/save/', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'X-CSRFToken': csrfToken
+                            },
+                            body: JSON.stringify({
+                                time_slot: activeSlot,
+                                raw_text: rawText,
+                                source: 'web'
+                            })
+                        });
+                        const data = await res.json();
+                        if (data.status === 'success') {
+                            closeQuickLogModal();
+                            if (window.showToast) {
+                                showToast(`Logged "${rawText}" for ${activeSlot}!`, 'success');
+                            }
+                            if (typeof loadTimeAuditData === 'function') {
+                                loadTimeAuditData();
+                            }
+                        } else {
+                            alert(data.message || 'Error saving log');
+                        }
+                    } catch (err) {
+                        console.error('Error saving time log:', err);
+                    }
+                }
+
+                if (quickLogBtn) quickLogBtn.addEventListener('click', openQuickLogModal);
+                if (mobileQuickLogBtn) mobileQuickLogBtn.addEventListener('click', openQuickLogModal);
+                if (quickCloseBtn) quickCloseBtn.addEventListener('click', closeQuickLogModal);
+                if (quickCancelBtn) quickCancelBtn.addEventListener('click', closeQuickLogModal);
+                if (quickOverlay) quickOverlay.addEventListener('click', closeQuickLogModal);
+
+                if (quickSaveBtn) {
+                    quickSaveBtn.addEventListener('click', () => submitQuickLog());
+                }
+
+                if (quickInput) {
+                    quickInput.addEventListener('keydown', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            submitQuickLog();
+                        }
+                    });
+                }
+
+                if (quickTagContainer) {
+                    quickTagContainer.querySelectorAll('.quick-tag-btn').forEach(btn => {
+                        btn.addEventListener('click', () => {
+                            const tag = btn.dataset.tag;
+                            if (quickInput) quickInput.value = tag;
+                            submitQuickLog(tag);
+                        });
+                    });
+                }
             }
         });
     </script>
