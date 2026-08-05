@@ -1401,7 +1401,7 @@
                     });
                 }
 
-                // --- AUDIT SESSION START/STOP & 5:00 AM - 10:00 PM (05:00 - 22:00) WINDOW ---
+                // --- AUDIT SESSION AUTO-START & 5:00 AM - 10:00 PM WINDOW ---
                 const toggleAuditBtn = document.getElementById('toggle-audit-session-btn');
                 const auditStatusText = document.getElementById('audit-session-status-text');
 
@@ -1416,40 +1416,46 @@
                     }
                 }
 
-                let auditActive = localStorage.getItem('audit_session_active') === 'true';
+                // Default to ENABLED (true) unless user explicitly clicked 'Pause Audit'
+                let auditSessionEnabled = localStorage.getItem('audit_session_enabled') !== 'false';
+
+                function isAuditRunningNow() {
+                    return auditSessionEnabled && !isUkTimeOutsideAuditHours();
+                }
 
                 function updateAuditBtnUI() {
                     if (!toggleAuditBtn || !auditStatusText) return;
-                    if (auditActive) {
+                    if (isAuditRunningNow()) {
                         toggleAuditBtn.style.background = 'rgba(239, 68, 68, 0.15)';
                         toggleAuditBtn.style.borderColor = 'rgba(239, 68, 68, 0.4)';
                         toggleAuditBtn.style.color = '#dc2626';
-                        auditStatusText.textContent = '⏹ Stop Audit';
+                        auditStatusText.textContent = '⏹ Pause Audit';
+                    } else if (auditSessionEnabled && isUkTimeOutsideAuditHours()) {
+                        toggleAuditBtn.style.background = 'rgba(107, 114, 128, 0.15)';
+                        toggleAuditBtn.style.borderColor = 'rgba(107, 114, 128, 0.4)';
+                        toggleAuditBtn.style.color = '#9ca3af';
+                        auditStatusText.textContent = '🌙 Sleeping (Resumes 5 AM)';
                     } else {
                         toggleAuditBtn.style.background = 'rgba(16, 185, 129, 0.12)';
                         toggleAuditBtn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
                         toggleAuditBtn.style.color = '#047857';
-                        auditStatusText.textContent = '▶️ Start Audit';
+                        auditStatusText.textContent = '▶️ Enable Audit';
                     }
                 }
 
                 if (toggleAuditBtn) {
                     toggleAuditBtn.addEventListener('click', (e) => {
                         e.preventDefault();
-                        if (!auditActive) {
-                            if (isUkTimeOutsideAuditHours()) {
-                                alert('Audit sessions run daily from 5:00 AM to 10:00 PM (05:00 - 22:00). Current time is outside this window.');
-                                return;
-                            }
-                            auditActive = true;
-                            localStorage.setItem('audit_session_active', 'true');
+                        if (!auditSessionEnabled) {
+                            auditSessionEnabled = true;
+                            localStorage.setItem('audit_session_enabled', 'true');
                             updateAuditBtnUI();
-                            if (window.showToast) showToast('▶️ 15-Min Time Audit Active (5:00 AM - 10:00 PM)!', 'success');
+                            if (window.showToast) showToast('▶️ 15-Min Time Audit Enabled! Prompts active daily 5:00 AM - 10:00 PM.', 'success');
                         } else {
-                            auditActive = false;
-                            localStorage.setItem('audit_session_active', 'false');
+                            auditSessionEnabled = false;
+                            localStorage.setItem('audit_session_enabled', 'false');
                             updateAuditBtnUI();
-                            if (window.showToast) showToast('⏹ Time Audit Paused.', 'info');
+                            if (window.showToast) showToast('⏹ Time Audit Explicitly Paused.', 'info');
                         }
                     });
                     updateAuditBtnUI();
@@ -1458,15 +1464,8 @@
                 // Trigger popup ONLY when a 15-minute slot finishes (:00, :15, :30, :45) during 5am - 10pm window
                 let lastPromptedSlot = '';
                 setInterval(() => {
-                    if (!auditActive) return;
-
-                    if (isUkTimeOutsideAuditHours()) {
-                        auditActive = false;
-                        localStorage.setItem('audit_session_active', 'false');
-                        updateAuditBtnUI();
-                        if (window.showToast) showToast('🌙 10:00 PM reached! Time Audit auto-stopped for tonight (resumes 5:00 AM).', 'warning');
-                        return;
-                    }
+                    updateAuditBtnUI();
+                    if (!isAuditRunningNow()) return;
 
                     const now = new Date();
                     const minutes = now.getMinutes();
@@ -1480,7 +1479,7 @@
                             openQuickLogModal(null, completedSlot);
                         }
                     }
-                }, 1000); // Check every second for exact boundary match
+                }, 1000); // Check every second for exact boundary match // Check every second for exact boundary match
             }
         });
     </script>
