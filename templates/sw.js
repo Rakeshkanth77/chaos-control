@@ -75,14 +75,47 @@ self.addEventListener('push', (event) => {
     );
 });
 
-self.addEventListener('notificationclick', (event) => {
-    event.notification.close();
-    event.waitUntil(
-        self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
-            for (const client of clients) {
-                if ('focus' in client) return client.focus();
+// ── 15-minute audit slot prompts ──
+// The page raises these via registration.showNotification (see base.html) so the
+// prompt still lands when the tab is backgrounded. Tapping the prediction action
+// saves the slot here, without the app ever coming to the foreground.
+function saveSlotFromNotification(data) {
+    return fetch('/api/time-audit/save/', {
+        method: 'POST',
+        credentials: 'include',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': data.csrfToken || '',
+        },
+        body: JSON.stringify({
+            time_slot: data.slot,
+            raw_text: data.text,
+            category: data.category || undefined,
+            source: 'notification',
+        }),
+    }).catch(() => { /* offline — the slot can still be backfilled in the app */ });
+}
+
+function openApp(slot) {
+    return self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then((clients) => {
+        for (const client of clients) {
+            if ('focus' in client) {
+                if (slot) client.postMessage({ type: 'open-quick-log', slot: slot });
+                return client.focus();
             }
-            if (self.clients.openWindow) return self.clients.openWindow('/');
-        })
-    );
+        }
+        if (self.clients.openWindow) return self.clients.openWindow('/');
+    });
+}
+
+self.addEventListener('notificationclick', (event) => {
+    const data = event.notification.data || {};
+    event.notification.close();
+
+    if (event.action === 'log-prediction' && data.slot && data.text) {
+        event.waitUntil(saveSlotFromNotification(data));
+        return;
+    }
+
+    event.waitUntil(openApp(data.slot));
 });

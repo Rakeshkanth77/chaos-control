@@ -538,6 +538,14 @@
                                 <span>Practice Portal</span>
                             </a>
 
+                            <button type="button" id="toggle-audit-session-btn" class="dropdown-item dropdown-reminder-btn" title="Pause or enable the 15-minute audit prompts">
+                                <span style="display: flex; align-items: center; gap: 10px;">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                    <span>15-Min Audit</span>
+                                </span>
+                                <span id="audit-session-status-text" class="reminder-status-badge">⏹ Pause Audit</span>
+                            </button>
+
                             <button type="button" class="dropdown-item reminder-toggle-btn dropdown-reminder-btn" title="Workflows & Systems">
                                 <span style="display: flex; align-items: center; gap: 10px;">
                                     <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
@@ -824,66 +832,46 @@
                     <span>Quick 15-Min Log</span>
                 </span>
                 <div style="display: flex; align-items: center; gap: 6px;">
-                    <button id="popupToggleAuditBtn" style="font-size: 0.72rem; padding: 3px 8px; border-radius: 6px; font-weight: 700; cursor: pointer; border: 1px solid rgba(239, 68, 68, 0.4); background: rgba(239, 68, 68, 0.15); color: #dc2626;" title="Pause or enable time audit prompts">
-                        <span id="popupAuditStatusText">⏹ Pause Audit</span>
-                    </button>
-                    <a href="/api/time-audit/export-md/" target="_blank" download style="font-size: 0.75rem; background: rgba(45, 212, 191, 0.15); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.3); padding: 3px 8px; border-radius: 6px; text-decoration: none; font-weight: 700;">📥 Export .md</a>
+                    <select id="quickLogSlotSelect" style="background: rgba(15, 23, 42, 0.8); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); padding: 4px 10px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.82rem; outline: none; cursor: pointer;" title="Select 15-minute time slot to log">
+                        <!-- Populated dynamically via JS -->
+                    </select>
                     <button id="closeQuickLogBtn" class="pomo-close-btn" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-secondary);">✕</button>
                 </div>
             </h3>
         </div>
         <div class="pomo-prompt-body" style="padding: 14px 0;">
-            <!-- 20-Word Daily Shift Summary Banner -->
-            <div id="quickLogSummaryBanner" style="display: none; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; color: #7dd3fc; margin-bottom: 10px; line-height: 1.4;"></div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                <span style="font-size: 0.85rem; font-weight: 700; color: #2dd4bf;" id="quickLogSlotTitle">Logging Slot:</span>
-                <select id="quickLogSlotSelect" style="background: rgba(15, 23, 42, 0.8); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); padding: 4px 10px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.82rem; outline: none; cursor: pointer;" title="Select 15-minute time slot to log">
-                    <!-- Populated dynamically via JS -->
-                </select>
-            </div>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">What did you work on in this 15-minute block?</p>
-
             <!-- Predicted Logs — one tap saves the slot outright -->
             <div id="quickLogPredictions" style="display: none; margin-bottom: 10px;">
                 <div style="font-size: 0.7rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; margin-bottom: 5px;">Likely — tap to log instantly</div>
                 <div id="quickLogPredictionChips" style="display: flex; flex-direction: column; gap: 5px;"></div>
             </div>
 
-            <!-- Pattern Suggestion Chip -->
-            <div id="quickLogSuggestedChip" style="display: none; margin-bottom: 10px; font-size: 0.76rem; color: #a7f3d0; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 700;" title="Click to auto-fill this pattern"></div>
+            <input type="text" id="quickLogInput" class="pomo-prompt-textarea" style="height: 42px; min-height: 42px; width: 100%; font-size: 0.92rem; padding: 8px 12px; border-radius: 8px; box-sizing: border-box;" placeholder="What did you work on? (Enter to save)" />
 
-            <!-- Quick Shortcut Buttons -->
-            <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;" id="quickLogTagContainer">
-                <button type="button" class="quick-tag-btn" data-tag="PhD" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; border: 1px solid rgba(16,185,129,0.3); background: rgba(16,185,129,0.1); color: #34d399; font-weight: 700; cursor: pointer;">[P] PhD</button>
-                <button type="button" class="quick-tag-btn" data-tag="Side Projects" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; border: 1px solid rgba(59,130,246,0.3); background: rgba(59,130,246,0.1); color: #60a5fa; font-weight: 700; cursor: pointer;">[J] Side Projects</button>
-                <button type="button" class="quick-tag-btn" data-tag="Life Skills" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; border: 1px solid rgba(245,158,11,0.3); background: rgba(245,158,11,0.1); color: #fbbf24; font-weight: 700; cursor: pointer;">[L] Life Skills</button>
-                <button type="button" class="quick-tag-btn" data-tag="Spiritual" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; border: 1px solid rgba(139,92,246,0.3); background: rgba(139,92,246,0.1); color: #a78bfa; font-weight: 700; cursor: pointer;">[S] Spiritual</button>
-                <button type="button" class="quick-tag-btn" data-tag="Cooking" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; border: 1px solid rgba(249,115,22,0.3); background: rgba(249,115,22,0.1); color: #fb923c; font-weight: 700; cursor: pointer;">[C] Cooking</button>
-                <button type="button" class="quick-tag-btn" data-tag="Driving" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; border: 1px solid rgba(6,182,212,0.3); background: rgba(6,182,212,0.1); color: #22d3ee; font-weight: 700; cursor: pointer;">[V] Driving</button>
-                <button type="button" class="quick-tag-btn" data-tag="Distracted" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; border: 1px solid rgba(244,63,94,0.3); background: rgba(244,63,94,0.1); color: #fb7185; font-weight: 700; cursor: pointer;">[D] Distracted</button>
-                <button type="button" class="quick-tag-btn" data-tag="Break" style="padding: 4px 8px; font-size: 0.76rem; border-radius: 6px; border: 1px solid rgba(20,184,166,0.3); background: rgba(20,184,166,0.1); color: #2dd4bf; font-weight: 700; cursor: pointer;">[B] Break</button>
-            </div>
+            <!-- Everything below is review/admin, not logging — collapsed by default so the
+                 default view is exactly: slot, predictions, input. -->
+            <button type="button" id="quickLogHistoryToggle" aria-expanded="false" style="display: flex; align-items: center; gap: 6px; margin-top: 12px; padding: 0; background: none; border: none; cursor: pointer; font-family: inherit; font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">
+                <span id="quickLogHistoryCaret">▸</span>
+                <span>Today's log</span>
+                <span id="quickLogTodayCount" style="font-size: 0.72rem; background: rgba(45, 212, 191, 0.15); color: #2dd4bf; padding: 2px 8px; border-radius: 10px; font-weight: 800; text-transform: none;">0 logs</span>
+            </button>
 
-            <input type="text" id="quickLogInput" class="pomo-prompt-textarea" style="height: 42px; min-height: 42px; width: 100%; font-size: 0.92rem; padding: 8px 12px; border-radius: 8px; box-sizing: border-box;" placeholder="Or type custom task (e.g. reading paper)..." />
+            <div id="quickLogHistoryPanel" style="display: none; margin-top: 10px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px;">
+                <div id="quickLogSummaryBanner" style="display: none; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; color: #7dd3fc; margin-bottom: 10px; line-height: 1.4;"></div>
 
-            <!-- Today's Logged Timeline Feed -->
-            <div style="margin-top: 14px; border-top: 1px solid rgba(255, 255, 255, 0.1); padding-top: 12px;">
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
-                    <span style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.5px;">Today's Logged Timeline (Latest Top)</span>
-                    <span id="quickLogTodayCount" style="font-size: 0.72rem; background: rgba(45, 212, 191, 0.15); color: #2dd4bf; padding: 2px 8px; border-radius: 10px; font-weight: 800;">0 logs</span>
-                </div>
                 <div id="quickLogTimelineFeed" style="max-height: 240px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
                     <div style="font-size: 0.78rem; color: var(--text-secondary); text-align: center; padding: 10px 0;">Loading today's logs...</div>
                 </div>
+
+                <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; font-size: 0.76rem;">
+                    <a href="/profile/?tab=analytics#time-audit" style="color: var(--accent-color); font-weight: 600; text-decoration: none;">View 3-Day Analytics →</a>
+                    <a href="/api/time-audit/export-md/" target="_blank" download style="color: #2dd4bf; font-weight: 700; text-decoration: none;">📥 Export .md</a>
+                </div>
             </div>
         </div>
-        <div class="pomo-prompt-actions" style="display: flex; gap: 10px; justify-content: space-between; align-items: center;">
-            <a href="/profile/?tab=analytics#time-audit" style="font-size: 0.78rem; color: var(--accent-color); font-weight: 600; text-decoration: none;">View 3-Day Analytics →</a>
-            <div style="display: flex; gap: 8px;">
-                <button id="closeQuickLogCancelBtn" class="btn btn-secondary">Cancel</button>
-                <button id="saveQuickLogBtn" class="btn">Save Log</button>
-            </div>
+        <div class="pomo-prompt-actions" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
+            <button id="closeQuickLogCancelBtn" class="btn btn-secondary">Cancel</button>
+            <button id="saveQuickLogBtn" class="btn">Save Log</button>
         </div>
     </div>
 
@@ -1199,8 +1187,9 @@
             const quickCancelBtn = document.getElementById('closeQuickLogCancelBtn');
             const quickSaveBtn = document.getElementById('saveQuickLogBtn');
             const quickInput = document.getElementById('quickLogInput');
-            const quickSlotTitle = document.getElementById('quickLogSlotTitle');
-            const quickTagContainer = document.getElementById('quickLogTagContainer');
+            const quickHistoryToggle = document.getElementById('quickLogHistoryToggle');
+            const quickHistoryPanel = document.getElementById('quickLogHistoryPanel');
+            const quickHistoryCaret = document.getElementById('quickLogHistoryCaret');
 
             if (quickModal) {
                 let todayLoggedSlots = {};
@@ -1250,8 +1239,6 @@
                         loadTodayAuditFeed();
                     });
                 }
-
-                let autoDismissTimer = null;
 
                 const PREDICTION_CATEGORY_COLOURS = {
                     phd: '#34d399',
@@ -1310,7 +1297,6 @@
                     const feed = document.getElementById('quickLogTimelineFeed');
                     const countBadge = document.getElementById('quickLogTodayCount');
                     const summaryBanner = document.getElementById('quickLogSummaryBanner');
-                    const suggestedChip = document.getElementById('quickLogSuggestedChip');
                     if (!feed) return;
 
                     try {
@@ -1320,28 +1306,11 @@
                         if (data.status === 'success') {
                             renderPredictions(data.predictions);
 
-                            // 1. Render 20-word Daily Shift Summary
                             if (summaryBanner && data.daily_summary) {
                                 summaryBanner.textContent = `💡 Daily Summary: ${data.daily_summary}`;
                                 summaryBanner.style.display = 'block';
                             } else if (summaryBanner) {
                                 summaryBanner.style.display = 'none';
-                            }
-
-                            // 2. Render Suggested Pattern for active slot
-                            if (suggestedChip && data.suggested_patterns && data.suggested_patterns[activeSlot]) {
-                                const pattern = data.suggested_patterns[activeSlot];
-                                suggestedChip.dataset.pattern = pattern;
-                                suggestedChip.innerHTML = `💡 Suggested pattern for ${formatSlotRange(activeSlot)}: <strong>"${pattern}"</strong> <span style="font-size:0.7rem; opacity:0.8; margin-left:4px;">(Click to fill)</span>`;
-                                suggestedChip.style.display = 'block';
-                                suggestedChip.onclick = () => {
-                                    if (quickInput) {
-                                        quickInput.value = pattern;
-                                        quickInput.focus();
-                                    }
-                                };
-                            } else if (suggestedChip) {
-                                suggestedChip.style.display = 'none';
                             }
 
                             if (data.slots) {
@@ -1483,19 +1452,11 @@
                     // Load today's logs inside modal
                     loadTodayAuditFeed();
 
-                    // Auto-dismiss after 30 seconds if untouched
-                    if (autoDismissTimer) clearTimeout(autoDismissTimer);
-                    autoDismissTimer = setTimeout(() => {
-                        closeQuickLogModal();
-                        if (window.showToast) window.showToast('⏰ Slot prompt auto-closed after 30s. Backfill anytime from Log grid!', 'info');
-                    }, 30000);
+                    // No auto-dismiss: the prompt stays until the slot is logged or
+                    // explicitly dismissed. Timing it out silently loses the slot.
                 }
 
                 function closeQuickLogModal() {
-                    if (autoDismissTimer) {
-                        clearTimeout(autoDismissTimer);
-                        autoDismissTimer = null;
-                    }
                     if (quickOverlay) {
                         quickOverlay.classList.remove('open');
                         quickOverlay.style.display = 'none';
@@ -1507,16 +1468,9 @@
                 }
 
                 async function submitQuickLog(text, category) {
-                    let rawText = text || (quickInput ? quickInput.value.trim() : '');
+                    const rawText = text || (quickInput ? quickInput.value.trim() : '');
                     if (!rawText) {
-                        const suggestedChip = document.getElementById('quickLogSuggestedChip');
-                        if (suggestedChip && suggestedChip.style.display !== 'none' && suggestedChip.dataset.pattern) {
-                            rawText = suggestedChip.dataset.pattern;
-                            if (quickInput) quickInput.value = rawText;
-                        }
-                    }
-                    if (!rawText) {
-                        if (window.showToast) window.showToast('Please type a task or select a category tag first!', 'info');
+                        if (window.showToast) window.showToast('Type what you worked on, or tap a suggestion.', 'info');
                         quickInput?.focus();
                         return;
                     }
@@ -1607,42 +1561,23 @@
                             submitQuickLog();
                         }
                     });
-
-                    // Cancel auto-dismiss on typing
-                    quickInput.addEventListener('input', () => {
-                        if (autoDismissTimer) {
-                            clearTimeout(autoDismissTimer);
-                            autoDismissTimer = null;
-                        }
-                    });
                 }
 
-                if (quickTagContainer) {
-                    quickTagContainer.querySelectorAll('.quick-tag-btn').forEach(btn => {
-                        btn.addEventListener('click', () => {
-                            if (autoDismissTimer) {
-                                clearTimeout(autoDismissTimer);
-                                autoDismissTimer = null;
-                            }
-                            const tag = btn.dataset.tag;
-                            if (quickInput) {
-                                const currentVal = quickInput.value.trim();
-                                if (currentVal && !currentVal.includes(tag)) {
-                                    quickInput.value = `${tag}: ${currentVal}`;
-                                } else {
-                                    quickInput.value = tag;
-                                }
-                                quickInput.focus();
-                            }
-                        });
+                // Today's log is review, not logging — kept collapsed so the default
+                // view stays at slot + predictions + input.
+                if (quickHistoryToggle && quickHistoryPanel) {
+                    quickHistoryToggle.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        const isOpen = quickHistoryPanel.style.display !== 'none';
+                        quickHistoryPanel.style.display = isOpen ? 'none' : 'block';
+                        quickHistoryToggle.setAttribute('aria-expanded', String(!isOpen));
+                        if (quickHistoryCaret) quickHistoryCaret.textContent = isOpen ? '▸' : '▾';
                     });
                 }
 
                 // --- AUDIT SESSION AUTO-START & 5:00 AM - 10:00 PM WINDOW ---
                 const toggleAuditBtn = document.getElementById('toggle-audit-session-btn');
-                const popupToggleAuditBtn = document.getElementById('popupToggleAuditBtn');
                 const auditStatusText = document.getElementById('audit-session-status-text');
-                const popupAuditStatusText = document.getElementById('popupAuditStatusText');
 
                 function isUkTimeOutsideAuditHours() {
                     try {
@@ -1663,31 +1598,27 @@
                 }
 
                 function updateAuditBtnUI() {
-                    const isRunning = isAuditRunningNow();
-                    const isOutside = isUkTimeOutsideAuditHours();
+                    if (!toggleAuditBtn || !auditStatusText) return;
 
-                    const setBtnState = (btn, textEl) => {
-                        if (!btn || !textEl) return;
-                        if (isRunning) {
-                            btn.style.background = 'rgba(239, 68, 68, 0.15)';
-                            btn.style.borderColor = 'rgba(239, 68, 68, 0.4)';
-                            btn.style.color = '#dc2626';
-                            textEl.textContent = '⏹ Pause Audit';
-                        } else if (auditSessionEnabled && isOutside) {
-                            btn.style.background = 'rgba(107, 114, 128, 0.15)';
-                            btn.style.borderColor = 'rgba(107, 114, 128, 0.4)';
-                            btn.style.color = '#9ca3af';
-                            textEl.textContent = '🌙 Sleeping (Resumes 5 AM)';
-                        } else {
-                            btn.style.background = 'rgba(16, 185, 129, 0.12)';
-                            btn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
-                            btn.style.color = '#047857';
-                            textEl.textContent = '▶️ Enable Audit';
-                        }
-                    };
+                    if (isAuditRunningNow()) {
+                        auditStatusText.textContent = '⏹ Pause Audit';
+                    } else if (auditSessionEnabled && isUkTimeOutsideAuditHours()) {
+                        auditStatusText.textContent = '🌙 Sleeping';
+                    } else {
+                        auditStatusText.textContent = '▶️ Enable Audit';
+                    }
+                    toggleAuditBtn.classList.toggle('active', isAuditRunningNow());
+                }
 
-                    setBtnState(toggleAuditBtn, auditStatusText);
-                    setBtnState(popupToggleAuditBtn, popupAuditStatusText);
+                // Prompts are useless if they only reach a focused tab, so ask for
+                // notification permission the moment the user opts into the audit.
+                function ensureNotificationPermission() {
+                    if (!('Notification' in window) || Notification.permission !== 'default') return;
+                    try {
+                        Notification.requestPermission();
+                    } catch (err) {
+                        console.warn('Notification permission request failed:', err);
+                    }
                 }
 
                 const handleAuditToggle = (e) => {
@@ -1696,6 +1627,7 @@
                         auditSessionEnabled = true;
                         localStorage.setItem('audit_session_enabled', 'true');
                         updateAuditBtnUI();
+                        ensureNotificationPermission();
                         if (window.showToast) window.showToast('▶️ 15-Min Time Audit Enabled! Prompts active daily 5:00 AM - 10:00 PM.', 'success');
                     } else {
                         auditSessionEnabled = false;
@@ -1706,32 +1638,105 @@
                 };
 
                 if (toggleAuditBtn) toggleAuditBtn.addEventListener('click', handleAuditToggle);
-                if (popupToggleAuditBtn) popupToggleAuditBtn.addEventListener('click', handleAuditToggle);
+                if (quickLogBtn) quickLogBtn.addEventListener('click', ensureNotificationPermission);
 
                 updateAuditBtnUI();
 
-                // Trigger popup ONLY when a 15-minute slot finishes (:00, :15, :30, :45) during 5am - 10pm window
+                // Raise the slot prompt as a system notification so it lands even when the
+                // tab is in the background. The top prediction becomes an action button,
+                // which logs the slot from the notification without focusing the app.
+                async function notifySlot(slot) {
+                    if (!('Notification' in window) || Notification.permission !== 'granted') return false;
+                    if (!('serviceWorker' in navigator)) return false;
+
+                    let registration;
+                    try {
+                        registration = await navigator.serviceWorker.ready;
+                    } catch (err) {
+                        return false;
+                    }
+                    if (!registration || typeof registration.showNotification !== 'function') return false;
+
+                    let top = null;
+                    try {
+                        const res = await fetch(`/api/time-audit/today/?slot=${encodeURIComponent(slot)}`);
+                        const data = await res.json();
+                        if (data.status === 'success' && data.predictions && data.predictions.length) {
+                            top = data.predictions[0];
+                        }
+                    } catch (err) {
+                        // Offline or logged out - still prompt, just without a prediction.
+                    }
+
+                    const actions = [];
+                    if (top) {
+                        const label = top.text.length > 28 ? `${top.text.slice(0, 27)}…` : top.text;
+                        actions.push({ action: 'log-prediction', title: `✓ ${label}` });
+                    }
+                    actions.push({ action: 'open', title: 'Something else' });
+
+                    try {
+                        await registration.showNotification(`Log ${formatSlotRange(slot)}`, {
+                            body: top ? `Tap to log "${top.text}"` : 'What did you work on?',
+                            icon: '/static/images/icon-192.png',
+                            badge: '/static/images/icon-192.png',
+                            tag: `audit-slot-${slot}`,
+                            renotify: true,
+                            requireInteraction: true,  // stays put until the slot is dealt with
+                            data: {
+                                slot: slot,
+                                text: top ? top.text : '',
+                                category: top ? top.category : '',
+                                csrfToken: window.CSRF_TOKEN || ''
+                            },
+                            actions: actions
+                        });
+                        return true;
+                    } catch (err) {
+                        console.warn('Slot notification failed:', err);
+                        return false;
+                    }
+                }
+
+                // The service worker asks us to open the modal when the notification is
+                // tapped without choosing a prediction.
+                if ('serviceWorker' in navigator) {
+                    navigator.serviceWorker.addEventListener('message', (event) => {
+                        if (event.data && event.data.type === 'open-quick-log') {
+                            openQuickLogModal(null, event.data.slot);
+                        }
+                    });
+                }
+
+                // Trigger the prompt when a 15-minute slot finishes (:00, :15, :30, :45)
+                // during the 5am - 10pm window.
                 let lastPromptedSlot = '';
                 setInterval(() => {
                     updateAuditBtnUI();
                     if (!isAuditRunningNow()) return;
 
                     const now = new Date();
-                    const minutes = now.getMinutes();
-                    const seconds = now.getSeconds();
+                    if (now.getMinutes() % 15 !== 0 || now.getSeconds() !== 0) return;
 
-                    // Check if exact 15-minute slot boundary is reached (:00, :15, :30, :45)
-                    if (minutes % 15 === 0 && seconds === 0) {
-                        const completedSlot = getCompletedTimeSlot();
-                        if (completedSlot !== lastPromptedSlot) {
-                            lastPromptedSlot = completedSlot;
-                            if (!quickModal || quickModal.style.display === 'none') {
-                                openQuickLogModal(null, completedSlot);
-                            } else {
-                                populateSlotPicker(activeSlot);
-                                loadTodayAuditFeed();
-                            }
-                        }
+                    const completedSlot = getCompletedTimeSlot();
+                    if (completedSlot === lastPromptedSlot) return;
+                    lastPromptedSlot = completedSlot;
+
+                    const modalIsOpen = quickModal && quickModal.style.display !== 'none';
+                    if (modalIsOpen) {
+                        populateSlotPicker(activeSlot);
+                        loadTodayAuditFeed();
+                        return;
+                    }
+
+                    // Foreground: the modal is the fastest path. Background: notify, and
+                    // only fall back to the modal if the notification could not be shown.
+                    if (document.visibilityState === 'visible') {
+                        openQuickLogModal(null, completedSlot);
+                    } else {
+                        notifySlot(completedSlot).then((shown) => {
+                            if (!shown) openQuickLogModal(null, completedSlot);
+                        });
                     }
                 }, 1000); // Check every second for exact boundary match
             }

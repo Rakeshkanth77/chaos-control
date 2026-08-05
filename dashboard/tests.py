@@ -349,6 +349,43 @@ class TimeAuditApiTestCase(TestCase):
         self.assertEqual(stats_data['total_blocks'], 1)
 
 
+class QuickLogModalMarkupTestCase(TestCase):
+    """
+    The quick log modal is the one screen that has to stay minimal, so the
+    stripped-down shape is pinned here rather than left to drift back.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='logger', password='password123')
+        self.client.login(username='logger', password='password123')
+
+    def dashboard_html(self):
+        return self.client.get('/').content.decode()
+
+    def test_modal_keeps_only_the_logging_essentials(self):
+        html = self.dashboard_html()
+        for element in ('id="quickLogSlotSelect"', 'id="quickLogPredictions"',
+                        'id="quickLogInput"', 'id="quickLogHistoryToggle"'):
+            self.assertIn(element, html)
+
+    def test_modal_drops_the_controls_that_were_pure_friction(self):
+        html = self.dashboard_html()
+        for element in ('quick-tag-btn',            # 8 category buttons, now auto-categorised
+                        'quickLogSuggestedChip',    # superseded by ranked predictions
+                        'popupToggleAuditBtn'):     # moved to the profile dropdown
+            self.assertNotIn(element, html)
+
+    def test_audit_pause_control_still_reachable_from_the_dropdown(self):
+        html = self.dashboard_html()
+        self.assertIn('id="toggle-audit-session-btn"', html)
+        self.assertIn('id="audit-session-status-text"', html)
+
+    def test_service_worker_handles_the_log_action(self):
+        sw = self.client.get('/sw.js').content.decode()
+        self.assertIn('log-prediction', sw)
+        self.assertIn('/api/time-audit/save/', sw)
+
+
 class SlotPredictionTestCase(TestCase):
     def setUp(self):
         self.user = User.objects.create_user(username='predictor', password='password123')
