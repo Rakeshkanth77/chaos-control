@@ -2,7 +2,7 @@ from django.http import JsonResponse
 from django.utils import timezone
 from django.db.models import Count, Q, Sum
 from datetime import timedelta, datetime
-from dashboard.models import Todo, PomodoroSession, DailyReflection
+from dashboard.models import Todo, PomodoroSession, DailyReflection, TimeAuditLog
 
 from django.contrib.auth.decorators import login_required
 
@@ -333,6 +333,58 @@ def get_summary_stats(request):
         avg_daily_focus_mins = int(round(total_weekly_focus_mins / float(num_days)))
         avg_daily_gap_mins = int(round(sum(opportunity_minutes) / float(num_days)))
 
+        # Fetch Time Audit logs for the date range & compute category breakdown
+        audit_qs = TimeAuditLog.objects.filter(user=request.user, date__gte=start_date, date__lte=end_date)
+        num_slots = len(date_labels)
+        audit_phd_hours = [0.0] * num_slots
+        audit_projects_hours = [0.0] * num_slots
+        audit_life_spiritual_hours = [0.0] * num_slots
+        audit_other_hours = [0.0] * num_slots
+        audit_distracted_hours = [0.0] * num_slots
+
+        if view_type == 'day':
+            for log in audit_qs:
+                try:
+                    h = int(log.time_slot.split(':')[0])
+                    s_idx = min(h // 2, 11)
+                    cat = log.category or 'other'
+                    if cat == 'phd':
+                        audit_phd_hours[s_idx] += 0.25
+                    elif cat == 'projects':
+                        audit_projects_hours[s_idx] += 0.25
+                    elif cat in ['life_skills', 'spiritual']:
+                        audit_life_spiritual_hours[s_idx] += 0.25
+                    elif cat == 'distracted':
+                        audit_distracted_hours[s_idx] += 0.25
+                    else:
+                        audit_other_hours[s_idx] += 0.25
+                except Exception:
+                    pass
+        else:
+            date_to_idx = {d: i for i, d in enumerate(date_list)}
+            for log in audit_qs:
+                s_idx = date_to_idx.get(log.date)
+                if s_idx is not None:
+                    cat = log.category or 'other'
+                    if cat == 'phd':
+                        audit_phd_hours[s_idx] += 0.25
+                    elif cat == 'projects':
+                        audit_projects_hours[s_idx] += 0.25
+                    elif cat in ['life_skills', 'spiritual']:
+                        audit_life_spiritual_hours[s_idx] += 0.25
+                    elif cat == 'distracted':
+                        audit_distracted_hours[s_idx] += 0.25
+                    else:
+                        audit_other_hours[s_idx] += 0.25
+
+        tot_audit_phd_mins = int(round(sum(audit_phd_hours) * 60))
+        tot_audit_projects_mins = int(round(sum(audit_projects_hours) * 60))
+        tot_audit_life_spiritual_mins = int(round(sum(audit_life_spiritual_hours) * 60))
+        tot_audit_other_mins = int(round(sum(audit_other_hours) * 60))
+        tot_audit_distracted_mins = int(round(sum(audit_distracted_hours) * 60))
+        distracted_slots_count = audit_qs.filter(category='distracted').count()
+        total_audit_mins = tot_audit_phd_mins + tot_audit_projects_mins + tot_audit_life_spiritual_mins + tot_audit_other_mins + tot_audit_distracted_mins
+
         return JsonResponse({
             'status': 'success',
             'view': view_type,
@@ -372,6 +424,18 @@ def get_summary_stats(request):
                 'highest_gap_minutes': other_peak_gap_mins,
                 'highest_gap_label': other_peak_gap_label,
                 'total_focus_minutes': sum(other_minutes),
+            },
+            'time_audit_breakdown': {
+                'phd_hours': [round(x, 2) for x in audit_phd_hours],
+                'projects_hours': [round(x, 2) for x in audit_projects_hours],
+                'life_spiritual_hours': [round(x, 2) for x in audit_life_spiritual_hours],
+                'other_hours': [round(x, 2) for x in audit_other_hours],
+                'distracted_hours': [round(x, 2) for x in audit_distracted_hours],
+                'total_audit_minutes': total_audit_mins,
+                'phd_minutes': tot_audit_phd_mins,
+                'projects_minutes': tot_audit_projects_mins,
+                'life_spiritual_minutes': tot_audit_life_spiritual_mins,
+                'distracted_slots_count': distracted_slots_count
             },
             'eisenhower_distribution': dist_data,
             'streak': streak,

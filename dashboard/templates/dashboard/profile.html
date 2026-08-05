@@ -569,6 +569,70 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </div>
 
+        <!-- ROW 4: 15-Minute Time Audit Breakdown & Highlights Panel -->
+        <div class="glass-panel" style="margin-bottom: 24px; width: 100%; padding: 24px; display: flex; flex-direction: column;" id="time-audit">
+            <h3 class="panel-title" style="margin-bottom: 16px; font-size: 1.15rem; font-weight: 700;">⏱️ 15-Minute Time Audit Breakdown &amp; Highlights</h3>
+            
+            <div class="pomo-split-grid" style="display: grid; grid-template-columns: 7fr 3fr; gap: 20px; width: 100%; align-items: stretch;">
+                <!-- Left 70%: Stacked Bar Chart -->
+                <div class="chart-wrapper pomo-chart-wrapper" style="width: 100%; position: relative; height: 440px; min-height: 380px;">
+                    <canvas id="time-audit-stacked-chart"></canvas>
+                </div>
+
+                <!-- Right 30%: Audit Highlights Bracket -->
+                <div class="pomo-stats-bracket" style="display: flex; flex-direction: column; justify-content: space-between; gap: 8px; background: rgba(12, 88, 85, 0.03); border: 1px solid rgba(12, 88, 85, 0.08); border-radius: 14px; padding: 14px;">
+                    <div style="font-family: 'Outfit', sans-serif; font-size: 0.82rem; font-weight: 700; color: var(--accent-color); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid rgba(12, 88, 85, 0.1); padding-bottom: 6px; margin-bottom: 2px;">
+                        📊 Time Audit Highlights
+                    </div>
+
+                    <!-- 1. Total Audited Hours -->
+                    <div class="bracket-metric-card" style="background: rgba(255, 255, 255, 0.75); padding: 8px 10px; border-radius: 9px; border: 1px solid rgba(0,0,0,0.04);">
+                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-secondary); font-weight: 600;">⏳ Total Audited Time</div>
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
+                            <span id="audit-total-hours-val" style="font-size: 1rem; font-weight: 800; color: #2563eb;">--</span>
+                            <span style="font-size: 0.7rem; color: var(--text-secondary); font-weight: 600;">this period</span>
+                        </div>
+                    </div>
+
+                    <!-- 2. Total PhD Focus -->
+                    <div class="bracket-metric-card" style="background: rgba(45, 212, 191, 0.05); padding: 8px 10px; border-radius: 9px; border-left: 3px solid #2dd4bf; border-top: 1px solid rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03);">
+                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #0c9e93; font-weight: 700;">🎓 Total PhD Hours</div>
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
+                            <span id="audit-phd-hours-val" style="font-size: 0.98rem; font-weight: 800; color: var(--text-primary);">--</span>
+                            <span style="font-size: 0.7rem; color: #0c9e93; font-weight: 600;">this period</span>
+                        </div>
+                    </div>
+
+                    <!-- 3. Total Side Projects -->
+                    <div class="bracket-metric-card" style="background: rgba(59, 130, 246, 0.05); padding: 8px 10px; border-radius: 9px; border-left: 3px solid #3b82f6; border-top: 1px solid rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03);">
+                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #1d4ed8; font-weight: 700;">🚀 Total Side Projects</div>
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
+                            <span id="audit-projects-hours-val" style="font-size: 0.98rem; font-weight: 800; color: var(--text-primary);">--</span>
+                            <span style="font-size: 0.7rem; color: #1d4ed8; font-weight: 600;">this period</span>
+                        </div>
+                    </div>
+
+                    <!-- 4. Total Life & Spiritual -->
+                    <div class="bracket-metric-card" style="background: rgba(139, 92, 246, 0.05); padding: 8px 10px; border-radius: 9px; border-left: 3px solid #8b5cf6; border-top: 1px solid rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03);">
+                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #6d28d9; font-weight: 700;">🧘 Life &amp; Spiritual</div>
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
+                            <span id="audit-life-spiritual-val" style="font-size: 0.98rem; font-weight: 800; color: var(--text-primary);">--</span>
+                            <span style="font-size: 0.7rem; color: #6d28d9; font-weight: 600;">this period</span>
+                        </div>
+                    </div>
+
+                    <!-- 5. Distractions Logged -->
+                    <div class="bracket-metric-card" style="background: rgba(244, 63, 94, 0.05); padding: 8px 10px; border-radius: 9px; border-left: 3px solid #f43f5e; border-top: 1px solid rgba(0,0,0,0.03); border-right: 1px solid rgba(0,0,0,0.03); border-bottom: 1px solid rgba(0,0,0,0.03);">
+                        <div style="font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.5px; color: #be123c; font-weight: 700;">🚨 Distractions Logged</div>
+                        <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 2px;">
+                            <span id="audit-distracted-count-val" style="font-size: 0.98rem; font-weight: 800; color: var(--text-primary);">--</span>
+                            <span style="font-size: 0.7rem; color: #be123c; font-weight: 600;">slots lost</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- Productivity Tip -->
         <div style="margin-top: 24px; margin-bottom: 20px;">
             <div class="glass-panel" style="display: flex; flex-direction: column; justify-content: center; text-align: center; padding: 24px;">
@@ -589,7 +653,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
 {% block extra_js %}
 <!-- Import analytics charts logic -->
-<script src="{% static 'js/analytics.js' %}?v=6.0"></script>
+<script src="{% static 'js/analytics.js' %}?v=7.0"></script>
 
 <script>
     // ── Tab Switching Mechanics ──

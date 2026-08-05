@@ -75,6 +75,7 @@ document.addEventListener('DOMContentLoaded', () => {
     let todoChartInstance = null;
     let pomodoroChartInstance = null;
     let eisenhowerChartInstance = null;
+    let timeAuditStackedChartInstance = null;
 
     function formatDateIso(dateObj) {
         const year = dateObj.getFullYear();
@@ -481,6 +482,111 @@ document.addEventListener('DOMContentLoaded', () => {
                                 }
                             },
                             cutout: '70%'
+                        }
+                    });
+                }
+
+                // 4. Render 15-Min Time Audit Stacked Bar Chart & Highlights Bracket
+                const canvasAudit = document.getElementById('time-audit-stacked-chart');
+                if (canvasAudit && res.time_audit_breakdown) {
+                    const ab = res.time_audit_breakdown;
+
+                    // Update 30% Summary Bracket Metrics
+                    const auditTotalEl = document.getElementById('audit-total-hours-val');
+                    const auditPhdEl = document.getElementById('audit-phd-hours-val');
+                    const auditProjectsEl = document.getElementById('audit-projects-hours-val');
+                    const auditLifeSpiritualEl = document.getElementById('audit-life-spiritual-val');
+                    const auditDistractedEl = document.getElementById('audit-distracted-count-val');
+
+                    if (auditTotalEl) auditTotalEl.textContent = formatDuration(ab.total_audit_minutes);
+                    if (auditPhdEl) auditPhdEl.textContent = formatDuration(ab.phd_minutes);
+                    if (auditProjectsEl) auditProjectsEl.textContent = formatDuration(ab.projects_minutes);
+                    if (auditLifeSpiritualEl) auditLifeSpiritualEl.textContent = formatDuration(ab.life_spiritual_minutes);
+                    if (auditDistractedEl) auditDistractedEl.textContent = `${ab.distracted_slots_count} slots`;
+
+                    if (timeAuditStackedChartInstance) timeAuditStackedChartInstance.destroy();
+                    timeAuditStackedChartInstance = new Chart(canvasAudit.getContext('2d'), {
+                        type: 'bar',
+                        data: {
+                            labels: res.labels,
+                            datasets: [
+                                {
+                                    label: '🎓 PhD',
+                                    data: ab.phd_hours,
+                                    backgroundColor: 'rgba(45, 212, 191, 0.85)',
+                                    borderColor: '#2dd4bf',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
+                                    label: '🚀 Side Projects',
+                                    data: ab.projects_hours,
+                                    backgroundColor: 'rgba(59, 130, 246, 0.85)',
+                                    borderColor: '#3b82f6',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
+                                    label: '🧘 Life & Spiritual',
+                                    data: ab.life_spiritual_hours,
+                                    backgroundColor: 'rgba(139, 92, 246, 0.85)',
+                                    borderColor: '#8b5cf6',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
+                                    label: '☕ Other / Routine',
+                                    data: ab.other_hours,
+                                    backgroundColor: 'rgba(245, 158, 11, 0.85)',
+                                    borderColor: '#f59e0b',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
+                                    label: '🚨 Distracted',
+                                    data: ab.distracted_hours,
+                                    backgroundColor: 'rgba(244, 63, 94, 0.85)',
+                                    borderColor: '#f43f5e',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                }
+                            ]
+                        },
+                        options: {
+                            ...commonChartOptions,
+                            plugins: {
+                                ...commonChartOptions.plugins,
+                                legend: {
+                                    display: true,
+                                    position: 'top',
+                                    labels: {
+                                        font: { family: 'Inter', size: 11, weight: '600' },
+                                        color: '#5a5a75',
+                                        padding: 16
+                                    }
+                                }
+                            },
+                            scales: {
+                                x: {
+                                    stacked: true,
+                                    grid: { display: false },
+                                    ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75' }
+                                },
+                                y: {
+                                    stacked: true,
+                                    type: 'linear',
+                                    display: true,
+                                    position: 'left',
+                                    title: { display: true, text: 'Audit Hours', font: { size: 11, weight: 'bold' }, color: '#0d9488' },
+                                    grid: { color: 'rgba(0, 0, 0, 0.03)' },
+                                    ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75' }
+                                }
+                            }
                         }
                     });
                 }
