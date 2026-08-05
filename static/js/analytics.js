@@ -449,7 +449,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     });
                 }
 
-                // 3. Render Eisenhower Doughnut Chart
+                // 3. Render Signal & Noise Doughnut Chart
                 const canvasEisen = document.getElementById('eisenhower-chart');
                 if (canvasEisen) {
                     if (eisenhowerChartInstance) eisenhowerChartInstance.destroy();
@@ -460,10 +460,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             datasets: [{
                                 data: res.eisenhower_distribution.values,
                                 backgroundColor: [
-                                    'rgba(239, 68, 68, 0.55)', // Urgent Important
-                                    'rgba(245, 158, 11, 0.55)', // Important Not Urgent
-                                    'rgba(59, 130, 246, 0.55)', // Urgent Not Important
-                                    'rgba(16, 185, 129, 0.55)'  // Neither
+                                    '#2dd4bf',                 // ⚡ Signal (Focus)
+                                    'rgba(148, 163, 184, 0.45)' // 💤 Noise (Low Priority)
                                 ],
                                 borderWidth: 1,
                                 borderColor: 'rgba(255, 255, 255, 0.6)'
@@ -476,12 +474,13 @@ document.addEventListener('DOMContentLoaded', () => {
                                 legend: {
                                     position: 'right',
                                     labels: {
-                                        font: { family: 'Inter', size: 10 },
+                                        font: { family: 'Inter', size: 10, weight: 'bold' },
                                         color: '#5a5a75',
                                         boxWidth: 12
                                     }
                                 }
-                            }
+                            },
+                            cutout: '70%'
                         }
                     });
                 }

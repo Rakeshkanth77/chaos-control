@@ -241,16 +241,12 @@ def get_summary_stats(request):
             fallback_qs = Todo.objects.filter(is_completed=False, user=request.user).values('priority').annotate(count=Count('id'))
             dist_dict = {item['priority']: item['count'] for item in fallback_qs}
 
-        priority_mapping = {
-            'urgent_important': 'Urgent & Important',
-            'important_not_urgent': 'Important & Not Urgent',
-            'urgent_not_important': 'Urgent & Not Important',
-            'neither': 'Neither'
-        }
-        
+        signal_count = dist_dict.get('urgent_important', 0) + dist_dict.get('important_not_urgent', 0)
+        noise_count = dist_dict.get('neither', 0) + dist_dict.get('urgent_not_important', 0) + dist_dict.get('stop_todo', 0)
+
         dist_data = {
-            'labels': [priority_mapping[k] for k in priority_mapping.keys()],
-            'values': [dist_dict.get(k, 0) for k in priority_mapping.keys()]
+            'labels': ['⚡ Signal (Focus)', '💤 Noise (Low Priority)'],
+            'values': [signal_count, noise_count]
         }
 
         # Calculate user activity streak
