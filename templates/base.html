@@ -27,7 +27,7 @@
 
     <!-- Custom CSS -->
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=7">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=8">
     <style>
         /* ── Header / Nav Styles ── */
         .app-header {
@@ -1216,8 +1216,6 @@
 
                         if (data.status === 'success' && data.slots) {
                             const slots = data.slots;
-                            const slotKeys = Object.keys(slots).sort();
-
                             const slotKeys = Object.keys(slots).sort().reverse(); // Latest at top
 
                             if (countBadge) countBadge.textContent = `${slotKeys.length} logged`;
@@ -1478,8 +1476,7 @@
                             lastPromptedSlot = completedSlot;
                             openQuickLogModal(null, completedSlot);
                         }
-                    }
-                }, 1000); // Check every second for exact boundary match // Check every second for exact boundary match
+                }, 1000); // Check every second for exact boundary match
             }
         });
     </script>
