@@ -825,7 +825,12 @@
             </h3>
         </div>
         <div class="pomo-prompt-body" style="padding: 14px 0;">
-            <div style="font-size: 0.85rem; font-weight: 700; color: var(--accent-color); margin-bottom: 6px;" id="quickLogSlotTitle">Current Slot: --:--</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                <span style="font-size: 0.85rem; font-weight: 700; color: #2dd4bf;" id="quickLogSlotTitle">Logging Slot:</span>
+                <select id="quickLogSlotSelect" style="background: rgba(15, 23, 42, 0.8); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); padding: 4px 10px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.82rem; outline: none; cursor: pointer;" title="Select 15-minute time slot to log">
+                    <!-- Populated dynamically via JS -->
+                </select>
+            </div>
             <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">What did you work on in this 15-minute block?</p>
 
             <!-- Quick Shortcut Buttons -->
@@ -1113,6 +1118,17 @@
                     return `${h}:${m}`;
                 }
 
+                function getCompletedTimeSlot() {
+                    const now = new Date();
+                    // Subtract 1 minute to get the slot that just ended!
+                    const prev = new Date(now.getTime() - 60000);
+                    const minutes = prev.getMinutes();
+                    const slotMin = Math.floor(minutes / 15) * 15;
+                    const h = String(prev.getHours()).padStart(2, '0');
+                    const m = String(slotMin).padStart(2, '0');
+                    return `${h}:${m}`;
+                }
+
                 // --- LIVE 15-MINUTE SLOT COUNTDOWN TIMER ---
                 function updateAuditSlotTimer() {
                     const now = new Date();
@@ -1135,16 +1151,53 @@
                     if (timerBadge) {
                         timerBadge.textContent = `${slotLabel} (${remMins}:${remSecs})`;
                     }
-
-                    if (quickSlotTitle) {
-                        quickSlotTitle.textContent = `Current Slot: ${slotLabel} (${remMins}:${remSecs} left in block)`;
-                    }
                 }
 
                 updateAuditSlotTimer();
                 setInterval(updateAuditSlotTimer, 1000);
 
-                let activeSlot = getCurrentTimeSlot();
+                let activeSlot = getCompletedTimeSlot();
+
+                function populateSlotPicker(targetSlot) {
+                    const select = document.getElementById('quickLogSlotSelect');
+                    if (!select) return;
+
+                    const completedSlot = getCompletedTimeSlot();
+                    const currentSlot = getCurrentTimeSlot();
+
+                    const options = [];
+                    const now = new Date();
+
+                    for (let i = 0; i < 8; i++) {
+                        const slotTime = new Date(now.getTime() - i * 15 * 60000);
+                        const mins = slotTime.getMinutes();
+                        const slotMin = Math.floor(mins / 15) * 15;
+                        const h = String(slotTime.getHours()).padStart(2, '0');
+                        const m = String(slotMin).padStart(2, '0');
+                        const slotStr = `${h}:${m}`;
+
+                        if (!options.some(o => o.value === slotStr)) {
+                            let label = slotStr;
+                            if (slotStr === completedSlot) label += ' (Just completed)';
+                            else if (slotStr === currentSlot) label += ' (Current block)';
+
+                            options.push({ value: slotStr, label: label });
+                        }
+                    }
+
+                    select.innerHTML = options.map(o => 
+                        `<option value="${o.value}" ${o.value === targetSlot ? 'selected' : ''}>${o.label}</option>`
+                    ).join('');
+
+                    activeSlot = select.value;
+                }
+
+                const slotSelectEl = document.getElementById('quickLogSlotSelect');
+                if (slotSelectEl) {
+                    slotSelectEl.addEventListener('change', () => {
+                        activeSlot = slotSelectEl.value;
+                    });
+                }
 
                 let autoDismissTimer = null;
 
@@ -1197,10 +1250,11 @@
                     }
                 }
 
-                function openQuickLogModal(e) {
+                function openQuickLogModal(e, targetSlot) {
                     if (e) { e.preventDefault(); e.stopPropagation(); }
-                    activeSlot = getCurrentTimeSlot();
-                    if (quickSlotTitle) quickSlotTitle.textContent = `Current Slot: ${activeSlot}`;
+                    
+                    const selectedSlot = targetSlot || getCompletedTimeSlot();
+                    populateSlotPicker(selectedSlot);
                     if (quickInput) quickInput.value = '';
                     
                     if (quickOverlay) {
@@ -1377,12 +1431,12 @@
                     const minutes = now.getMinutes();
                     const seconds = now.getSeconds();
 
-                    // Check if exact 15-minute slot boundary is reached
+                    // Check if exact 15-minute slot boundary is reached (:00, :15, :30, :45)
                     if (minutes % 15 === 0 && seconds === 0) {
-                        const currentSlot = getCurrentTimeSlot();
-                        if (currentSlot !== lastPromptedSlot) {
-                            lastPromptedSlot = currentSlot;
-                            openQuickLogModal();
+                        const completedSlot = getCompletedTimeSlot();
+                        if (completedSlot !== lastPromptedSlot) {
+                            lastPromptedSlot = completedSlot;
+                            openQuickLogModal(null, completedSlot);
                         }
                     }
                 }, 1000); // Check every second for exact boundary match
