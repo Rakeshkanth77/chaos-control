@@ -29,10 +29,18 @@ CATEGORIES_HELP = (
     "(or type custom description & press Enter)"
 )
 
-def log_entry(user_text, category_code="other"):
+def get_completed_slot_str():
+    """Returns the HH:MM string for the 15-minute slot that just ended (e.g., at 10:15 returns '10:00')."""
+    now_dt = datetime.datetime.now()
+    prev_dt = now_dt - datetime.timedelta(minutes=1)
+    slot_min = (prev_dt.minute // 15) * 15
+    return f"{prev_dt.hour:02d}:{slot_min:02d}"
+
+def log_entry(user_text, time_slot_str=None, category_code="other"):
     now_dt = datetime.datetime.now()
     date_str = now_dt.strftime("%Y-%m-%d")
-    time_slot_str = now_dt.strftime("%H:%M")
+    if not time_slot_str:
+        time_slot_str = get_completed_slot_str()
     
     # 1. Local CSV Backup
     file_exists = os.path.isfile(LOG_FILE)
@@ -52,8 +60,7 @@ def log_entry(user_text, category_code="other"):
             "date": date_str,
             "time_slot": time_slot_str,
             "raw_text": user_text,
-            "category": category_code,
-            "source": "desktop"
+            "source": "desktop_popup"
         }).encode('utf-8')
 
         req = urllib.request.Request(
@@ -61,30 +68,35 @@ def log_entry(user_text, category_code="other"):
             data=payload, 
             headers={'Content-Type': 'application/json'}
         )
-        with urllib.request.urlopen(req, timeout=2) as response:
-            res_data = json.loads(response.read().decode())
-            print(f"[{time_slot_str}] Synced to Django DB: {res_data.get('status')}")
-    except Exception as e:
-        print(f"[{time_slot_str}] Django server offline or unreachable (Saved to local CSV only).")
+        with urllib.request.urlopen(req, timeout=3) as resp:
+            res_data = json.loads(resp.read().decode('utf-8'))
+            print(f"[{time_slot_str}] Synced to DB! Category: {res_data.get('category')}")
+    except Exception as err:
+        print(f"[{time_slot_str}] Saved locally (Django API offline/error: {err})")
 
 def show_popup():
-    root = tk.Tk()
-    root.title("15-Min Time Audit")
-    
-    # Force popup to float ON TOP of VS Code and all windows
-    root.attributes('-topmost', True)
-    root.geometry("380x180+500+250")  # Size and position
-    root.config(bg="#181825")
-    root.resizable(False, False)
+    """Displays AlwaysOnTop Tkinter window for quick input."""
+    target_slot = get_completed_slot_str()
 
-    now_str = datetime.datetime.now().strftime("%H:%M")
+    root = tk.Tk()
+    root.title(f"15-Min Time Audit ({target_slot})")
+    root.geometry("380x210")
+    root.attributes("-topmost", True)
+    root.configure(bg="#181825")
+
+    # Center window
+    screen_width = root.winfo_screenwidth()
+    screen_height = root.winfo_screenheight()
+    x = (screen_width - 380) // 2
+    y = (screen_height - 210) // 2
+    root.geometry(f"380x210+{x}+{y}")
 
     # Header
     title_lbl = tk.Label(
         root, 
-        text=f"⏰ {now_str} — What did you just work on?", 
-        fg="#cdd6f4", bg="#181825", 
-        font=("Segoe UI", 11, "bold")
+        text=f"⏰ Slot {target_slot} Completed — What did you work on?", 
+        fg="#2dd4bf", bg="#181825", 
+        font=("Segoe UI", 10, "bold")
     )
     title_lbl.pack(pady=(12, 5))
 
@@ -115,7 +127,7 @@ def show_popup():
     def submit(event=None):
         text = entry_var.get().strip()
         if text:
-            log_entry(text)
+            log_entry(text, time_slot_str=target_slot)
         root.destroy()
 
     entry.bind("<Return>", submit)
