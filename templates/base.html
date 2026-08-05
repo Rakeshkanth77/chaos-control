@@ -27,7 +27,7 @@
 
     <!-- Custom CSS -->
     {% load static %}
-    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=8">
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}?v=9">
     <style>
         /* ── Header / Nav Styles ── */
         .app-header {
@@ -1272,7 +1272,7 @@
                                         });
                                         const uData = await res.json();
                                         if (uData.status === 'success') {
-                                            if (window.showToast) showToast(`Updated ${slotToUpdate} category to ${uData.category_display}!`, 'success');
+                                            if (window.showToast) window.showToast(`Updated ${slotToUpdate} category to ${uData.category_display}!`, 'success');
                                             if (typeof loadTimeAuditData === 'function') loadTimeAuditData();
                                         } else {
                                             alert(uData.message || 'Error updating category');
@@ -1313,7 +1313,7 @@
                     if (autoDismissTimer) clearTimeout(autoDismissTimer);
                     autoDismissTimer = setTimeout(() => {
                         closeQuickLogModal();
-                        if (window.showToast) showToast('⏰ Slot prompt auto-closed after 30s. Backfill anytime from Log grid!', 'info');
+                        if (window.showToast) window.showToast('⏰ Slot prompt auto-closed after 30s. Backfill anytime from Log grid!', 'info');
                     }, 30000);
                 }
 
@@ -1356,7 +1356,7 @@
                         if (data.status === 'success') {
                             closeQuickLogModal();
                             if (window.showToast) {
-                                showToast(`Logged "${rawText}" for ${activeSlot}!`, 'success');
+                                window.showToast(`Logged "${rawText}" for ${activeSlot}!`, 'success');
                             }
                             if (typeof loadTimeAuditData === 'function') {
                                 loadTimeAuditData();
@@ -1448,12 +1448,12 @@
                             auditSessionEnabled = true;
                             localStorage.setItem('audit_session_enabled', 'true');
                             updateAuditBtnUI();
-                            if (window.showToast) showToast('▶️ 15-Min Time Audit Enabled! Prompts active daily 5:00 AM - 10:00 PM.', 'success');
+                            if (window.showToast) window.showToast('▶️ 15-Min Time Audit Enabled! Prompts active daily 5:00 AM - 10:00 PM.', 'success');
                         } else {
                             auditSessionEnabled = false;
                             localStorage.setItem('audit_session_enabled', 'false');
                             updateAuditBtnUI();
-                            if (window.showToast) showToast('⏹ Time Audit Explicitly Paused.', 'info');
+                            if (window.showToast) window.showToast('⏹ Time Audit Explicitly Paused.', 'info');
                         }
                     });
                     updateAuditBtnUI();
@@ -1476,6 +1476,7 @@
                             lastPromptedSlot = completedSlot;
                             openQuickLogModal(null, completedSlot);
                         }
+                    }
                 }, 1000); // Check every second for exact boundary match
             }
         });
