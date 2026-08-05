@@ -91,7 +91,7 @@ class PomodoroSession(models.Model):
 class TimeAuditLog(models.Model):
     CATEGORY_CHOICES = [
         ('phd', 'PhD'),
-        ('projects', 'Projects'),
+        ('projects', 'Side Projects'),
         ('life_skills', 'Life Skills'),
         ('spiritual', 'Spiritual'),
         ('cooking', 'Cooking'),

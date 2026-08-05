@@ -578,7 +578,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         const colorMap = {
             'PhD': '#10b981',
-            'Projects': '#3b82f6',
+            'Side Projects': '#3b82f6',
             'Life Skills': '#f59e0b',
             'Spiritual': '#8b5cf6',
             'Cooking': '#f97316',
@@ -592,7 +592,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (!categories || categories.length === 0 || totalHours === 0) {
             isPlaceholder = true;
-            labels = ['PhD', 'Projects', 'Life Skills', 'Spiritual', 'Distracted'];
+            labels = ['PhD', 'Side Projects', 'Life Skills', 'Spiritual', 'Distracted'];
             dataValues = [1, 1, 1, 1, 1];
             backgroundColors = labels.map(lbl => colorMap[lbl]);
         } else {
