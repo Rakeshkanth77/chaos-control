@@ -125,20 +125,40 @@ def show_popup():
     
     root.mainloop()
 
+def is_after_5pm_uk():
+    """Checks if current time in UK timezone (Europe/London) is >= 17:00 (5:00 PM)."""
+    try:
+        import zoneinfo
+        uk_tz = zoneinfo.ZoneInfo("Europe/London")
+        uk_now = datetime.datetime.now(uk_tz)
+    except Exception:
+        uk_now = datetime.datetime.now()
+    return uk_now.hour >= 17
+
+
 def run_timer_loop():
     print("=" * 60)
     print(" ⏰ 15-MINUTE TIME AUDIT DESKTOP POPUP ACTIVE ")
     print(f" Log File: {LOG_FILE}")
     print(f" Django API: {DJANGO_API_URL}")
+    print(" Auto-stop cutoff: 5:00 PM UK Time (17:00)")
     print(" Press Ctrl+C in terminal to stop.")
     print("=" * 60)
 
-    # Show initial popup immediately
+    if is_after_5pm_uk():
+        print("🛑 Current UK time is past 5:00 PM (17:00). Time Audit auto-stopped for today!")
+        return
+
+    # Show initial popup
     show_popup()
 
     while True:
         time.sleep(INTERVAL_MINUTES * 60)
+        if is_after_5pm_uk():
+            print("\n🛑 5:00 PM UK Time reached! Time Audit auto-stopped for today. Have a great evening!")
+            break
         show_popup()
 
 if __name__ == "__main__":
     run_timer_loop()
+

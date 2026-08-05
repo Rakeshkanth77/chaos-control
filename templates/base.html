@@ -461,11 +461,16 @@
 
                 <!-- Desktop Nav -->
                 <nav class="app-nav desktop-nav" style="display: flex; align-items: center; gap: 12px;">
-                    <!-- 1. Log -->
-                    <button id="quick-log-nav-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px;" title="Quick 15-Minute Log">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        <span>Log</span>
-                    </button>
+                    <!-- 1. Log & Audit Toggle -->
+                    <div style="display: flex; align-items: center; gap: 4px;">
+                        <button id="quick-log-nav-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 12px;" title="Quick 15-Minute Log">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            <span>Log</span>
+                        </button>
+                        <button id="toggle-audit-session-btn" class="nav-link" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #047857; cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 4px; outline: none; padding: 6px 10px; border-radius: 8px;" title="Start / Stop 15-Min Auto-Audit (Auto-stops at 5:00 PM UK)">
+                            <span id="audit-session-status-text">▶️ Start Audit</span>
+                        </button>
+                    </div>
 
                     <!-- 2. Pomodoro -->
                     <button id="pomo-nav-btn" class="nav-link pomo-nav-btn" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px; position: relative;" title="Pomodoro Focus Timer">
@@ -1192,6 +1197,80 @@
                         });
                     });
                 }
+
+                // --- AUDIT SESSION START/STOP & 5:00 PM UK AUTO-CUTOFF ---
+                const toggleAuditBtn = document.getElementById('toggle-audit-session-btn');
+                const auditStatusText = document.getElementById('audit-session-status-text');
+
+                function isUkTimeAfter5pm() {
+                    try {
+                        const ukTimeString = new Date().toLocaleTimeString('en-GB', { timeZone: 'Europe/London', hour: '2-digit', hour12: false });
+                        const hour = parseInt(ukTimeString, 10);
+                        return hour >= 17; // 17:00 = 5:00 PM UK
+                    } catch (e) {
+                        return new Date().getHours() >= 17;
+                    }
+                }
+
+                let auditActive = localStorage.getItem('audit_session_active') === 'true';
+
+                function updateAuditBtnUI() {
+                    if (!toggleAuditBtn || !auditStatusText) return;
+                    if (auditActive) {
+                        toggleAuditBtn.style.background = 'rgba(239, 68, 68, 0.15)';
+                        toggleAuditBtn.style.borderColor = 'rgba(239, 68, 68, 0.4)';
+                        toggleAuditBtn.style.color = '#dc2626';
+                        auditStatusText.textContent = '⏹ Stop Audit';
+                    } else {
+                        toggleAuditBtn.style.background = 'rgba(16, 185, 129, 0.12)';
+                        toggleAuditBtn.style.borderColor = 'rgba(16, 185, 129, 0.3)';
+                        toggleAuditBtn.style.color = '#047857';
+                        auditStatusText.textContent = '▶️ Start Audit';
+                    }
+                }
+
+                if (toggleAuditBtn) {
+                    toggleAuditBtn.addEventListener('click', (e) => {
+                        e.preventDefault();
+                        if (!auditActive) {
+                            if (isUkTimeAfter5pm()) {
+                                alert('It is currently past 5:00 PM UK Time. Audit sessions run until 5:00 PM UK Time!');
+                                return;
+                            }
+                            auditActive = true;
+                            localStorage.setItem('audit_session_active', 'true');
+                            updateAuditBtnUI();
+                            openQuickLogModal();
+                            if (window.showToast) showToast('▶️ 15-Min Time Audit Started! (Auto-stops at 5:00 PM UK)', 'success');
+                        } else {
+                            auditActive = false;
+                            localStorage.setItem('audit_session_active', 'false');
+                            updateAuditBtnUI();
+                            if (window.showToast) showToast('⏹ Time Audit Paused.', 'info');
+                        }
+                    });
+                    updateAuditBtnUI();
+                }
+
+                // Auto-check 5 PM UK Cutoff & 15-minute interval timer
+                let lastPromptedSlot = '';
+                setInterval(() => {
+                    if (!auditActive) return;
+
+                    if (isUkTimeAfter5pm()) {
+                        auditActive = false;
+                        localStorage.setItem('audit_session_active', 'false');
+                        updateAuditBtnUI();
+                        if (window.showToast) showToast('🛑 5:00 PM UK Time reached! Time Audit auto-stopped for today.', 'warning');
+                        return;
+                    }
+
+                    const currentSlot = getCurrentTimeSlot();
+                    if (currentSlot !== lastPromptedSlot && quickModal.style.display !== 'flex') {
+                        lastPromptedSlot = currentSlot;
+                        openQuickLogModal();
+                    }
+                }, 30000);
             }
         });
     </script>
