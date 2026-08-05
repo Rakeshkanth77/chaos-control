@@ -564,14 +564,17 @@ document.addEventListener('DOMContentLoaded', () => {
         return 4;
     }
 
-    let auditDonutChartInstance = null;
+    let auditDonutChartInstanceMain = null;
+    let auditDonutChartInstanceCard = null;
 
     function renderAuditDonutChart(categories) {
-        const canvas = document.getElementById('auditDonutChart');
-        if (!canvas) return;
+        const canvasMain = document.getElementById('auditDonutChartMain');
+        const canvasCard = document.getElementById('auditDonutChart');
+        if (!canvasMain && !canvasCard) return;
 
-        const labels = categories.map(c => c.name);
-        const dataValues = categories.map(c => c.hours);
+        let labels = categories ? categories.map(c => c.name) : [];
+        let dataValues = categories ? categories.map(c => c.hours) : [];
+        const totalHours = dataValues.reduce((a, b) => a + b, 0);
 
         const colorMap = {
             'Research': '#10b981',
@@ -582,47 +585,81 @@ document.addEventListener('DOMContentLoaded', () => {
             'Break': '#6b7280',
             'Other': '#9ca3af'
         };
-        const backgroundColors = labels.map(lbl => colorMap[lbl] || '#9ca3af');
 
-        if (auditDonutChartInstance) auditDonutChartInstance.destroy();
+        let backgroundColors;
+        let isPlaceholder = false;
 
-        auditDonutChartInstance = new Chart(canvas.getContext('2d'), {
-            type: 'doughnut',
-            data: {
-                labels: labels,
-                datasets: [{
-                    data: dataValues,
-                    backgroundColor: backgroundColors,
-                    borderWidth: 2,
-                    borderColor: 'rgba(255, 255, 255, 0.8)'
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                    legend: {
-                        position: 'bottom',
-                        labels: {
-                            boxWidth: 10,
-                            padding: 8,
-                            font: { size: 10, weight: '600' }
-                        }
-                    },
-                    tooltip: {
-                        callbacks: {
-                            label: function(context) {
-                                const val = context.parsed;
-                                const total = context.dataset.data.reduce((a, b) => a + b, 0);
-                                const pct = total > 0 ? ((val / total) * 100).toFixed(1) : 0;
-                                return ` ${context.label}: ${val} hrs (${pct}%)`;
-                            }
-                        }
+        if (!categories || categories.length === 0 || totalHours === 0) {
+            isPlaceholder = true;
+            labels = ['Research', 'Coding', 'Admin', 'Distraction', 'Break'];
+            dataValues = [1, 1, 1, 1, 1];
+            backgroundColors = labels.map(lbl => colorMap[lbl]);
+        } else {
+            backgroundColors = labels.map(lbl => colorMap[lbl] || '#9ca3af');
+        }
+
+        const buildOptions = (titlePrefix) => ({
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        boxWidth: 10,
+                        padding: 8,
+                        font: { family: 'Inter', size: 10, weight: '600' },
+                        color: '#5a5a75'
                     }
                 },
-                cutout: '65%'
-            }
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (isPlaceholder) {
+                                return ` Start Audit to track your 15-min logs!`;
+                            }
+                            const val = context.parsed;
+                            const pct = totalHours > 0 ? ((val / totalHours) * 100).toFixed(1) : 0;
+                            return ` ${context.label}: ${val} hrs (${pct}%)`;
+                        }
+                    }
+                }
+            },
+            cutout: '65%'
         });
+
+        if (canvasMain) {
+            if (auditDonutChartInstanceMain) auditDonutChartInstanceMain.destroy();
+            auditDonutChartInstanceMain = new Chart(canvasMain.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 2,
+                        borderColor: 'rgba(255, 255, 255, 0.8)'
+                    }]
+                },
+                options: buildOptions('Main')
+            });
+        }
+
+        if (canvasCard) {
+            if (auditDonutChartInstanceCard) auditDonutChartInstanceCard.destroy();
+            auditDonutChartInstanceCard = new Chart(canvasCard.getContext('2d'), {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: dataValues,
+                        backgroundColor: backgroundColors,
+                        borderWidth: 2,
+                        borderColor: 'rgba(255, 255, 255, 0.8)'
+                    }]
+                },
+                options: buildOptions('Card')
+            });
+        }
     }
 
     // --- 15-MINUTE TIME AUDIT MODULE ---

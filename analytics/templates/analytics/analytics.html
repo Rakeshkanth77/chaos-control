@@ -47,11 +47,11 @@
         </div>
     </div>
 
-    <!-- ROW 2: Two Plots Side-by-Side (Operational Achievement + Active Priorities) -->
-    <div class="analytics-two-plots-grid">
+    <!-- ROW 2: Three Plots (Operational Achievement, Signal & Noise Focus, 15-Min Time Audit Logs) -->
+    <div class="analytics-two-plots-grid" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">
         <!-- Plot 1: Todo Trends (Created vs Completed) -->
         <div class="glass-panel analytics-chart-panel">
-            <h3 class="panel-title">Operational Achievement Rate (Last 7 Days)</h3>
+            <h3 class="panel-title">Operational Achievement Rate</h3>
             <div class="chart-wrapper">
                 <canvas id="todo-chart"></canvas>
             </div>
@@ -62,6 +62,14 @@
             <h3 class="panel-title">Signal &amp; Noise Focus</h3>
             <div class="chart-wrapper">
                 <canvas id="eisenhower-chart"></canvas>
+            </div>
+        </div>
+
+        <!-- Plot 3: 15-Minute Time Audit Log Breakdown -->
+        <div class="glass-panel analytics-chart-panel">
+            <h3 class="panel-title">⏱️ 15-Min Time Audit Logs</h3>
+            <div class="chart-wrapper">
+                <canvas id="auditDonutChartMain"></canvas>
             </div>
         </div>
     </div>
