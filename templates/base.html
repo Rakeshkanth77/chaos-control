@@ -466,6 +466,7 @@
                         <button id="quick-log-nav-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 12px;" title="Quick 15-Minute Log">
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                             <span>Log</span>
+                            <span id="audit-slot-timer-badge" style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: bold; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-variant-numeric: tabular-nums;">--:--</span>
                         </button>
                         <button id="toggle-audit-session-btn" class="nav-link" style="background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); color: #047857; cursor: pointer; font-family: inherit; font-size: 0.8rem; font-weight: 700; display: flex; align-items: center; gap: 4px; outline: none; padding: 6px 10px; border-radius: 8px;" title="Start / Stop 15-Min Auto-Audit (Auto-stops at 5:00 PM UK)">
                             <span id="audit-session-status-text">▶️ Start Audit</span>
@@ -1100,6 +1101,37 @@
                     const m = String(slotMin).padStart(2, '0');
                     return `${h}:${m}`;
                 }
+
+                // --- LIVE 15-MINUTE SLOT COUNTDOWN TIMER ---
+                function updateAuditSlotTimer() {
+                    const now = new Date();
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const seconds = now.getSeconds();
+
+                    const slotStartMin = Math.floor(minutes / 15) * 15;
+                    const slotHourStr = String(hours).padStart(2, '0');
+                    const slotMinStr = String(slotStartMin).padStart(2, '0');
+                    const slotLabel = `${slotHourStr}:${slotMinStr}`;
+
+                    const elapsedSecondsInSlot = ((minutes % 15) * 60) + seconds;
+                    const remainingSeconds = Math.max(0, (15 * 60) - elapsedSecondsInSlot);
+
+                    const remMins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+                    const remSecs = String(remainingSeconds % 60).padStart(2, '0');
+
+                    const timerBadge = document.getElementById('audit-slot-timer-badge');
+                    if (timerBadge) {
+                        timerBadge.textContent = `${slotLabel} (${remMins}:${remSecs})`;
+                    }
+
+                    if (quickSlotTitle) {
+                        quickSlotTitle.textContent = `Current Slot: ${slotLabel} (${remMins}:${remSecs} left in block)`;
+                    }
+                }
+
+                updateAuditSlotTimer();
+                setInterval(updateAuditSlotTimer, 1000);
 
                 let activeSlot = getCurrentTimeSlot();
 
