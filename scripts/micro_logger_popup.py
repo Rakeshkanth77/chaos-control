@@ -74,12 +74,23 @@ def log_entry(user_text, time_slot_str=None, category_code="other"):
     except Exception as err:
         print(f"[{time_slot_str}] Saved locally (Django API offline/error: {err})")
 
-def show_popup():
+def get_slot_range_str(slot_str):
+    if not slot_str or ':' not in slot_str:
+        return slot_str
+    h, m = map(int, slot_str.split(':'))
+    end_m = (m + 15) % 60
+    end_h = (h + 1) % 24 if end_m == 0 else h
+    return f"{slot_str} - {end_h:02d}:{end_m:02d}"
+
+def show_popup(target_slot=None):
     """Displays AlwaysOnTop Tkinter window for quick input."""
-    target_slot = get_completed_slot_str()
+    if not target_slot:
+        target_slot = get_completed_slot_str()
+
+    slot_range = get_slot_range_str(target_slot)
 
     root = tk.Tk()
-    root.title(f"15-Min Time Audit ({target_slot})")
+    root.title(f"15-Min Time Audit ({slot_range})")
     root.geometry("380x210")
     root.attributes("-topmost", True)
     root.configure(bg="#181825")
@@ -94,7 +105,7 @@ def show_popup():
     # Header
     title_lbl = tk.Label(
         root, 
-        text=f"⏰ Slot {target_slot} Completed — What did you work on?", 
+        text=f"⏰ Slot {slot_range} Completed — What did you work on?", 
         fg="#2dd4bf", bg="#181825", 
         font=("Segoe UI", 10, "bold")
     )

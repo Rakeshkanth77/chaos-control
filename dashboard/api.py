@@ -1,4 +1,5 @@
 import json
+from collections import Counter
 from functools import wraps
 from django.conf import settings
 from django.http import JsonResponse
@@ -1709,6 +1710,7 @@ def get_time_audit_today(request):
                 'raw_text': entry.raw_text,
                 'category': entry.category,
                 'category_display': entry.get_category_display(),
+                'time_range': format_slot_range(entry.time_slot),
                 'source': entry.source
             }
 
@@ -1716,10 +1718,80 @@ def get_time_audit_today(request):
             'status': 'success',
             'date': str(date_val),
             'count': audits.count(),
-            'slots': slots_data
+            'slots': slots_data,
+            'suggested_patterns': get_slot_suggestions(request.user),
+            'daily_summary': get_daily_log_summary(request.user, date_val)
         })
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+def format_slot_range(time_slot):
+    if not time_slot or ':' not in time_slot:
+        return time_slot
+    try:
+        parts = time_slot.split(':')
+        h, m = int(parts[0]), int(parts[1])
+        end_m = (m + 15) % 60
+        end_h = (h + 1) % 24 if end_m == 0 else h
+        return f"{time_slot} - {end_h:02d}:{end_m:02d}"
+    except Exception:
+        return time_slot
+
+
+def get_slot_suggestions(user):
+    if not user or not user.is_authenticated:
+        return {}
+    fourteen_days_ago = timezone.localdate() - timedelta(days=14)
+    recent_logs = TimeAuditLog.objects.filter(user=user, date__gte=fourteen_days_ago).values_list('time_slot', 'raw_text')
+    
+    slot_texts = {}
+    for slot, text in recent_logs:
+        if text and len(text.strip()) >= 2:
+            slot_texts.setdefault(slot, []).append(text.strip())
+    
+    suggestions = {}
+    for slot, texts in slot_texts.items():
+        counts = Counter(texts)
+        most_common, count = counts.most_common(1)[0]
+        if count >= 2:
+            suggestions[slot] = most_common
+            
+    return suggestions
+
+
+def get_daily_log_summary(user, date_val=None):
+    if not user or not user.is_authenticated:
+        return ""
+    if not date_val:
+        date_val = timezone.localdate()
+    
+    today_audits = TimeAuditLog.objects.filter(user=user, date=date_val)
+    if not today_audits.exists():
+        return "No audit logs recorded for today yet. Start logging to see your daily pattern summary."
+
+    past_7_days = [date_val - timedelta(days=i) for i in range(1, 8)]
+    past_audits = TimeAuditLog.objects.filter(user=user, date__in=past_7_days)
+
+    today_cat_counts = Counter(today_audits.values_list('category', flat=True))
+    past_cat_counts = Counter(past_audits.values_list('category', flat=True))
+
+    phd_diff = (today_cat_counts.get('phd', 0) * 0.25) - ((past_cat_counts.get('phd', 0) / 7.0) * 0.25)
+    distracted_today = today_cat_counts.get('distracted', 0) * 0.25
+    distracted_avg = (past_cat_counts.get('distracted', 0) / 7.0) * 0.25
+    dist_diff = distracted_today - distracted_avg
+
+    top_cat = today_cat_counts.most_common(1)[0][0] if today_cat_counts else 'other'
+    top_cat_display = dict(TimeAuditLog.CATEGORY_CHOICES).get(top_cat, top_cat)
+
+    if phd_diff >= 0.5:
+        return f"Today you boosted PhD focus by {abs(round(phd_diff, 1))}h compared to your 7-day average."
+    elif dist_diff >= 0.5:
+        return f"Today distraction increased by {abs(round(dist_diff, 1))}h. Main focus was {top_cat_display}."
+    elif dist_diff <= -0.5:
+        return f"Great discipline today! You reduced distraction by {abs(round(abs(dist_diff), 1))}h compared to usual."
+    else:
+        return f"Today's routine was steady. Main focus was {top_cat_display} with {today_audits.count()} slots logged."
 
 
 @api_login_required

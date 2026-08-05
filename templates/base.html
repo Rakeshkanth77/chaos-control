@@ -833,13 +833,19 @@
             </h3>
         </div>
         <div class="pomo-prompt-body" style="padding: 14px 0;">
+            <!-- 20-Word Daily Shift Summary Banner -->
+            <div id="quickLogSummaryBanner" style="display: none; background: rgba(56, 189, 248, 0.12); border: 1px solid rgba(56, 189, 248, 0.3); border-radius: 8px; padding: 8px 12px; font-size: 0.78rem; color: #7dd3fc; margin-bottom: 10px; line-height: 1.4;"></div>
+
             <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
                 <span style="font-size: 0.85rem; font-weight: 700; color: #2dd4bf;" id="quickLogSlotTitle">Logging Slot:</span>
                 <select id="quickLogSlotSelect" style="background: rgba(15, 23, 42, 0.8); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); padding: 4px 10px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.82rem; outline: none; cursor: pointer;" title="Select 15-minute time slot to log">
                     <!-- Populated dynamically via JS -->
                 </select>
             </div>
-            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 12px;">What did you work on in this 15-minute block?</p>
+            <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 8px;">What did you work on in this 15-minute block?</p>
+
+            <!-- Pattern Suggestion Chip -->
+            <div id="quickLogSuggestedChip" style="display: none; margin-bottom: 10px; font-size: 0.76rem; color: #a7f3d0; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); padding: 5px 10px; border-radius: 6px; cursor: pointer; font-weight: 700;" title="Click to auto-fill this pattern"></div>
 
             <!-- Quick Shortcut Buttons -->
             <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-bottom: 12px;" id="quickLogTagContainer">
@@ -1121,6 +1127,18 @@
             if (quickModal) {
                 let todayLoggedSlots = {};
 
+                function formatSlotRange(slotStr) {
+                    if (!slotStr || !slotStr.includes(':')) return slotStr;
+                    const parts = slotStr.split(':');
+                    const h = parseInt(parts[0], 10);
+                    const m = parseInt(parts[1], 10);
+                    const endM = (m + 15) % 60;
+                    const endH = endM === 0 ? (h + 1) % 24 : h;
+                    const endHStr = String(endH).padStart(2, '0');
+                    const endMStr = String(endM).padStart(2, '0');
+                    return `${slotStr} - ${endHStr}:${endMStr}`;
+                }
+
                 function getCurrentTimeSlot() {
                     const now = new Date();
                     const minutes = now.getMinutes();
@@ -1132,7 +1150,6 @@
 
                 function getCompletedTimeSlot() {
                     const now = new Date();
-                    // Subtract 1 minute to get the slot that just ended!
                     const prev = new Date(now.getTime() - 60000);
                     const minutes = prev.getMinutes();
                     const slotMin = Math.floor(minutes / 15) * 15;
@@ -1151,7 +1168,7 @@
                     const slotStartMin = Math.floor(minutes / 15) * 15;
                     const slotHourStr = String(hours).padStart(2, '0');
                     const slotMinStr = String(slotStartMin).padStart(2, '0');
-                    const slotLabel = `${slotHourStr}:${slotMinStr}`;
+                    const slotLabel = formatSlotRange(`${slotHourStr}:${slotMinStr}`);
 
                     const elapsedSecondsInSlot = ((minutes % 15) * 60) + seconds;
                     const remainingSeconds = Math.max(0, (15 * 60) - elapsedSecondsInSlot);
@@ -1189,7 +1206,7 @@
                         const slotStr = `${h}:${m}`;
 
                         if (!options.some(o => o.value === slotStr)) {
-                            let label = slotStr;
+                            let label = formatSlotRange(slotStr);
                             if (slotStr === completedSlot) label += ' (Just completed)';
                             else if (slotStr === currentSlot) label += ' (Current block)';
 
@@ -1210,6 +1227,7 @@
                 if (slotSelectEl) {
                     slotSelectEl.addEventListener('change', () => {
                         activeSlot = slotSelectEl.value;
+                        loadTodayAuditFeed();
                     });
                 }
 
@@ -1218,53 +1236,80 @@
                 async function loadTodayAuditFeed() {
                     const feed = document.getElementById('quickLogTimelineFeed');
                     const countBadge = document.getElementById('quickLogTodayCount');
+                    const summaryBanner = document.getElementById('quickLogSummaryBanner');
+                    const suggestedChip = document.getElementById('quickLogSuggestedChip');
                     if (!feed) return;
 
                     try {
                         const res = await fetch('/api/time-audit/today/');
                         const data = await res.json();
 
-                        if (data.status === 'success' && data.slots) {
-                            todayLoggedSlots = data.slots;
-                            const slots = data.slots;
-                            const slotKeys = Object.keys(slots).sort().reverse(); // Latest at top
-
-                            if (countBadge) countBadge.textContent = `${slotKeys.length} logged`;
-
-                            if (slotKeys.length === 0) {
-                                feed.innerHTML = '<div style="font-size: 0.78rem; color: var(--text-secondary); text-align: center; padding: 10px 0;">No logs yet today. Enter your first 15-min log above!</div>';
-                                return;
+                        if (data.status === 'success') {
+                            // 1. Render 20-word Daily Shift Summary
+                            if (summaryBanner && data.daily_summary) {
+                                summaryBanner.textContent = `💡 Daily Summary: ${data.daily_summary}`;
+                                summaryBanner.style.display = 'block';
+                            } else if (summaryBanner) {
+                                summaryBanner.style.display = 'none';
                             }
 
-                            const categoryOptions = [
-                                { code: 'phd', label: 'PhD' },
-                                { code: 'projects', label: 'Side Projects' },
-                                { code: 'life_skills', label: 'Life Skills' },
-                                { code: 'spiritual', label: 'Spiritual' },
-                                { code: 'cooking', label: 'Cooking' },
-                                { code: 'driving', label: 'Driving' },
-                                { code: 'distracted', label: 'Distracted' },
-                                { code: 'break', label: 'Break' },
-                                { code: 'other', label: 'Other' }
-                            ];
+                            // 2. Render Suggested Pattern for active slot
+                            if (suggestedChip && data.suggested_patterns && data.suggested_patterns[activeSlot]) {
+                                const pattern = data.suggested_patterns[activeSlot];
+                                suggestedChip.innerHTML = `💡 Suggested pattern for ${formatSlotRange(activeSlot)}: <strong>"${pattern}"</strong> <span style="font-size:0.7rem; opacity:0.8; margin-left:4px;">(Click to fill)</span>`;
+                                suggestedChip.style.display = 'block';
+                                suggestedChip.onclick = () => {
+                                    if (quickInput) {
+                                        quickInput.value = pattern;
+                                        quickInput.focus();
+                                    }
+                                };
+                            } else if (suggestedChip) {
+                                suggestedChip.style.display = 'none';
+                            }
 
-                            feed.innerHTML = slotKeys.map(slot => {
-                                const item = slots[slot];
-                                const currentCat = item.category || 'other';
-                                const optionsHtml = categoryOptions.map(c => 
-                                    `<option value="${c.code}" ${c.code === currentCat ? 'selected' : ''}>${c.label}</option>`
-                                ).join('');
+                            if (data.slots) {
+                                todayLoggedSlots = data.slots;
+                                const slots = data.slots;
+                                const slotKeys = Object.keys(slots).sort().reverse();
 
-                                return `
-                                    <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px 10px; border-radius: 10px; font-size: 0.85rem; gap: 8px;">
-                                        <span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #2dd4bf; font-size: 0.78rem; background: rgba(45, 212, 191, 0.18); border: 1px solid rgba(45, 212, 191, 0.3); padding: 3px 8px; border-radius: 6px; flex-shrink: 0;">${slot}</span>
-                                        <input type="text" class="feed-text-input" data-slot="${slot}" value="${item.raw_text}" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #f8fafc; font-weight: 600; font-size: 0.84rem; border-radius: 6px; padding: 4px 8px; flex: 1; min-width: 0; outline: none;" title="Click to edit/type description for this slot" placeholder="Type what you worked on..." />
-                                        <select class="feed-cat-select" data-slot="${slot}" style="background: rgba(30, 41, 59, 0.9); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; padding: 3px 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; outline: none;" title="Click to change category">
-                                            ${optionsHtml}
-                                        </select>
-                                    </div>
-                                `;
-                            }).join('');
+                                if (countBadge) countBadge.textContent = `${slotKeys.length} logged`;
+
+                                if (slotKeys.length === 0) {
+                                    feed.innerHTML = '<div style="font-size: 0.78rem; color: var(--text-secondary); text-align: center; padding: 10px 0;">No logs yet today. Enter your first 15-min log above!</div>';
+                                    return;
+                                }
+
+                                const categoryOptions = [
+                                    { code: 'phd', label: 'PhD' },
+                                    { code: 'projects', label: 'Side Projects' },
+                                    { code: 'life_skills', label: 'Life Skills' },
+                                    { code: 'spiritual', label: 'Spiritual' },
+                                    { code: 'cooking', label: 'Cooking' },
+                                    { code: 'driving', label: 'Driving' },
+                                    { code: 'distracted', label: 'Distracted' },
+                                    { code: 'break', label: 'Break' },
+                                    { code: 'other', label: 'Other' }
+                                ];
+
+                                feed.innerHTML = slotKeys.map(slot => {
+                                    const item = slots[slot];
+                                    const currentCat = item.category || 'other';
+                                    const rangeLabel = item.time_range || formatSlotRange(slot);
+                                    const optionsHtml = categoryOptions.map(c => 
+                                        `<option value="${c.code}" ${c.code === currentCat ? 'selected' : ''}>${c.label}</option>`
+                                    ).join('');
+
+                                    return `
+                                        <div style="display: flex; align-items: center; justify-content: space-between; background: rgba(15, 23, 42, 0.75); border: 1px solid rgba(255, 255, 255, 0.12); padding: 6px 10px; border-radius: 10px; font-size: 0.85rem; gap: 8px;">
+                                            <span style="font-family: 'JetBrains Mono', monospace; font-weight: 800; color: #2dd4bf; font-size: 0.76rem; background: rgba(45, 212, 191, 0.18); border: 1px solid rgba(45, 212, 191, 0.3); padding: 3px 8px; border-radius: 6px; flex-shrink: 0;" title="Slot time range">${rangeLabel}</span>
+                                            <input type="text" class="feed-text-input" data-slot="${slot}" value="${item.raw_text}" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #f8fafc; font-weight: 600; font-size: 0.84rem; border-radius: 6px; padding: 4px 8px; flex: 1; min-width: 0; outline: none;" title="Click to edit description for this slot" placeholder="Type what you worked on..." />
+                                            <select class="feed-cat-select" data-slot="${slot}" style="background: rgba(30, 41, 59, 0.9); color: #38bdf8; border: 1px solid rgba(56, 189, 248, 0.4); border-radius: 6px; padding: 3px 6px; font-size: 0.72rem; font-weight: 700; cursor: pointer; outline: none;" title="Click to change category">
+                                                ${optionsHtml}
+                                            </select>
+                                        </div>
+                                    `;
+                                }).join('');
 
                             // Attach change listeners for category updates & text updates
                             feed.querySelectorAll('.feed-cat-select').forEach(sel => {
