@@ -467,6 +467,24 @@
                             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                             <span>Log</span>
                             <span id="audit-slot-timer-badge" style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: bold; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-variant-numeric: tabular-nums;">--:--</span>
+                            <script>
+                                (function() {
+                                    try {
+                                        var b = document.getElementById('audit-slot-timer-badge');
+                                        if (b) {
+                                            var now = new Date();
+                                            var h = String(now.getHours()).padStart(2, '0');
+                                            var startMin = Math.floor(now.getMinutes() / 15) * 15;
+                                            var m = String(startMin).padStart(2, '0');
+                                            var endM = (startMin + 15) % 60;
+                                            var endH = endM === 0 ? (now.getHours() + 1) % 24 : now.getHours();
+                                            var endHStr = String(endH).padStart(2, '0');
+                                            var endMStr = String(endM).padStart(2, '0');
+                                            b.textContent = h + ':' + m + ' - ' + endHStr + ':' + endMStr;
+                                        }
+                                    } catch(e) {}
+                                })();
+                            </script>
                         </button>
                     </div>
 
@@ -1113,15 +1131,20 @@
             }
 
             function formatSlotRange(slotStr) {
-                if (!slotStr || !slotStr.includes(':')) return slotStr;
-                const parts = slotStr.split(':');
-                const h = parseInt(parts[0], 10);
-                const m = parseInt(parts[1], 10);
-                const endM = (m + 15) % 60;
-                const endH = endM === 0 ? (h + 1) % 24 : h;
-                const endHStr = String(endH).padStart(2, '0');
-                const endMStr = String(endM).padStart(2, '0');
-                return `${slotStr} - ${endHStr}:${endMStr}`;
+                if (!slotStr || typeof slotStr !== 'string' || !slotStr.includes(':')) return slotStr || '';
+                try {
+                    const parts = slotStr.split(':');
+                    const h = parseInt(parts[0], 10);
+                    const m = parseInt(parts[1], 10);
+                    if (isNaN(h) || isNaN(m)) return slotStr;
+                    const endM = (m + 15) % 60;
+                    const endH = endM === 0 ? (h + 1) % 24 : h;
+                    const endHStr = String(endH).padStart(2, '0');
+                    const endMStr = String(endM).padStart(2, '0');
+                    return `${slotStr} - ${endHStr}:${endMStr}`;
+                } catch (e) {
+                    return slotStr;
+                }
             }
             window.formatSlotRange = formatSlotRange;
 
@@ -1133,6 +1156,7 @@
                 const m = String(slotMin).padStart(2, '0');
                 return `${h}:${m}`;
             }
+            window.getCurrentTimeSlot = getCurrentTimeSlot;
 
             function getCompletedTimeSlot() {
                 const now = new Date();
@@ -1143,30 +1167,37 @@
                 const m = String(slotMin).padStart(2, '0');
                 return `${h}:${m}`;
             }
+            window.getCompletedTimeSlot = getCompletedTimeSlot;
 
             // --- LIVE 15-MINUTE SLOT COUNTDOWN TIMER ---
             function updateAuditSlotTimer() {
-                const timerBadge = document.getElementById('audit-slot-timer-badge');
-                if (!timerBadge) return;
+                try {
+                    const timerBadge = document.getElementById('audit-slot-timer-badge');
+                    if (!timerBadge) return;
 
-                const now = new Date();
-                const hours = now.getHours();
-                const minutes = now.getMinutes();
-                const seconds = now.getSeconds();
+                    const now = new Date();
+                    const hours = now.getHours();
+                    const minutes = now.getMinutes();
+                    const seconds = now.getSeconds();
 
-                const slotStartMin = Math.floor(minutes / 15) * 15;
-                const slotHourStr = String(hours).padStart(2, '0');
-                const slotMinStr = String(slotStartMin).padStart(2, '0');
-                const slotLabel = formatSlotRange(`${slotHourStr}:${slotMinStr}`);
+                    const slotStartMin = Math.floor(minutes / 15) * 15;
+                    const slotHourStr = String(hours).padStart(2, '0');
+                    const slotMinStr = String(slotStartMin).padStart(2, '0');
+                    const rawSlot = `${slotHourStr}:${slotMinStr}`;
+                    const slotLabel = formatSlotRange(rawSlot);
 
-                const elapsedSecondsInSlot = ((minutes % 15) * 60) + seconds;
-                const remainingSeconds = Math.max(0, (15 * 60) - elapsedSecondsInSlot);
+                    const elapsedSecondsInSlot = ((minutes % 15) * 60) + seconds;
+                    const remainingSeconds = Math.max(0, (15 * 60) - elapsedSecondsInSlot);
 
-                const remMins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
-                const remSecs = String(remainingSeconds % 60).padStart(2, '0');
+                    const remMins = String(Math.floor(remainingSeconds / 60)).padStart(2, '0');
+                    const remSecs = String(remainingSeconds % 60).padStart(2, '0');
 
-                timerBadge.textContent = `${slotLabel} (${remMins}:${remSecs})`;
+                    timerBadge.textContent = `${slotLabel} (${remMins}:${remSecs})`;
+                } catch (err) {
+                    console.error('Error updating timer badge:', err);
+                }
             }
+            window.updateAuditSlotTimer = updateAuditSlotTimer;
 
             updateAuditSlotTimer();
             setInterval(updateAuditSlotTimer, 1000);
