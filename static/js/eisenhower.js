@@ -495,9 +495,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     }
 
-    // Restore saved view mode on load
-    const savedMode = localStorage.getItem('eisenhower_view_mode') || 'matrix';
-    setEisenhowerViewMode(savedMode);
+    // Always default to minimal Signal & Noise mode
+    setEisenhowerViewMode('signal');
 });
 
 

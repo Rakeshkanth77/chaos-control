@@ -591,16 +591,13 @@ document.addEventListener('DOMContentLoaded', () => {
         </div>
     </div>
 
-    <!-- COLUMN 2: Eisenhower Matrix (Scrollable 1x4 Priority Stack) -->
+    <!-- COLUMN 2: Minimal Signal vs. Noise Focus Column -->
     <div class="grid-column">
-        <div class="glass-panel eisenhower-column" data-mobile-tab="2">
+        <div class="glass-panel eisenhower-column mode-signal" data-mobile-tab="2">
             <div class="eisenhower-header-bar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
-                <h2 class="panel-title" style="margin-bottom: 0;">
-                    What matters most?
-                </h2>
-                <div class="view-mode-toggle-group" style="display: flex; background: rgba(0, 0, 0, 0.25); padding: 3px; border-radius: 10px; border: 1px solid rgba(255, 255, 255, 0.08);">
-                    <button id="viewModeMatrixBtn" class="eisen-mode-btn active" data-mode="matrix" title="5-Row Eisenhower Triage">🔥 Matrix</button>
-                    <button id="viewModeSignalBtn" class="eisen-mode-btn" data-mode="signal" title="Steve Jobs Signal &amp; Noise Focus">⚡ Signal &amp; Noise</button>
+                <div>
+                    <h2 class="panel-title" style="margin-bottom: 2px;">⚡ Signal &amp; Noise Focus</h2>
+                    <div style="font-size: 0.78rem; color: var(--text-secondary);">Keep high-impact priorities at top, move low-value tasks to noise.</div>
                 </div>
             </div>
             
