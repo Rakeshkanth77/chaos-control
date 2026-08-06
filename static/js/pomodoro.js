@@ -348,7 +348,11 @@ document.addEventListener('DOMContentLoaded', () => {
         // Hide mini-widget
         if (pomoMiniWidget) {
             pomoMiniWidget.style.display = 'none';
-            pomoMiniWidget.style.transform = '';
+            pomoMiniWidget.classList.remove('is-dragging');
+            // Reset the composed offsets, not `transform` — the stylesheet owns
+            // the transform and only these two properties belong to the drag.
+            pomoMiniWidget.style.setProperty('--pomo-drag-x', '0px');
+            pomoMiniWidget.style.setProperty('--pomo-drag-y', '0px');
             xOffset = 0;
             yOffset = 0;
         }
@@ -1378,80 +1382,273 @@ document.addEventListener('DOMContentLoaded', () => {
     let widgetHasMoved = false;
 
     if (pomoMiniWidget) {
-        let activeDrag = false;
-        let currentX = 0;
-        let currentY = 0;
-        let initialX = 0;
-        let initialY = 0;
+        /* ------------------------------------------------------------------
+           Mini-widget drag.
 
-        pomoMiniWidget.addEventListener('mousedown', dragStart);
-        document.addEventListener('mousemove', dragMove);
-        document.addEventListener('mouseup', dragEnd);
+           The widget tracks the pointer 1:1 from where it was grabbed,
+           resists at the viewport edges instead of stopping dead, and on
+           release projects where the flick was heading before springing to
+           the nearest side — carrying the finger's velocity in, so there is
+           no seam between dragging and animating.
 
-        pomoMiniWidget.addEventListener('touchstart', dragStart, { passive: true });
-        document.addEventListener('touchmove', dragMove, { passive: false });
-        document.addEventListener('touchend', dragEnd);
+           Position is written to CSS custom properties, never to
+           `style.transform`, so the stylesheet's scale states compose with
+           it rather than overwrite it.
+           ------------------------------------------------------------------ */
 
-        function dragStart(e) {
-            widgetHasMoved = false;
-            let clientX, clientY;
-            
-            if (e.type === "touchstart") {
-                clientX = e.touches[0].clientX;
-                clientY = e.touches[0].clientY;
-            } else {
-                clientX = e.clientX;
-                clientY = e.clientY;
-            }
+        const DRAG_THRESHOLD = 8;      // px of travel before this counts as a drag
+        const EDGE_MARGIN = 12;        // gutter the widget may not cross
+        const DECELERATION = 0.998;    // scroll-like momentum decay
+        const SPRING_DAMPING = 0.8;    // bounce is earned here: a flick preceded it
+        const SPRING_RESPONSE = 0.4;   // seconds to settle, not a fixed duration
+        const RUBBER_CONSTANT = 0.55;
+        const VELOCITY_WINDOW = 100;   // ms of pointer history used for release velocity
 
-            initialX = clientX - xOffset;
-            initialY = clientY - yOffset;
+        const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 
-            if (e.target === pomoMiniWidget || pomoMiniWidget.contains(e.target)) {
-                activeDrag = true;
-                isDraggingWidget = true;
+        let pointerId = null;
+        let grabX = 0, grabY = 0;      // pointer position at grab
+        let originX = 0, originY = 0;  // widget offset at grab
+        let restLeft = 0, restTop = 0; // where the widget sits at zero offset
+        let widgetW = 0, widgetH = 0;
+        let history = [];              // recent {x, y, t} for velocity
+        let springFrame = null;
+        let velX = 0, velY = 0;
+
+        // Apple's projection function: where momentum would come to rest.
+        // The exponential-decay form, not the v^2/2a textbook one.
+        function project(velocity) {
+            return (velocity / 1000) * DECELERATION / (1 - DECELERATION);
+        }
+
+        // The further past a bound, the less the widget follows the finger.
+        function rubberband(overshoot, dimension) {
+            return (overshoot * dimension * RUBBER_CONSTANT) /
+                   (dimension + RUBBER_CONSTANT * Math.abs(overshoot));
+        }
+
+        // Offsets are relative to the widget's CSS resting corner, so the
+        // travel limits have to be derived from where that corner actually is.
+        function measure() {
+            const rect = pomoMiniWidget.getBoundingClientRect();
+            widgetW = pomoMiniWidget.offsetWidth;
+            widgetH = pomoMiniWidget.offsetHeight;
+            restLeft = rect.left - xOffset;
+            restTop = rect.top - yOffset;
+        }
+
+        function limits() {
+            return {
+                minX: EDGE_MARGIN - restLeft,
+                maxX: window.innerWidth - widgetW - EDGE_MARGIN - restLeft,
+                minY: EDGE_MARGIN - restTop,
+                maxY: window.innerHeight - widgetH - EDGE_MARGIN - restTop
+            };
+        }
+
+        function paint() {
+            pomoMiniWidget.style.setProperty('--pomo-drag-x', xOffset + 'px');
+            pomoMiniWidget.style.setProperty('--pomo-drag-y', yOffset + 'px');
+        }
+
+        function stopSpring() {
+            if (springFrame !== null) {
+                cancelAnimationFrame(springFrame);
+                springFrame = null;
             }
         }
 
-        function dragMove(e) {
-            if (activeDrag) {
-                widgetHasMoved = true;
-                
-                let clientX, clientY;
-                if (e.type === "touchmove") {
-                    e.preventDefault(); // Prevent scrolling page on mobile while dragging timer
-                    clientX = e.touches[0].clientX;
-                    clientY = e.touches[0].clientY;
-                } else {
-                    clientX = e.clientX;
-                    clientY = e.clientY;
+        // Independent springs per axis — one spring over 2D distance desyncs
+        // as soon as X and Y are moving at different speeds.
+        function springTo(targetX, targetY, initialVX, initialVY) {
+            stopSpring();
+
+            if (reduceMotion.matches) {
+                xOffset = targetX;
+                yOffset = targetY;
+                paint();
+                return;
+            }
+
+            const omega = 2 * Math.PI / SPRING_RESPONSE;
+            velX = initialVX;
+            velY = initialVY;
+            let last = performance.now();
+
+            const step = (now) => {
+                // If the widget was hidden mid-flight, abandon the spring.
+                if (pomoMiniWidget.style.display === 'none') {
+                    springFrame = null;
+                    return;
                 }
 
-                currentX = clientX - initialX;
-                currentY = clientY - initialY;
+                // Clamp dt so a backgrounded tab can't blow the integrator up.
+                const dt = Math.min((now - last) / 1000, 1 / 30);
+                last = now;
 
-                xOffset = currentX;
-                yOffset = currentY;
+                velX += (-omega * omega * (xOffset - targetX) - 2 * SPRING_DAMPING * omega * velX) * dt;
+                velY += (-omega * omega * (yOffset - targetY) - 2 * SPRING_DAMPING * omega * velY) * dt;
+                xOffset += velX * dt;
+                yOffset += velY * dt;
+                paint();
 
-                setTranslate(currentX, currentY, pomoMiniWidget);
+                const settled =
+                    Math.abs(xOffset - targetX) < 0.5 && Math.abs(velX) < 5 &&
+                    Math.abs(yOffset - targetY) < 0.5 && Math.abs(velY) < 5;
+
+                if (settled) {
+                    xOffset = targetX;
+                    yOffset = targetY;
+                    paint();
+                    springFrame = null;
+                    return;
+                }
+                springFrame = requestAnimationFrame(step);
+            };
+
+            springFrame = requestAnimationFrame(step);
+        }
+
+        function releaseVelocity() {
+            const now = performance.now();
+            const recent = history.filter(p => now - p.t <= VELOCITY_WINDOW);
+            if (recent.length < 2) return { vx: 0, vy: 0 };
+
+            const first = recent[0];
+            const last = recent[recent.length - 1];
+            const dt = (last.t - first.t) / 1000;
+            if (dt <= 0) return { vx: 0, vy: 0 };
+
+            return { vx: (last.x - first.x) / dt, vy: (last.y - first.y) / dt };
+        }
+
+        function onPointerDown(e) {
+            if (pointerId !== null) return;          // ignore a second finger
+            if (e.button !== undefined && e.button !== 0) return;
+
+            pointerId = e.pointerId;
+            pomoMiniWidget.setPointerCapture(pointerId);
+
+            // Grabbing mid-flight starts from wherever it is on screen right
+            // now — the spring is abandoned, not allowed to finish first.
+            stopSpring();
+
+            widgetHasMoved = false;
+            isDraggingWidget = false;
+            measure();
+
+            grabX = e.clientX;
+            grabY = e.clientY;
+            originX = xOffset;
+            originY = yOffset;
+            history = [{ x: e.clientX, y: e.clientY, t: performance.now() }];
+        }
+
+        function onPointerMove(e) {
+            if (e.pointerId !== pointerId) return;
+
+            const dx = e.clientX - grabX;
+            const dy = e.clientY - grabY;
+
+            // Hysteresis: a few px of slop is a tap, not a drag.
+            if (!widgetHasMoved) {
+                if (Math.hypot(dx, dy) < DRAG_THRESHOLD) return;
+                widgetHasMoved = true;
+                isDraggingWidget = true;
+                pomoMiniWidget.classList.add('is-dragging');
+            }
+
+            history.push({ x: e.clientX, y: e.clientY, t: performance.now() });
+            if (history.length > 8) history.shift();
+
+            const lim = limits();
+            let nextX = originX + dx;
+            let nextY = originY + dy;
+
+            // Soft boundaries: resist progressively rather than clamping hard.
+            if (nextX < lim.minX) {
+                nextX = lim.minX + rubberband(nextX - lim.minX, window.innerWidth);
+            } else if (nextX > lim.maxX) {
+                nextX = lim.maxX + rubberband(nextX - lim.maxX, window.innerWidth);
+            }
+            if (nextY < lim.minY) {
+                nextY = lim.minY + rubberband(nextY - lim.minY, window.innerHeight);
+            } else if (nextY > lim.maxY) {
+                nextY = lim.maxY + rubberband(nextY - lim.maxY, window.innerHeight);
+            }
+
+            xOffset = nextX;
+            yOffset = nextY;
+            paint();
+        }
+
+        function onPointerUp(e) {
+            if (e.pointerId !== pointerId) return;
+
+            if (pomoMiniWidget.hasPointerCapture(pointerId)) {
+                pomoMiniWidget.releasePointerCapture(pointerId);
+            }
+            pointerId = null;
+            pomoMiniWidget.classList.remove('is-dragging');
+
+            if (!widgetHasMoved) {
+                isDraggingWidget = false;
+                return;                              // a tap; the click handler takes it
+            }
+
+            const { vx, vy } = releaseVelocity();
+            const lim = limits();
+
+            // Snap to whichever side the flick was actually heading for, not
+            // whichever side happens to be nearest the release point.
+            const projectedX = xOffset + project(vx);
+            const projectedY = yOffset + project(vy);
+            const centreX = (lim.minX + lim.maxX) / 2;
+            const targetX = projectedX < centreX ? lim.minX : lim.maxX;
+            const targetY = Math.max(lim.minY, Math.min(lim.maxY, projectedY));
+
+            // Commit haptic, fired with the visual rather than after it.
+            if (navigator.vibrate) navigator.vibrate(8);
+
+            springTo(targetX, targetY, vx, vy);
+            isDraggingWidget = false;
+        }
+
+        function onPointerCancel(e) {
+            if (e.pointerId !== pointerId) return;
+            pointerId = null;
+            pomoMiniWidget.classList.remove('is-dragging');
+            isDraggingWidget = false;
+            if (widgetHasMoved) {
+                const lim = limits();
+                springTo(
+                    Math.max(lim.minX, Math.min(lim.maxX, xOffset)),
+                    Math.max(lim.minY, Math.min(lim.maxY, yOffset)),
+                    0, 0
+                );
             }
         }
 
-        function setTranslate(xPos, yPos, el) {
-            el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
-        }
+        pomoMiniWidget.addEventListener('pointerdown', onPointerDown);
+        pomoMiniWidget.addEventListener('pointermove', onPointerMove);
+        pomoMiniWidget.addEventListener('pointerup', onPointerUp);
+        pomoMiniWidget.addEventListener('pointercancel', onPointerCancel);
 
-        function dragEnd(e) {
-            initialX = currentX;
-            initialY = currentY;
-            activeDrag = false;
-            setTimeout(() => {
-                isDraggingWidget = false;
-            }, 50);
-        }
+        // A rotation or keyboard-open must not strand the widget off-screen.
+        window.addEventListener('resize', () => {
+            if (pomoMiniWidget.style.display === 'none') return;
+            if (pointerId !== null) return;
+            stopSpring();
+            measure();
+            const lim = limits();
+            xOffset = Math.max(lim.minX, Math.min(lim.maxX, xOffset));
+            yOffset = Math.max(lim.minY, Math.min(lim.maxY, yOffset));
+            paint();
+        });
 
-        // Open main Pomodoro popup when tapping/clicking without dragging
-        pomoMiniWidget.addEventListener('click', (e) => {
+        // Open the main popup on a tap. `widgetHasMoved` is reset by the next
+        // pointerdown, so no timer is needed to tell a tap from a drag.
+        pomoMiniWidget.addEventListener('click', () => {
             if (!widgetHasMoved) {
                 openPomoPopup();
             }

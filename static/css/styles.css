@@ -288,9 +288,6 @@ body {
     transform: translateY(-1px);
 }
 
-.btn:active {
-    transform: translateY(1px);
-}
 
 .btn-secondary {
     background: rgba(255, 255, 255, 0.6);
@@ -2803,6 +2800,14 @@ body {
     box-shadow: 0 4px 15px rgba(45, 212, 191, 0.4);
 }
 
+/* The drag scale is a registered property so it can transition on its own,
+   independently of the position the drag loop writes. */
+@property --pomo-drag-scale {
+    syntax: '<number>';
+    inherits: false;
+    initial-value: 1;
+}
+
 /* Floating Mini-Timer Widget (PiP style) */
 .pomo-mini-widget {
     position: fixed;
@@ -2816,11 +2821,34 @@ body {
     border-radius: 20px;
     padding: 8px 14px;
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.45), 0 0 12px rgba(45, 212, 191, 0.15);
-    cursor: move;
+    cursor: grab;
     user-select: none;
-    transition: box-shadow 0.2s, transform 0.2s, background-color 0.2s;
+    touch-action: none; /* the drag owns the gesture; the page must not pan */
     display: flex;
     align-items: center;
+
+    /* Position and scale are composed into one transform. The drag loop writes
+       only the offsets, so hover/press scale can never fight it — and no
+       transition sits on transform to fight the spring either. */
+    --pomo-drag-x: 0px;
+    --pomo-drag-y: 0px;
+    --pomo-drag-scale: 1;
+    transform: translate3d(var(--pomo-drag-x), var(--pomo-drag-y), 0)
+               scale(var(--pomo-drag-scale));
+    transition: box-shadow 0.2s,
+                background-color 0.2s,
+                --pomo-drag-scale 120ms ease-out;
+}
+
+/* Lifted while held: reads as picked up, and survives the whole drag. */
+.pomo-mini-widget.is-dragging {
+    cursor: grabbing;
+    --pomo-drag-scale: 1.04;
+    box-shadow: 0 18px 40px rgba(0, 0, 0, 0.55), 0 0 20px rgba(45, 212, 191, 0.28);
+}
+
+.pomo-mini-widget.is-dragging .pomo-mini-content {
+    pointer-events: none;
 }
 
 @media (min-width: 769px) {
@@ -2832,12 +2860,6 @@ body {
 .pomo-mini-widget:hover {
     background: rgba(10, 32, 30, 0.95);
     box-shadow: 0 12px 30px rgba(0, 0, 0, 0.55), 0 0 16px rgba(45, 212, 191, 0.3);
-    transform: translateY(-1px);
-}
-
-.pomo-mini-widget:active {
-    cursor: grabbing;
-    transform: scale(0.98);
 }
 
 .pomo-mini-content {
@@ -4015,6 +4037,234 @@ body {
 .pomo-chart-wrapper {
     height: 460px !important;
     min-height: 420px !important;
+}
+
+/* ==========================================================================
+   PRESS FEEDBACK
+   Feedback belongs on pointer-down, not on release. Hover does nothing on
+   touch, so without these the installed PWA gives no response at all until
+   the server answers. Compositor-friendly (transform only) and fast enough
+   to read as instant.
+   ========================================================================== */
+
+.btn,
+.btn-secondary,
+.nav-btn,
+.nav-link,
+.action-btn,
+.today-badge,
+.todo-item,
+.todo-checkbox,
+.project-item,
+.project-sort-btn,
+.close-panel-btn,
+.add-priority-task-btn,
+.p-btn,
+.priority-dot-wrapper,
+.pomo-btn,
+.pomo-close-btn,
+.pomo-preset-btn,
+.pomo-nav-btn,
+.pomo-pip-icon-btn,
+.pomo-day-view-btn,
+.pomo-log-item,
+.focus-view-tab,
+.focus-nav-btn,
+.focus-today-badge,
+.eisen-mode-btn,
+.timeline-zoom-btn,
+.zoom-btn,
+.reminder-toggle-btn,
+.mobile-reminder-btn,
+.mobile-tab-bar .tab-btn,
+#mobile-pomo-nav-btn,
+#mobile-toggle-projects-btn,
+.day-session-block,
+.focus-history-day-header {
+    transition: transform 100ms ease-out,
+                background-color 200ms ease,
+                opacity 200ms ease;
+}
+
+/* Buttons and controls: firm push. */
+.btn:active,
+.btn-secondary:active,
+.nav-btn:active,
+.nav-link:active,
+.action-btn:active,
+.today-badge:active,
+.todo-checkbox:active,
+.project-sort-btn:active,
+.close-panel-btn:active,
+.add-priority-task-btn:active,
+.p-btn:active,
+.priority-dot-wrapper:active,
+.pomo-btn:active,
+.pomo-close-btn:active,
+.pomo-preset-btn:active,
+.pomo-nav-btn:active,
+.pomo-pip-icon-btn:active,
+.pomo-day-view-btn:active,
+.focus-view-tab:active,
+.focus-nav-btn:active,
+.focus-today-badge:active,
+.eisen-mode-btn:active,
+.timeline-zoom-btn:active,
+.zoom-btn:active,
+.reminder-toggle-btn:active,
+.mobile-reminder-btn:active,
+.mobile-tab-bar .tab-btn:active,
+#mobile-pomo-nav-btn:active,
+#mobile-toggle-projects-btn:active {
+    transform: scale(0.94);
+}
+
+/* Large rows: a smaller scale reads as a press without looking like a jump. */
+.todo-item:active,
+.project-item:active,
+.pomo-log-item:active,
+.day-session-block:active,
+.focus-history-day-header:active {
+    transform: scale(0.985);
+    background: rgba(255, 255, 255, 0.85);
+}
+
+/* A row being dragged is not being pressed — don't stack the two transforms. */
+.todo-item.dragging:active,
+.project-item.dragging:active {
+    transform: scale(0.98);
+}
+
+/* Touch has no hover, so row actions must be reachable without one. */
+@media (hover: none) {
+    .todo-actions,
+    .project-actions {
+        opacity: 1;
+    }
+}
+
+/* ==========================================================================
+   ACCESSIBILITY PREFERENCES
+   Three independent signals. Reduced motion still keeps feedback — it just
+   stops using movement to deliver it.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: reduce) {
+    *,
+    *::before,
+    *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 150ms !important;
+        scroll-behavior: auto !important;
+    }
+
+    /* Full-viewport looping background: stop it, keep the colour. */
+    .ambient-bg {
+        animation: none;
+        background-position: 0% 50%;
+    }
+
+    /* Slides and springs become cross-fades; no travel, no overshoot.
+       The popup keeps its centring transform — only the scale/offset goes. */
+    .projects-sidebar {
+        transform: none !important;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .projects-sidebar.open {
+        opacity: 1;
+        pointer-events: auto;
+    }
+
+    .pomo-popup,
+    .pomo-popup.open {
+        transform: translate(-50%, -50%) !important;
+    }
+
+    /* Attention loops become a static state. */
+    .pomo-nav-btn.active-timer span,
+    .pomo-mini-widget {
+        animation: none !important;
+    }
+
+    /* Press feedback survives, expressed as tone rather than movement. */
+    .btn:active,
+    .nav-btn:active,
+    .nav-link:active,
+    .action-btn:active,
+    .todo-item:active,
+    .project-item:active,
+    .pomo-btn:active,
+    .focus-view-tab:active,
+    .eisen-mode-btn:active {
+        transform: none !important;
+        filter: brightness(0.92);
+    }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+    :root {
+        --card-bg: #ffffff;
+        --backdrop-blur: none;
+        --card-border: 1px solid rgba(12, 88, 85, 0.18);
+    }
+
+    .glass-panel,
+    .app-header,
+    .projects-sidebar,
+    .pomo-mini-widget {
+        background: #ffffff;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .pomo-popup {
+        background: #081817;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .projects-sidebar-overlay,
+    .pomo-popup-overlay {
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        background: rgba(0, 0, 0, 0.55);
+    }
+
+    .todo-item,
+    .project-item {
+        background: #f6faf9;
+    }
+}
+
+@media (prefers-contrast: more) {
+    :root {
+        --card-bg: #ffffff;
+        --text-secondary: #2c4a49;
+        --card-border: 1px solid rgba(12, 88, 85, 0.45);
+    }
+
+    .glass-panel,
+    .app-header,
+    .todo-item,
+    .project-item {
+        background: #ffffff;
+        border: 1px solid rgba(12, 88, 85, 0.45);
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+    }
+
+    .todo-checkbox {
+        border-width: 2px;
+        border-color: rgba(12, 88, 85, 0.7);
+    }
+
+    .nav-link.active,
+    .today-badge {
+        outline: 1px solid var(--accent-hover);
+    }
 }
 
 
