@@ -860,13 +860,37 @@
 
                 <div style="display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-top: 10px; font-size: 0.76rem;">
                     <a href="/profile/?tab=analytics#time-audit" style="color: var(--accent-color); font-weight: 600; text-decoration: none;">View 3-Day Analytics →</a>
-                    <a href="/api/time-audit/export-md/" target="_blank" download style="color: #2dd4bf; font-weight: 700; text-decoration: none;">📥 Export .md</a>
+                    <button type="button" class="trigger-export-md-btn" style="background: none; border: none; padding: 0; color: #2dd4bf; font-weight: 700; cursor: pointer; text-decoration: none;">📥 Export .md</button>
                 </div>
             </div>
         </div>
         <div class="pomo-prompt-actions" style="display: flex; gap: 8px; justify-content: flex-end; align-items: center;">
             <button id="closeQuickLogCancelBtn" class="btn btn-secondary">Cancel</button>
             <button id="saveQuickLogBtn" class="btn">Save Log</button>
+        </div>
+    </div>
+
+    <!-- ── Export Markdown Range Selector Modal ── -->
+    <div class="pomo-prompt-overlay" id="exportMdOverlay" style="display: none; z-index: 10050;"></div>
+    <div class="glass-panel pomo-prompt-modal" id="exportMdModal" style="display: none; z-index: 10051; max-width: 420px; border-radius: 16px; padding: 22px;">
+        <div class="pomo-prompt-header">
+            <h3 style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin: 0; font-size: 1.1rem;">
+                <span style="display: flex; align-items: center; gap: 8px;">
+                    <span>📥 Export Time Audit (.md)</span>
+                </span>
+                <button id="closeExportMdBtn" class="pomo-close-btn" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-secondary);">✕</button>
+            </h3>
+        </div>
+        <div class="pomo-prompt-body" style="padding: 14px 0 6px 0;">
+            <p style="font-size: 0.84rem; color: var(--text-secondary); margin-bottom: 14px; margin-top: 0;">Select timeframe for your Markdown log export:</p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <a href="/api/time-audit/export-md/?range=today" class="btn btn-secondary export-md-item-btn" target="_blank" download style="text-align: center; text-decoration: none; font-size: 0.84rem; font-weight: 700; padding: 10px 8px;">📅 Today</a>
+                <a href="/api/time-audit/export-md/?range=3days" class="btn btn-secondary export-md-item-btn" target="_blank" download style="text-align: center; text-decoration: none; font-size: 0.84rem; font-weight: 700; padding: 10px 8px;">⚡ 3 Days</a>
+                <a href="/api/time-audit/export-md/?range=week" class="btn btn-secondary export-md-item-btn" target="_blank" download style="text-align: center; text-decoration: none; font-size: 0.84rem; font-weight: 700; padding: 10px 8px;">📆 1 Week</a>
+                <a href="/api/time-audit/export-md/?range=month" class="btn btn-secondary export-md-item-btn" target="_blank" download style="text-align: center; text-decoration: none; font-size: 0.84rem; font-weight: 700; padding: 10px 8px;">🗓️ 1 Month</a>
+                <a href="/api/time-audit/export-md/?range=year" class="btn btn-secondary export-md-item-btn" target="_blank" download style="text-align: center; text-decoration: none; font-size: 0.84rem; font-weight: 700; padding: 10px 8px;">🏆 1 Year</a>
+                <a href="/api/time-audit/export-md/?range=all" class="btn btn-secondary export-md-item-btn" target="_blank" download style="text-align: center; text-decoration: none; font-size: 0.84rem; font-weight: 700; padding: 10px 8px;">📜 All Time</a>
+            </div>
         </div>
     </div>
 
@@ -1608,6 +1632,42 @@
                         console.error('Error saving time log:', err);
                     }
                 }
+
+                // ── Export Markdown Range Modal Controllers ──
+                const exportMdOverlay = document.getElementById('exportMdOverlay');
+                const exportMdModal = document.getElementById('exportMdModal');
+                const closeExportMdBtn = document.getElementById('closeExportMdBtn');
+
+                function openExportMdModal(e) {
+                    if (e && typeof e.preventDefault === 'function') {
+                        e.preventDefault();
+                        e.stopPropagation();
+                    }
+                    if (exportMdOverlay) exportMdOverlay.style.display = 'block';
+                    if (exportMdModal) exportMdModal.style.display = 'flex';
+                }
+
+                function closeExportMdModal() {
+                    if (exportMdOverlay) exportMdOverlay.style.display = 'none';
+                    if (exportMdModal) exportMdModal.style.display = 'none';
+                }
+
+                window.openExportMdModal = openExportMdModal;
+                window.closeExportMdModal = closeExportMdModal;
+
+                if (closeExportMdBtn) closeExportMdBtn.addEventListener('click', (e) => { e.preventDefault(); closeExportMdModal(); });
+                if (exportMdOverlay) exportMdOverlay.addEventListener('click', (e) => { e.preventDefault(); closeExportMdModal(); });
+
+                document.addEventListener('click', (e) => {
+                    const triggerBtn = e.target.closest('.trigger-export-md-btn');
+                    const itemBtn = e.target.closest('.export-md-item-btn');
+                    if (triggerBtn) {
+                        e.preventDefault();
+                        openExportMdModal(e);
+                    } else if (itemBtn) {
+                        setTimeout(() => closeExportMdModal(), 300);
+                    }
+                });
 
                 window.openQuickLogModal = openQuickLogModal;
                 window.closeQuickLogModal = closeQuickLogModal;

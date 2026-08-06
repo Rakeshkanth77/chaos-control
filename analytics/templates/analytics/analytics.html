@@ -81,7 +81,10 @@
                 <h3 class="panel-title" style="margin: 0; font-size: 1.15rem; font-weight: 700;">⏱️ 15-Minute Micro-Audit (3-Day Goal Alignment)</h3>
                 <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 2px;">Track 15-min blocks to identify top distractions stealing goal progress.</div>
             </div>
-            <button id="refreshTimeAuditBtn" style="background: rgba(12, 88, 85, 0.1); border: 1px solid rgba(12, 88, 85, 0.2); color: var(--accent-color); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">🔄 Refresh Audit Data</button>
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <button type="button" class="trigger-export-md-btn" style="background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45, 212, 191, 0.3); color: #2dd4bf; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer;">📥 Export .md</button>
+                <button id="refreshTimeAuditBtn" style="background: rgba(12, 88, 85, 0.1); border: 1px solid rgba(12, 88, 85, 0.2); color: var(--accent-color); padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 600; cursor: pointer;">🔄 Refresh Audit Data</button>
+            </div>
         </div>
 
         <div class="audit-micro-panel-grid" style="display: grid; grid-template-columns: 1fr 2fr; gap: 20px; align-items: start;">

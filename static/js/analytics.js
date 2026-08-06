@@ -514,7 +514,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             datasets: [
                                 {
                                     label: '🎓 PhD',
-                                    data: ab.phd_hours,
+                                    data: ab.phd_hours || [],
                                     backgroundColor: 'rgba(45, 212, 191, 0.85)',
                                     borderColor: '#2dd4bf',
                                     borderRadius: 4,
@@ -523,7 +523,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 },
                                 {
                                     label: '🚀 Side Projects',
-                                    data: ab.projects_hours,
+                                    data: ab.projects_hours || [],
                                     backgroundColor: 'rgba(59, 130, 246, 0.85)',
                                     borderColor: '#3b82f6',
                                     borderRadius: 4,
@@ -531,17 +531,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                     stack: 'audit'
                                 },
                                 {
-                                    label: '🧘 Life & Spiritual',
-                                    data: ab.life_spiritual_hours,
-                                    backgroundColor: 'rgba(139, 92, 246, 0.85)',
-                                    borderColor: '#8b5cf6',
-                                    borderRadius: 4,
-                                    borderWidth: 1,
-                                    stack: 'audit'
-                                },
-                                {
-                                    label: '☕ Other / Routine',
-                                    data: ab.other_hours,
+                                    label: '🛠️ Life Skills',
+                                    data: ab.life_skills_hours || [],
                                     backgroundColor: 'rgba(245, 158, 11, 0.85)',
                                     borderColor: '#f59e0b',
                                     borderRadius: 4,
@@ -549,17 +540,35 @@ document.addEventListener('DOMContentLoaded', () => {
                                     stack: 'audit'
                                 },
                                 {
-                                    label: '☕ Break',
-                                    data: ab.break_hours,
-                                    backgroundColor: 'rgba(20, 184, 166, 0.85)',
-                                    borderColor: '#14b8a6',
+                                    label: '🧘 Spiritual',
+                                    data: ab.spiritual_hours || [],
+                                    backgroundColor: 'rgba(139, 92, 246, 0.85)',
+                                    borderColor: '#8b5cf6',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
+                                    label: '🍳 Cooking',
+                                    data: ab.cooking_hours || [],
+                                    backgroundColor: 'rgba(249, 115, 22, 0.85)',
+                                    borderColor: '#f97316',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
+                                    label: '🚗 Driving',
+                                    data: ab.driving_hours || [],
+                                    backgroundColor: 'rgba(6, 182, 212, 0.85)',
+                                    borderColor: '#06b6d4',
                                     borderRadius: 4,
                                     borderWidth: 1,
                                     stack: 'audit'
                                 },
                                 {
                                     label: '💪 Exercise',
-                                    data: ab.exercise_hours || ab.phd_hours.map(() => 0),
+                                    data: ab.exercise_hours || [],
                                     backgroundColor: 'rgba(236, 72, 153, 0.85)',
                                     borderColor: '#ec4899',
                                     borderRadius: 4,
@@ -567,10 +576,28 @@ document.addEventListener('DOMContentLoaded', () => {
                                     stack: 'audit'
                                 },
                                 {
+                                    label: '☕ Break',
+                                    data: ab.break_hours || [],
+                                    backgroundColor: 'rgba(20, 184, 166, 0.85)',
+                                    borderColor: '#14b8a6',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
                                     label: '🚨 Distracted',
-                                    data: ab.distracted_hours,
+                                    data: ab.distracted_hours || [],
                                     backgroundColor: 'rgba(244, 63, 94, 0.85)',
                                     borderColor: '#f43f5e',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
+                                    label: '📦 Other',
+                                    data: ab.other_hours || [],
+                                    backgroundColor: 'rgba(156, 163, 175, 0.85)',
+                                    borderColor: '#9ca3af',
                                     borderRadius: 4,
                                     borderWidth: 1,
                                     stack: 'audit'
@@ -617,8 +644,11 @@ document.addEventListener('DOMContentLoaded', () => {
                     const auditCatMap = [
                         { name: 'PhD', hours: round2(sum(ab.phd_hours)) },
                         { name: 'Side Projects', hours: round2(sum(ab.projects_hours)) },
-                        { name: 'Life Skills', hours: round2(sum(ab.life_spiritual_hours)) },
-                        { name: 'Exercise', hours: round2(sum(ab.exercise_hours || [])) },
+                        { name: 'Life Skills', hours: round2(sum(ab.life_skills_hours)) },
+                        { name: 'Spiritual', hours: round2(sum(ab.spiritual_hours)) },
+                        { name: 'Cooking', hours: round2(sum(ab.cooking_hours)) },
+                        { name: 'Driving', hours: round2(sum(ab.driving_hours)) },
+                        { name: 'Exercise', hours: round2(sum(ab.exercise_hours)) },
                         { name: 'Break', hours: round2(sum(ab.break_hours)) },
                         { name: 'Distracted', hours: round2(sum(ab.distracted_hours)) },
                         { name: 'Other', hours: round2(sum(ab.other_hours)) },

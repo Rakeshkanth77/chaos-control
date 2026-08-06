@@ -336,34 +336,26 @@ def get_summary_stats(request):
         # Fetch Time Audit logs for the date range & compute category breakdown
         audit_qs = TimeAuditLog.objects.filter(user=request.user, date__gte=start_date, date__lte=end_date)
         num_slots = len(date_labels)
-        audit_phd_hours = [0.0] * num_slots
-        audit_projects_hours = [0.0] * num_slots
-        audit_life_spiritual_hours = [0.0] * num_slots
-        audit_break_hours = [0.0] * num_slots
-        audit_exercise_hours = [0.0] * num_slots
-        audit_other_hours = [0.0] * num_slots
-        audit_distracted_hours = [0.0] * num_slots
+        cat_hours = {
+            'phd': [0.0] * num_slots,
+            'projects': [0.0] * num_slots,
+            'life_skills': [0.0] * num_slots,
+            'spiritual': [0.0] * num_slots,
+            'cooking': [0.0] * num_slots,
+            'driving': [0.0] * num_slots,
+            'exercise': [0.0] * num_slots,
+            'break': [0.0] * num_slots,
+            'distracted': [0.0] * num_slots,
+            'other': [0.0] * num_slots,
+        }
 
         if view_type == 'day':
             for log in audit_qs:
                 try:
                     h = int(log.time_slot.split(':')[0])
                     s_idx = min(h // 2, 11)
-                    cat = log.category or 'other'
-                    if cat == 'phd':
-                        audit_phd_hours[s_idx] += 0.25
-                    elif cat == 'projects':
-                        audit_projects_hours[s_idx] += 0.25
-                    elif cat in ['life_skills', 'spiritual']:
-                        audit_life_spiritual_hours[s_idx] += 0.25
-                    elif cat == 'break':
-                        audit_break_hours[s_idx] += 0.25
-                    elif cat == 'exercise':
-                        audit_exercise_hours[s_idx] += 0.25
-                    elif cat == 'distracted':
-                        audit_distracted_hours[s_idx] += 0.25
-                    else:
-                        audit_other_hours[s_idx] += 0.25
+                    cat = log.category if log.category in cat_hours else 'other'
+                    cat_hours[cat][s_idx] += 0.25
                 except Exception:
                     pass
         else:
@@ -371,31 +363,12 @@ def get_summary_stats(request):
             for log in audit_qs:
                 s_idx = date_to_idx.get(log.date)
                 if s_idx is not None:
-                    cat = log.category or 'other'
-                    if cat == 'phd':
-                        audit_phd_hours[s_idx] += 0.25
-                    elif cat == 'projects':
-                        audit_projects_hours[s_idx] += 0.25
-                    elif cat in ['life_skills', 'spiritual']:
-                        audit_life_spiritual_hours[s_idx] += 0.25
-                    elif cat == 'break':
-                        audit_break_hours[s_idx] += 0.25
-                    elif cat == 'exercise':
-                        audit_exercise_hours[s_idx] += 0.25
-                    elif cat == 'distracted':
-                        audit_distracted_hours[s_idx] += 0.25
-                    else:
-                        audit_other_hours[s_idx] += 0.25
+                    cat = log.category if log.category in cat_hours else 'other'
+                    cat_hours[cat][s_idx] += 0.25
 
-        tot_audit_phd_mins = int(round(sum(audit_phd_hours) * 60))
-        tot_audit_projects_mins = int(round(sum(audit_projects_hours) * 60))
-        tot_audit_life_spiritual_mins = int(round(sum(audit_life_spiritual_hours) * 60))
-        tot_audit_break_mins = int(round(sum(audit_break_hours) * 60))
-        tot_audit_other_mins = int(round(sum(audit_other_hours) * 60))
-        tot_audit_exercise_mins = int(round(sum(audit_exercise_hours) * 60))
-        tot_audit_distracted_mins = int(round(sum(audit_distracted_hours) * 60))
+        cat_mins = {cat: int(round(sum(hrs) * 60)) for cat, hrs in cat_hours.items()}
         distracted_slots_count = audit_qs.filter(category='distracted').count()
-        total_audit_mins = tot_audit_phd_mins + tot_audit_projects_mins + tot_audit_life_spiritual_mins + tot_audit_break_mins + tot_audit_exercise_mins + tot_audit_other_mins + tot_audit_distracted_mins
+        total_audit_mins = sum(cat_mins.values())
 
         return JsonResponse({
             'status': 'success',
@@ -438,18 +411,30 @@ def get_summary_stats(request):
                 'total_focus_minutes': sum(other_minutes),
             },
             'time_audit_breakdown': {
-                'phd_hours': [round(x, 2) for x in audit_phd_hours],
-                'projects_hours': [round(x, 2) for x in audit_projects_hours],
-                'life_spiritual_hours': [round(x, 2) for x in audit_life_spiritual_hours],
-                'break_hours': [round(x, 2) for x in audit_break_hours],
-                'other_hours': [round(x, 2) for x in audit_other_hours],
-                'exercise_hours': [round(x, 2) for x in audit_exercise_hours],
-                'distracted_hours': [round(x, 2) for x in audit_distracted_hours],
+                'phd_hours': [round(x, 2) for x in cat_hours['phd']],
+                'projects_hours': [round(x, 2) for x in cat_hours['projects']],
+                'life_skills_hours': [round(x, 2) for x in cat_hours['life_skills']],
+                'spiritual_hours': [round(x, 2) for x in cat_hours['spiritual']],
+                'cooking_hours': [round(x, 2) for x in cat_hours['cooking']],
+                'driving_hours': [round(x, 2) for x in cat_hours['driving']],
+                'exercise_hours': [round(x, 2) for x in cat_hours['exercise']],
+                'break_hours': [round(x, 2) for x in cat_hours['break']],
+                'distracted_hours': [round(x, 2) for x in cat_hours['distracted']],
+                'other_hours': [round(x, 2) for x in cat_hours['other']],
+                # Legacy combined field for backward compatibility
+                'life_spiritual_hours': [round(a + b, 2) for a, b in zip(cat_hours['life_skills'], cat_hours['spiritual'])],
                 'total_audit_minutes': total_audit_mins,
-                'phd_minutes': tot_audit_phd_mins,
-                'projects_minutes': tot_audit_projects_mins,
-                'life_spiritual_minutes': tot_audit_life_spiritual_mins,
-                'break_minutes': tot_audit_break_mins,
+                'phd_minutes': cat_mins['phd'],
+                'projects_minutes': cat_mins['projects'],
+                'life_skills_minutes': cat_mins['life_skills'],
+                'spiritual_minutes': cat_mins['spiritual'],
+                'cooking_minutes': cat_mins['cooking'],
+                'driving_minutes': cat_mins['driving'],
+                'exercise_minutes': cat_mins['exercise'],
+                'break_minutes': cat_mins['break'],
+                'distracted_minutes': cat_mins['distracted'],
+                'other_minutes': cat_mins['other'],
+                'life_spiritual_minutes': cat_mins['life_skills'] + cat_mins['spiritual'],
                 'distracted_slots_count': distracted_slots_count
             },
             'eisenhower_distribution': dist_data,

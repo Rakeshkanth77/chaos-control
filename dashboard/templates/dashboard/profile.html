@@ -572,7 +572,10 @@ document.addEventListener('DOMContentLoaded', () => {
 
         <!-- ROW 4: 15-Minute Time Audit Breakdown & Highlights Panel -->
         <div class="glass-panel" style="margin-bottom: 24px; width: 100%; padding: 24px; display: flex; flex-direction: column;" id="time-audit">
-            <h3 class="panel-title" style="margin-bottom: 16px; font-size: 1.15rem; font-weight: 700;">⏱️ 15-Minute Time Audit Breakdown &amp; Highlights</h3>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; flex-wrap: wrap; gap: 12px;">
+                <h3 class="panel-title" style="margin: 0; font-size: 1.15rem; font-weight: 700;">⏱️ 15-Minute Time Audit Breakdown &amp; Highlights</h3>
+                <button type="button" class="trigger-export-md-btn" style="background: rgba(45, 212, 191, 0.1); border: 1px solid rgba(45, 212, 191, 0.3); color: #2dd4bf; padding: 6px 14px; border-radius: 8px; font-size: 0.82rem; font-weight: 700; cursor: pointer;">📥 Export .md</button>
+            </div>
             
             <div class="pomo-split-grid" style="display: grid; grid-template-columns: 7fr 3fr; gap: 20px; width: 100%; align-items: stretch;">
                 <!-- Left 70%: Stacked Bar Chart -->

@@ -1698,12 +1698,40 @@ from django.http import HttpResponse
 @api_login_required
 def export_time_audit_md(request):
     """
-    GET /api/time-audit/export-md/?days=7
-    Generates downloadable .md file of time audit logs.
+    GET /api/time-audit/export-md/?range=today|3days|week|month|year|all
+    Generates downloadable .md file of time audit logs for specified range.
     """
     try:
-        days = int(request.GET.get('days', 30))
+        range_param = (request.GET.get('range') or request.GET.get('days') or 'month').lower()
         today = timezone.localdate()
+        
+        range_title = "Custom Range"
+        if range_param in ['today', '1']:
+            days = 1
+            range_title = "Today"
+        elif range_param in ['3days', '3']:
+            days = 3
+            range_title = "Past 3 Days"
+        elif range_param in ['week', '1week', '7']:
+            days = 7
+            range_title = "Past 1 Week"
+        elif range_param in ['month', '1month', '30']:
+            days = 30
+            range_title = "Past 1 Month"
+        elif range_param in ['year', '1year', '365']:
+            days = 365
+            range_title = "Past 1 Year"
+        elif range_param in ['all', '3650']:
+            days = 3650
+            range_title = "All Time"
+        else:
+            try:
+                days = int(range_param)
+                range_title = f"Past {days} Days"
+            except ValueError:
+                days = 30
+                range_title = "Past 1 Month"
+
         start_date = today - timedelta(days=days - 1)
 
         audits = TimeAuditLog.objects.filter(
@@ -1712,19 +1740,44 @@ def export_time_audit_md(request):
             date__lte=today
         ).order_by('-date', '-time_slot')
 
-        lines = [
-            f"# ⏱️ 15-Minute Time Audit Logs ({start_date.strftime('%Y-%m-%d')} to {today.strftime('%Y-%m-%d')})",
+        total_slots = audits.count()
+        total_hours = round(total_slots * 0.25, 2)
+
+        # Compute category summary
+        cat_counts = {}
+        for a in audits:
+            cat_counts[a.category] = cat_counts.get(a.category, 0) + 1
+
+        summary_lines = [
+            f"# ⏱️ 15-Minute Time Audit Report: {range_title}",
+            f"**Period**: {start_date.strftime('%b %d, %Y')} to {today.strftime('%b %d, %Y')} | **Total Logged**: {total_hours} hrs ({total_slots} slots)",
             f"*Exported on {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}*\n",
-            "| Date | Time Slot | Category | Description | Source |",
-            "|---|---|---|---|---|"
+            "## 📊 Category Breakdown Summary\n",
+            "| Category | Slots Logged | Hours | Percentage |",
+            "|---|---|---|---|"
         ]
 
-        for a in audits:
-            lines.append(f"| {a.date} | `{a.time_slot}` | **{a.get_category_display()}** | {a.raw_text} | {a.source} |")
+        for cat_code, cat_display in TimeAuditLog.CATEGORY_CHOICES:
+            cnt = cat_counts.get(cat_code, 0)
+            if cnt > 0:
+                hrs = round(cnt * 0.25, 2)
+                pct = round((cnt / total_slots * 100), 1) if total_slots > 0 else 0
+                summary_lines.append(f"| **{cat_display}** | {cnt} | {hrs}h | {pct}% |")
 
-        md_content = "\n".join(lines)
+        summary_lines.extend([
+            "\n---\n",
+            "## 📝 Detailed Log Feed\n",
+            "| Date | Time Slot | Category | Description | Source |",
+            "|---|---|---|---|---|"
+        ])
+
+        for a in audits:
+            summary_lines.append(f"| {a.date} | `{a.time_slot}` | **{a.get_category_display()}** | {a.raw_text} | {a.source} |")
+
+        md_content = "\n".join(summary_lines)
         response = HttpResponse(md_content, content_type='text/markdown')
-        response['Content-Disposition'] = f'attachment; filename="time_audit_logs_{today.strftime("%Y%m%d")}.md"'
+        clean_range = range_param.replace(' ', '_')
+        response['Content-Disposition'] = f'attachment; filename="time_audit_{clean_range}_{today.strftime("%Y%m%d")}.md"'
         return response
     except Exception as e:
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
