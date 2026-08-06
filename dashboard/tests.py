@@ -4,10 +4,12 @@ from django.utils import timezone
 from django.contrib.auth.models import User
 import unittest.mock as mock
 import os
-from datetime import timedelta
-from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile, TimeAuditLog
+from datetime import date, timedelta
+from .models import (BrainDump, Todo, DailyReflection, PomodoroSession, UserProfile,
+                     TimeAuditLog, HabitProtocol, HabitProtocolLog)
 from .services import parse_brain_dump, generate_ai_reflection, clean_ramble_text
-from .api import get_slot_predictions, previous_slot
+from .api import (get_slot_predictions, previous_slot, get_habit_missed_date,
+                  get_at_risk_habits, previous_due_date)
 
 
 class DashboardServicesTestCase(TestCase):
@@ -384,6 +386,110 @@ class QuickLogModalMarkupTestCase(TestCase):
         sw = self.client.get('/sw.js').content.decode()
         self.assertIn('log-prediction', sw)
         self.assertIn('/api/time-audit/save/', sw)
+
+
+class NeverMissTwiceTestCase(TestCase):
+    """
+    One miss is an accident, two is the start of a new habit — so a habit is only
+    flagged in the window between those two.
+    """
+
+    def setUp(self):
+        self.user = User.objects.create_user(username='habituser', password='password123')
+        self.client.login(username='habituser', password='password123')
+        # A Wednesday, so 'weekdays' habits are due today and were due yesterday.
+        self.today = date(2026, 8, 5)
+
+    def habit(self, frequency='everyday', last_completed=None):
+        return HabitProtocol.objects.create(
+            user=self.user,
+            title='Take Isabgol',
+            frequency=frequency,
+            keywords='isabgol, fibre',
+            last_completed_date=last_completed,
+        )
+
+    def complete_on(self, protocol, day):
+        HabitProtocolLog.objects.create(protocol=protocol, user=self.user, date=day)
+
+    def test_flags_habit_that_missed_yesterday(self):
+        protocol = self.habit(last_completed=self.today - timedelta(days=2))
+        self.complete_on(protocol, self.today - timedelta(days=2))
+
+        self.assertEqual(get_habit_missed_date(protocol, self.today), self.today - timedelta(days=1))
+
+    def test_not_flagged_when_yesterday_was_done(self):
+        protocol = self.habit(last_completed=self.today - timedelta(days=1))
+        self.complete_on(protocol, self.today - timedelta(days=1))
+
+        self.assertIsNone(get_habit_missed_date(protocol, self.today))
+
+    def test_not_flagged_once_today_is_logged(self):
+        protocol = self.habit(last_completed=self.today)
+        self.complete_on(protocol, self.today - timedelta(days=2))
+        self.complete_on(protocol, self.today)
+
+        self.assertIsNone(get_habit_missed_date(protocol, self.today))
+
+    def test_habit_never_completed_has_no_chain_to_protect(self):
+        protocol = self.habit(last_completed=None)
+        self.assertIsNone(get_habit_missed_date(protocol, self.today))
+
+    def test_long_abandoned_habit_stops_nagging(self):
+        stale = self.today - timedelta(days=40)
+        protocol = self.habit(last_completed=stale)
+        self.complete_on(protocol, stale)
+
+        self.assertIsNone(get_habit_missed_date(protocol, self.today))
+
+    def test_weekend_habit_ignores_the_weekdays_between(self):
+        # Sunday 2026-08-02 was the previous due day for a weekends habit on
+        # Saturday 2026-08-08 — the weekdays in between are not misses.
+        saturday = date(2026, 8, 8)
+        protocol = self.habit(frequency='weekends', last_completed=date(2026, 8, 2))
+        self.complete_on(protocol, date(2026, 8, 2))
+
+        self.assertEqual(previous_due_date(protocol, saturday), date(2026, 8, 2))
+        self.assertIsNone(get_habit_missed_date(protocol, saturday))
+
+    def test_one_off_habit_is_never_at_risk(self):
+        protocol = self.habit(frequency='once', last_completed=self.today - timedelta(days=2))
+        self.complete_on(protocol, self.today - timedelta(days=2))
+
+        self.assertIsNone(get_habit_missed_date(protocol, self.today))
+
+    def test_at_risk_habit_surfaces_in_the_log_modal_payload(self):
+        protocol = self.habit(last_completed=self.today - timedelta(days=2))
+        self.complete_on(protocol, self.today - timedelta(days=2))
+
+        at_risk = get_at_risk_habits(self.user, self.today)
+        self.assertEqual(len(at_risk), 1)
+        self.assertEqual(at_risk[0]['title'], 'Take Isabgol')
+        self.assertEqual(at_risk[0]['missed_date'], str(self.today - timedelta(days=1)))
+
+    def test_protocols_endpoint_reports_at_risk(self):
+        protocol = HabitProtocol.objects.create(
+            user=self.user, title='Night Reflection', frequency='everyday',
+            last_completed_date=timezone.localdate() - timedelta(days=2),
+        )
+        self.complete_on(protocol, timezone.localdate() - timedelta(days=2))
+
+        data = self.client.get('/api/protocols/list/').json()
+        self.assertEqual(data['at_risk_count'], 1)
+        self.assertTrue(data['protocols'][0]['at_risk'])
+
+
+class PomodoroPopupMarkupTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='sprinter', password='password123')
+        self.client.login(username='sprinter', password='password123')
+
+    def test_focus_log_is_collapsed_and_dead_controls_are_gone(self):
+        html = self.client.get('/').content.decode()
+        self.assertIn('id="pomoLogsToggle"', html)
+        self.assertIn('id="pomoLogsPanel"', html)
+        self.assertNotIn('pomoSetCustomBtn', html)   # custom mins applies as you type
+        self.assertNotIn('pomoTaskSelect', html)     # commented-out dead markup
 
 
 class SlotPredictionTestCase(TestCase):

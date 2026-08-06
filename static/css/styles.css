@@ -2585,13 +2585,6 @@ body {
     margin-bottom: 10px;
 }
 
-.pomo-presets-grid {
-    display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: 10px;
-    margin-bottom: 14px;
-}
-
 .pomo-preset-btn {
     padding: 10px 0;
     border-radius: 12px;
@@ -2610,12 +2603,6 @@ body {
     transform: translateY(-1px);
 }
 
-.pomo-custom-input-group {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 16px;
-}
-
 .pomo-custom-input {
     flex-grow: 1;
     padding: 10px 14px;
@@ -2628,22 +2615,6 @@ body {
 
 .pomo-custom-input:focus {
     border-color: #2dd4bf !important;
-}
-
-.pomo-custom-add-btn {
-    background: linear-gradient(135deg, #0c5855, #2dd4bf) !important;
-    color: #ffffff !important;
-    border: none !important;
-    border-radius: 12px !important;
-    padding: 0 16px !important;
-    font-weight: 600 !important;
-    transition: all 0.2s ease !important;
-    cursor: pointer;
-}
-
-.pomo-custom-add-btn:hover {
-    box-shadow: 0 4px 15px rgba(45, 212, 191, 0.4);
-    transform: translateY(-1px);
 }
 
 /* Today's Focus Logs */

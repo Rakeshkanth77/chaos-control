@@ -1766,6 +1766,7 @@ def get_time_audit_today(request):
             'slots': slots_data,
             'suggested_patterns': get_slot_suggestions(request.user),
             'predictions': get_slot_predictions(request.user, request.GET.get('slot', ''), date_val),
+            'at_risk_habits': get_at_risk_habits(request.user, date_val),
             'daily_summary': get_daily_log_summary(request.user, date_val)
         })
     except Exception as e:
@@ -2059,11 +2060,82 @@ def check_and_trigger_habit_protocols(user, raw_text, date_val):
     return executed_list
 
 
+# Which weekdays each frequency is actually due on (Mon=0 ... Sun=6).
+# 'once' is absent on purpose: a one-off habit has no chain to protect.
+HABIT_DUE_WEEKDAYS = {
+    'everyday': {0, 1, 2, 3, 4, 5, 6},
+    'weekdays': {0, 1, 2, 3, 4},
+    'weekends': {5, 6},
+}
+
+# A habit untouched for longer than this is abandoned, not slipping. Nagging about
+# it forever would make the warning worthless everywhere else.
+HABIT_ABANDONED_AFTER_DAYS = 14
+
+
+def is_habit_due_on(protocol, date_val):
+    return date_val.weekday() in HABIT_DUE_WEEKDAYS.get(protocol.frequency, set())
+
+
+def previous_due_date(protocol, date_val, max_lookback=14):
+    """The most recent day before date_val on which this habit was scheduled."""
+    for offset in range(1, max_lookback + 1):
+        candidate = date_val - timedelta(days=offset)
+        if is_habit_due_on(protocol, candidate):
+            return candidate
+    return None
+
+
+def get_habit_missed_date(protocol, date_val=None):
+    """
+    "Never miss twice" - one miss is an accident, two is the start of a new habit.
+    Returns the date this habit skipped when it missed its last due day and is
+    still unlogged today, otherwise None. Habits never completed (no chain yet)
+    and long-abandoned ones are not flagged.
+    """
+    if not date_val:
+        date_val = timezone.localdate()
+    if not protocol.is_active or not protocol.last_completed_date:
+        return None
+    if (date_val - protocol.last_completed_date).days > HABIT_ABANDONED_AFTER_DAYS:
+        return None
+    if not is_habit_due_on(protocol, date_val):
+        return None
+    if HabitProtocolLog.objects.filter(protocol=protocol, date=date_val).exists():
+        return None
+
+    missed = previous_due_date(protocol, date_val)
+    if not missed or HabitProtocolLog.objects.filter(protocol=protocol, date=missed).exists():
+        return None
+    return missed
+
+
+def get_at_risk_habits(user, date_val=None):
+    """Active habits that missed their last due day and are still unlogged today."""
+    if not user or not user.is_authenticated:
+        return []
+
+    at_risk = []
+    for protocol in HabitProtocol.objects.filter(user=user, is_active=True):
+        missed = get_habit_missed_date(protocol, date_val)
+        if missed:
+            at_risk.append({
+                'id': protocol.id,
+                'title': protocol.title,
+                'icon': protocol.icon,
+                'category': protocol.category,
+                'streak_count': protocol.streak_count,
+                'missed_date': str(missed),
+            })
+    return at_risk
+
+
 @api_login_required
 def get_habit_protocols(request):
     """
     GET /api/protocols/list/
-    Returns list of active habit protocols for today.
+    Returns list of active habit protocols for today, each flagged with whether
+    it is one miss away from breaking (see get_habit_missed_date).
     """
     try:
         today = timezone.localdate()
@@ -2071,6 +2143,7 @@ def get_habit_protocols(request):
         data = []
         for p in protocols:
             completed = HabitProtocolLog.objects.filter(protocol=p, date=today).exists()
+            missed = get_habit_missed_date(p, today)
             data.append({
                 'id': p.id,
                 'title': p.title,
@@ -2083,6 +2156,8 @@ def get_habit_protocols(request):
                 'icon': p.icon,
                 'streak_count': p.streak_count,
                 'is_completed_today': completed,
+                'missed_date': str(missed) if missed else None,
+                'at_risk': bool(missed),
                 'last_completed_date': str(p.last_completed_date) if p.last_completed_date else None
             })
 
@@ -2094,6 +2169,7 @@ def get_habit_protocols(request):
             'protocols': data,
             'completed_count': completed_count,
             'total_count': total_count,
+            'at_risk_count': sum(1 for item in data if item['at_risk']),
             'date': str(today)
         })
     except Exception as e:

@@ -372,7 +372,6 @@ document.addEventListener('DOMContentLoaded', () => {
     const pomoCatPhdBtn = document.getElementById('pomoCatPhdBtn');
     const pomoCatOtherBtn = document.getElementById('pomoCatOtherBtn');
     const pomoConfirmStartBtn = document.getElementById('pomoConfirmStartBtn');
-    const pomoSetCustomBtn = document.getElementById('pomoSetCustomBtn') || document.getElementById('pomoStartCustomBtn');
 
     function updateStartButtonUI() {
         if (!pomoConfirmStartBtn) return;
@@ -423,18 +422,7 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 
-    // Custom Time Setup
-    if (pomoSetCustomBtn) {
-        pomoSetCustomBtn.addEventListener('click', () => {
-            const mins = parseInt(pomoCustomMins.value);
-            if (!isNaN(mins) && mins >= 1 && mins <= 180) {
-                setSelectedDuration(mins);
-            } else {
-                alert('Please enter a duration between 1 and 180 minutes.');
-            }
-        });
-    }
-
+    // Custom duration applies as it is typed — no separate "Set" button needed.
     if (pomoCustomMins) {
         pomoCustomMins.addEventListener('input', () => {
             const mins = parseInt(pomoCustomMins.value);
@@ -1155,6 +1143,20 @@ document.addEventListener('DOMContentLoaded', () => {
         document.body.style.overflow = '';
         clearInterval(dayViewNowInterval);
         dayViewNowInterval = null;
+    }
+
+    // Today's focus log is review, not action — collapsed until asked for.
+    const pomoLogsToggle = document.getElementById('pomoLogsToggle');
+    const pomoLogsPanel = document.getElementById('pomoLogsPanel');
+    const pomoLogsCaret = document.getElementById('pomoLogsCaret');
+    if (pomoLogsToggle && pomoLogsPanel) {
+        pomoLogsToggle.addEventListener('click', (e) => {
+            e.preventDefault();
+            const isOpen = pomoLogsPanel.style.display !== 'none';
+            pomoLogsPanel.style.display = isOpen ? 'none' : 'block';
+            pomoLogsToggle.setAttribute('aria-expanded', String(!isOpen));
+            if (pomoLogsCaret) pomoLogsCaret.textContent = isOpen ? '▸' : '▾';
+        });
     }
 
     if (openDayViewBtn) openDayViewBtn.addEventListener('click', openDayView);
