@@ -1,69 +1,89 @@
-# 🌪️ chaos-control: The Tactical Execution Protocol
+# Chaos Control: Executive Productivity & Time Audit System
 
-A premium daily productivity dashboard built with **pure Django**, **SQLite**, and **Vanilla CSS/JS** featuring a responsive iOS-inspired Glassmorphism user interface. 
-
-Designed for high-performance builders who want to capture mental noise, isolate critical tasks, and execute with absolute authority.
-
-## ⚡ The Three-Phase Protocol
-
-1. **Phase 1: Purge (Brain Dump)**
-   * Unload your raw, chaotic thoughts on the screen. The AI parser (or smart local fallback regex splitter) automatically extracts distinct tasks.
-2. **Phase 2: Prioritize (Eisenhower Matrix)**
-   * Drag-and-drop tasks into a vertically stackedpriority deck: 🔴 Urgent & Important, 🟠 Important & Not Urgent, 🟡 Urgent & Not Important, 🟢 Neither.
-3. **Phase 3: Conquest (Pomodoro Sprints & Reflection)**
-   * Run focused 25-minute sprints (with a custom circular progress ring and gentle Web Audio API completion chimes).
-   * Write daily notes and let the LLM extract mistakes to avoid and recommendations for tomorrow.
-   * View streaks and progress trends rendered in custom **Chart.js** layouts.
+Chaos Control is a full-featured productivity dashboard and time-audit system built with Django, SQLite, and Vanilla CSS/JS. It features a responsive, glassmorphism-inspired UI designed for structured task capture, Signal/Noise prioritization, Pomodoro focus tracking, and granular 15-minute micro-audits.
 
 ---
 
-## 🛠️ Features & Stack
+## Core System Modules
 
-* **Backend**: Django (SQLite database).
-* **AI Engine**: Auto-configured client supporting both **OpenAI** (`gpt-4o-mini`) and **Groq** (`llama-3.1-8b-instant`) keys, with a robust rule-based regex fallback parser.
-* **Front-end**: Pure HTML5/CSS3. Translucent frosted glass panel overlays, animated gradient backgrounds (`backdrop-filter: blur(20px)`), and CSS 3D perspective flashcard flipping.
-* **Interactions**: Drag-and-drop prioritizing, debounced auto-saving on text inputs, and dynamic chart renders.
+### 1. Task Capture & Brain Dump (Phase 1)
+- Capture unstructured mental noise in real-time.
+- Smart parsing extracts individual actionable tasks automatically.
+
+### 2. Signal & Noise Focus Framework (Phase 2)
+- Organize tasks into high-impact Signal objectives versus low-priority Noise boundaries.
+- Full Eisenhower Matrix classification (Urgent & Important, Important & Not Urgent, Urgent & Not Important, Neither).
+
+### 3. Execution & Sprint Engine (Phase 3)
+- Integrated 25-minute Pomodoro focus timer with Web Audio notifications and circular progress indicators.
+- Habit protocol automation with streak tracking and keyword auto-completion.
+
+### 4. 15-Minute Time Audit & Micro-Logging
+- Log activity across 15-minute intervals between 05:00 and 22:00.
+- Multi-slot batch selection mode to log continuous blocks of work at once.
+- Smart predictions based on historic logging patterns.
+- Automated hourly break reminders with positive reinforcement notifications.
+
+### 5. Productive Analytics & Reporting
+- Dynamic Day, Week, and Month analytics views.
+- 10-category breakdown tracking (PhD, Side Projects, Life Skills, Spiritual, Cooking, Driving, Exercise, Break, Distracted, Other) across interactive bar and donut charts.
+- Exportable Markdown time-audit reports with preset timeframes (Today, 3 Days, 1 Week, 1 Month, 1 Year, All Time).
 
 ---
 
-## 🚀 Installation & Setup
+## Technical Stack
 
-1. **Clone the repository**:
-   ```bash
-   git clone https://github.com/Rakeshkanth77/chaos-control.git
-   cd chaos-control
-   ```
+- **Backend**: Python 3.13 / Django 5.x / SQLite.
+- **Frontend**: Vanilla HTML5, CSS3 (Glassmorphism, custom CSS variables, responsive grid layouts), and Vanilla JavaScript (Chart.js integrations).
+- **AI & Natural Language Engine**: Dual-client integration supporting OpenAI (`gpt-4o-mini`) and Groq (`llama-3.1-8b-instant`) with rule-based regex fallback parsers.
 
-2. **Install dependencies**:
-   ```bash
-   pip install -r requirements.txt
-   ```
+---
 
-3. **Configure Environment Variables**:
-   Create a `.env` file in the root directory:
-   ```env
-   # API Configuration (Add Groq or OpenAI key)
-   OPENAI_API_KEY=your_api_key_here
-   
-   # Django config
-   SECRET_KEY=your_secret_key_here
-   DEBUG=True
-   ALLOWED_HOSTS=localhost,127.0.0.1
-   ```
-   *Note: If the key starts with `gsk_`, the app will automatically route requests to the Groq Llama API instead of OpenAI.*
+## Installation & Setup
 
-4. **Initialize Database**:
-   ```bash
-   python manage.py migrate
-   ```
+### 1. Clone Repository
+```bash
+git clone https://github.com/Rakeshkanth77/chaos-control.git
+cd chaos-control
+```
 
-5. **Create Superuser (for Admin panel access)**:
-   ```bash
-   python manage.py createsuperuser
-   ```
+### 2. Environment Setup & Dependencies
+```bash
+python -m venv venv
+source venv/bin/activate  # On Windows: venv\Scripts\activate
+pip install -r requirements.txt
+```
 
-6. **Start the Engine**:
-   ```bash
-   python manage.py runserver
-   ```
-   Open http://127.0.0.1:8000 in your browser to command your day.
+### 3. Environment Variables Configuration
+Create a `.env` file in the project root:
+```env
+SECRET_KEY=your_django_secret_key
+DEBUG=True
+ALLOWED_HOSTS=localhost,127.0.0.1
+
+# AI API Key (OpenAI or Groq)
+OPENAI_API_KEY=your_api_key_here
+```
+*Note: Keys starting with `gsk_` automatically route to the Groq Llama API endpoint.*
+
+### 4. Database Initialization & Migration
+```bash
+python manage.py migrate
+```
+
+### 5. Administrative Account Creation
+```bash
+python manage.py createsuperuser
+```
+
+### 6. Development Server Execution
+```bash
+python manage.py runserver
+```
+Access the application at `http://127.0.0.1:8000`.
+
+---
+
+## License & Attribution
+
+Developed for high-performance daily planning, execution tracking, and academic/project time auditing.
