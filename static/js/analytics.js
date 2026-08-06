@@ -625,6 +625,17 @@ document.addEventListener('DOMContentLoaded', () => {
                                         color: '#5a5a75',
                                         padding: 16
                                     }
+                                },
+                                tooltip: {
+                                    ...commonChartOptions.plugins.tooltip,
+                                    callbacks: {
+                                        label: function(context) {
+                                            const val = context.raw || 0;
+                                            if (val <= 0) return null;
+                                            const minutes = Math.round(val * 60);
+                                            return ` ${context.dataset.label}: ${formatDurationShort(minutes)}`;
+                                        }
+                                    }
                                 }
                             },
                             scales: {
@@ -640,7 +651,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                     position: 'left',
                                     title: { display: true, text: 'Audit Hours', font: { size: 11, weight: 'bold' }, color: '#0d9488' },
                                     grid: { color: 'rgba(0, 0, 0, 0.03)' },
-                                    ticks: { font: { family: 'Inter', size: 10 }, color: '#5a5a75' }
+                                    ticks: {
+                                        font: { family: 'Inter', size: 10 },
+                                        color: '#5a5a75',
+                                        callback: function(val) {
+                                            if (val === 0) return '0m';
+                                            const minutes = Math.round(val * 60);
+                                            return formatDurationShort(minutes);
+                                        }
+                                    }
                                 }
                             }
                         }
@@ -785,8 +804,10 @@ document.addEventListener('DOMContentLoaded', () => {
                                 return ` Start Audit to track your 15-min logs!`;
                             }
                             const val = context.parsed;
+                            const minutes = Math.round(val * 60);
+                            const durationText = formatDurationShort(minutes);
                             const pct = totalHours > 0 ? ((val / totalHours) * 100).toFixed(1) : 0;
-                            return ` ${context.label}: ${val} hrs (${pct}%)`;
+                            return ` ${context.label}: ${durationText} (${pct}%)`;
                         }
                     }
                 }
