@@ -1199,17 +1199,14 @@
                     const currentSlot = getCurrentTimeSlot();
 
                     const options = [];
-                    const now = new Date();
 
-                    for (let i = 0; i < 8; i++) {
-                        const slotTime = new Date(now.getTime() - i * 15 * 60000);
-                        const mins = slotTime.getMinutes();
-                        const slotMin = Math.floor(mins / 15) * 15;
-                        const h = String(slotTime.getHours()).padStart(2, '0');
-                        const m = String(slotMin).padStart(2, '0');
-                        const slotStr = `${h}:${m}`;
+                    // All 15-minute slots from 5:00 AM (05:00) to 10:00 PM (21:45 -> 22:00)
+                    for (let hour = 21; hour >= 5; hour--) {
+                        for (let min = 45; min >= 0; min -= 15) {
+                            const h = String(hour).padStart(2, '0');
+                            const m = String(min).padStart(2, '0');
+                            const slotStr = `${h}:${m}`;
 
-                        if (!options.some(o => o.value === slotStr)) {
                             let label = formatSlotRange(slotStr);
                             if (slotStr === completedSlot) label += ' (Just completed)';
                             else if (slotStr === currentSlot) label += ' (Current block)';
@@ -1217,6 +1214,16 @@
                             options.push({ value: slotStr, label: label });
                         }
                     }
+
+                    // Include selected or target slot if outside 5 AM - 10 PM
+                    [targetSlot, activeSlot, completedSlot, currentSlot].forEach(s => {
+                        if (s && !options.some(o => o.value === s)) {
+                            let label = formatSlotRange(s);
+                            if (s === completedSlot) label += ' (Just completed)';
+                            else if (s === currentSlot) label += ' (Current block)';
+                            options.unshift({ value: s, label: label });
+                        }
+                    });
 
                     const selectedVal = targetSlot || activeSlot || completedSlot;
 
