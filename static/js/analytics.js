@@ -71,7 +71,7 @@ document.addEventListener('DOMContentLoaded', () => {
     };
 
     // Analytics state variables
-    let analyticsViewMode = 'week';
+    let analyticsViewMode = 'day';
     let analyticsDate = new Date();
 
     let todoChartInstance = null;
