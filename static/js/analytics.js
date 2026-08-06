@@ -585,6 +585,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                     stack: 'audit'
                                 },
                                 {
+                                    label: '📞 Phone Call',
+                                    data: ab.phone_call_hours || [],
+                                    backgroundColor: 'rgba(2, 132, 199, 0.85)',
+                                    borderColor: '#0284c7',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
                                     label: '☕ Break',
                                     data: ab.break_hours || [],
                                     backgroundColor: 'rgba(20, 184, 166, 0.85)',
@@ -678,6 +687,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         { name: 'Driving', hours: round2(sum(ab.driving_hours)) },
                         { name: 'Exercise', hours: round2(sum(ab.exercise_hours)) },
                         { name: 'Getting Ready', hours: round2(sum(ab.getting_ready_hours)) },
+                        { name: 'Phone Call', hours: round2(sum(ab.phone_call_hours)) },
                         { name: 'Break', hours: round2(sum(ab.break_hours)) },
                         { name: 'Distracted', hours: round2(sum(ab.distracted_hours)) },
                         { name: 'Other', hours: round2(sum(ab.other_hours)) },
@@ -767,6 +777,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'Driving': '#06b6d4',
             'Exercise': '#ec4899',
             'Getting Ready': '#818cf8',
+            'Phone Call': '#0284c7',
             'Distracted': '#f43f5e',
             'Break': '#14b8a6',
             'Other': '#9ca3af'
@@ -929,6 +940,7 @@ document.addEventListener('DOMContentLoaded', () => {
                                 'driving': 'rgba(6, 182, 212, 0.18)',
                                 'exercise': 'rgba(236, 72, 153, 0.18)',
                                 'getting_ready': 'rgba(129, 140, 248, 0.18)',
+                                'phone_call': 'rgba(2, 132, 199, 0.18)',
                                 'distracted': 'rgba(244, 63, 94, 0.2)',
                                 'break': 'rgba(20, 184, 166, 0.2)'
                             };

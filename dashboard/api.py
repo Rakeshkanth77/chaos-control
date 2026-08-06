@@ -1545,6 +1545,7 @@ CATEGORY_SHORTCODES = {
     'c': 'cooking', 'cook': 'cooking', 'cooking': 'cooking',
     'v': 'driving', 'drive': 'driving', 'driving': 'driving',
     'g': 'getting_ready', 'getting_ready': 'getting_ready', 'ready': 'getting_ready', 'dress': 'getting_ready', 'bath': 'getting_ready', 'shower': 'getting_ready',
+    'ph': 'phone_call', 'phone': 'phone_call', 'call': 'phone_call', 'phone_call': 'phone_call',
     'd': 'distracted', 'distraction': 'distracted', 'distracted': 'distracted',
 }
 
@@ -1553,6 +1554,8 @@ CATEGORY_SHORTCODES = {
 # earlier entry here wins an equal score. Generic buckets (life_skills) sit last
 # so their broad words ('plan', 'learn') don't outrank a concrete match.
 CATEGORY_KEYWORDS = [
+    ('phone_call', ['phone', 'call', 'calling', 'called', 'phone call', 'ring', 'telecon',
+                    'phonecall', 'whatsapp call', 'zoom call', 'teams call', 'discussion']),
     ('getting_ready', ['getting ready', 'ready', 'dress', 'dressing', 'dressed', 'bath',
                        'bathing', 'shower', 'showering', 'brush', 'brushing', 'hygiene',
                        'groom', 'grooming', 'wash', 'outfit', 'skincare', 'makeup']),
