@@ -814,21 +814,21 @@
 
     <!-- ── Quick 15-Minute Micro-Audit Log Popup ── -->
     <div class="pomo-prompt-overlay" id="quickLogOverlay" style="display: none;"></div>
-    <div class="glass-panel pomo-prompt-modal" id="quickLogModal" style="display: none; max-width: 440px; border-radius: 16px; padding: 20px;">
-        <div class="pomo-prompt-header">
-            <h3 style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin: 0; font-size: 1.1rem;">
-                <span style="display: flex; align-items: center; gap: 8px;">
-                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+    <div class="glass-panel pomo-prompt-modal" id="quickLogModal" style="display: none; max-width: 480px; width: 92%; border-radius: 16px; padding: 20px;">
+        <div class="pomo-prompt-header" style="margin-bottom: 8px;">
+            <div style="display: flex; align-items: center; justify-content: space-between; width: 100%; margin-bottom: 10px;">
+                <span style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 1.05rem; color: var(--text-primary); white-space: nowrap;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="color: #2dd4bf;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     <span>Quick 15-Min Log</span>
                 </span>
-                <div style="display: flex; align-items: center; gap: 6px;">
-                    <select id="quickLogSlotSelect" style="background: rgba(15, 23, 42, 0.8); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); padding: 4px 10px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.82rem; outline: none; cursor: pointer;" title="Select 15-minute time slot to log">
-                        <!-- Populated dynamically via JS -->
-                    </select>
-                    <button id="quickLogMultiToggle" type="button" style="background: rgba(45, 212, 191, 0.15); border: 1px solid rgba(45, 212, 191, 0.3); color: #2dd4bf; padding: 4px 8px; border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap;" title="Toggle multi-slot selection mode">☑️ Multi-Slot</button>
-                    <button id="closeQuickLogBtn" class="pomo-close-btn" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-secondary);">✕</button>
-                </div>
-            </h3>
+                <button id="closeQuickLogBtn" class="pomo-close-btn" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--text-secondary); padding: 4px; line-height: 1;" title="Close modal">✕</button>
+            </div>
+            <div style="display: flex; align-items: center; gap: 8px; justify-content: space-between; width: 100%;">
+                <select id="quickLogSlotSelect" style="flex: 1; min-width: 0; background: rgba(15, 23, 42, 0.8); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); padding: 6px 10px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.82rem; outline: none; cursor: pointer; text-overflow: ellipsis; overflow: hidden;" title="Select 15-minute time slot to log">
+                    <!-- Populated dynamically via JS -->
+                </select>
+                <button id="quickLogMultiToggle" type="button" style="flex-shrink: 0; background: rgba(45, 212, 191, 0.15); border: 1px solid rgba(45, 212, 191, 0.3); color: #2dd4bf; padding: 6px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer; white-space: nowrap;" title="Toggle multi-slot selection mode">☑️ Multi-Slot</button>
+            </div>
         </div>
         <div class="pomo-prompt-body" style="padding: 14px 0;">
             <!-- Multi-Select Slot Picker Container (collapsible) -->
