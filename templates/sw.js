@@ -3,7 +3,10 @@
 //  Served from / so it controls the whole origin.
 // ════════════════════════════════════════
 
-const CACHE = 'todo-shell-v1';
+// Bump this on any release that changes a precached or /static/ asset. The
+// activate handler deletes every cache whose name doesn't match, so changing
+// this string is what flushes stale CSS/JS out of installed clients.
+const CACHE = 'todo-shell-v2';
 const OFFLINE_URL = '/offline/';
 
 // Static assets safe to cache-first (versioned or immutable).
@@ -44,16 +47,24 @@ self.addEventListener('fetch', (event) => {
         return;
     }
 
-    // Static assets: cache-first, then network (and cache the result).
+    // Static assets: stale-while-revalidate. Serve the cached copy for speed,
+    // but always re-fetch in the background so the next load picks up a new
+    // build. Plain cache-first never consults the network again, which silently
+    // pins clients to whatever CSS/JS they first installed.
     if (url.pathname.startsWith('/static/')) {
         event.respondWith(
-            caches.match(req).then((cached) =>
-                cached || fetch(req).then((res) => {
-                    const copy = res.clone();
-                    caches.open(CACHE).then((cache) => cache.put(req, copy));
+            caches.match(req).then((cached) => {
+                const network = fetch(req).then((res) => {
+                    // Don't let a 404 or an error page poison the cache.
+                    if (res && res.ok) {
+                        const copy = res.clone();
+                        caches.open(CACHE).then((cache) => cache.put(req, copy));
+                    }
                     return res;
-                }).catch(() => cached)
-            )
+                }).catch(() => cached);
+
+                return cached || network;
+            })
         );
     }
 });
