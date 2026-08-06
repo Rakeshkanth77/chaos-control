@@ -1227,6 +1227,7 @@
 
             if (quickModal) {
                 let todayLoggedSlots = {};
+                let activeSlot = getCompletedTimeSlot();
 
                 let isMultiSelectMode = false;
                 let selectedMultiSlots = new Set();
@@ -1647,15 +1648,6 @@
                         eOrSlot.stopPropagation();
                     }
                     
-                    const isAlreadyOpen = quickModal && (quickModal.style.display === 'flex' || quickModal.classList.contains('open'));
-
-                    const selectedSlot = slot || activeSlot || getCompletedTimeSlot();
-                    populateSlotPicker(selectedSlot);
-
-                    if (!isAlreadyOpen && quickInput) {
-                        quickInput.value = '';
-                    }
-                    
                     if (quickOverlay) {
                         quickOverlay.style.display = 'block';
                         quickOverlay.classList.add('open');
@@ -1664,14 +1656,22 @@
                         quickModal.style.display = 'flex';
                         quickModal.classList.add('open');
                     }
-                    setTimeout(() => quickInput?.focus(), 100);
-                    if (typeof closeMobileNav === 'function') closeMobileNav();
 
-                    // Load today's logs inside modal
-                    loadTodayAuditFeed();
+                    try {
+                        const selectedSlot = slot || activeSlot || getCompletedTimeSlot();
+                        populateSlotPicker(selectedSlot);
 
-                    // No auto-dismiss: the prompt stays until the slot is logged or
-                    // explicitly dismissed. Timing it out silently loses the slot.
+                        if (quickInput) {
+                            quickInput.value = '';
+                        }
+                        setTimeout(() => quickInput?.focus(), 100);
+                        if (typeof closeMobileNav === 'function') closeMobileNav();
+
+                        // Load today's logs inside modal
+                        loadTodayAuditFeed();
+                    } catch (err) {
+                        console.error('Error initializing quick log modal:', err);
+                    }
                 }
 
                 function closeQuickLogModal() {
