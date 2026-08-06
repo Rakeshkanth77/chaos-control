@@ -825,11 +825,26 @@
                     <select id="quickLogSlotSelect" style="background: rgba(15, 23, 42, 0.8); color: #2dd4bf; border: 1px solid rgba(45, 212, 191, 0.4); padding: 4px 10px; border-radius: 8px; font-family: 'JetBrains Mono', monospace; font-weight: 800; font-size: 0.82rem; outline: none; cursor: pointer;" title="Select 15-minute time slot to log">
                         <!-- Populated dynamically via JS -->
                     </select>
+                    <button id="quickLogMultiToggle" type="button" style="background: rgba(45, 212, 191, 0.15); border: 1px solid rgba(45, 212, 191, 0.3); color: #2dd4bf; padding: 4px 8px; border-radius: 8px; font-size: 0.76rem; font-weight: 700; cursor: pointer; white-space: nowrap;" title="Toggle multi-slot selection mode">☑️ Multi-Slot</button>
                     <button id="closeQuickLogBtn" class="pomo-close-btn" style="background: none; border: none; font-size: 1.1rem; cursor: pointer; color: var(--text-secondary);">✕</button>
                 </div>
             </h3>
         </div>
         <div class="pomo-prompt-body" style="padding: 14px 0;">
+            <!-- Multi-Select Slot Picker Container (collapsible) -->
+            <div id="quickLogMultiPanel" style="display: none; margin-bottom: 12px; background: rgba(15, 23, 42, 0.6); border: 1px solid rgba(45, 212, 191, 0.25); border-radius: 10px; padding: 10px;">
+                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; font-size: 0.76rem;">
+                    <span id="quickLogMultiCount" style="font-weight: 800; color: #2dd4bf;">0 slots selected</span>
+                    <div style="display: flex; gap: 6px;">
+                        <button type="button" id="quickLogSelectUnloggedBtn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: #f8fafc; padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer;">Select Unlogged</button>
+                        <button type="button" id="quickLogClearMultiBtn" style="background: rgba(255,255,255,0.06); border: 1px solid rgba(255,255,255,0.15); color: var(--text-secondary); padding: 2px 6px; border-radius: 4px; font-size: 0.7rem; font-weight: 600; cursor: pointer;">Clear</button>
+                    </div>
+                </div>
+                <div id="quickLogMultiCheckboxList" style="max-height: 180px; overflow-y: auto; display: flex; flex-direction: column; gap: 4px; padding-right: 4px;">
+                    <!-- Populated dynamically via JS -->
+                </div>
+            </div>
+
             <!-- "Never miss twice" — only appears when a habit skipped its last due
                  day and is still unlogged. Logging it here completes the habit too,
                  because the keyword matcher picks the title up. -->
@@ -1213,7 +1228,130 @@
             if (quickModal) {
                 let todayLoggedSlots = {};
 
-                let activeSlot = getCompletedTimeSlot();
+                let isMultiSelectMode = false;
+                let selectedMultiSlots = new Set();
+
+                function toggleMultiSelectMode(forcedState) {
+                    isMultiSelectMode = (typeof forcedState === 'boolean') ? forcedState : !isMultiSelectMode;
+                    const multiPanel = document.getElementById('quickLogMultiPanel');
+                    const singleSelect = document.getElementById('quickLogSlotSelect');
+                    const multiToggleBtn = document.getElementById('quickLogMultiToggle');
+
+                    if (multiPanel) multiPanel.style.display = isMultiSelectMode ? 'block' : 'none';
+                    if (singleSelect) singleSelect.style.display = isMultiSelectMode ? 'none' : 'block';
+                    if (multiToggleBtn) {
+                        multiToggleBtn.style.background = isMultiSelectMode ? 'rgba(45, 212, 191, 0.35)' : 'rgba(45, 212, 191, 0.15)';
+                        multiToggleBtn.textContent = isMultiSelectMode ? '✓ Multi Mode' : '☑️ Multi-Slot';
+                    }
+
+                    if (isMultiSelectMode) {
+                        selectedMultiSlots.clear();
+                        selectedMultiSlots.add(activeSlot || getCompletedTimeSlot());
+                        renderMultiSelectCheckboxes();
+                    } else {
+                        updateSaveBtnLabel();
+                    }
+                }
+
+                function renderMultiSelectCheckboxes() {
+                    const container = document.getElementById('quickLogMultiCheckboxList');
+                    if (!container) return;
+
+                    const completedSlot = getCompletedTimeSlot();
+                    const currentSlot = getCurrentTimeSlot();
+
+                    const slotsList = [];
+                    for (let hour = 21; hour >= 5; hour--) {
+                        for (let min = 45; min >= 0; min -= 15) {
+                            const h = String(hour).padStart(2, '0');
+                            const m = String(min).padStart(2, '0');
+                            slotsList.push(`${h}:${m}`);
+                        }
+                    }
+
+                    container.innerHTML = slotsList.map(slotStr => {
+                        const isChecked = selectedMultiSlots.has(slotStr);
+                        const loggedObj = todayLoggedSlots ? todayLoggedSlots[slotStr] : null;
+                        const loggedText = loggedObj ? (typeof loggedObj === 'string' ? loggedObj : (loggedObj.raw_text || '')) : '';
+                        const rangeLabel = formatSlotRange(slotStr);
+
+                        let statusBadge = '';
+                        if (slotStr === completedSlot) statusBadge = ' <span style="font-size: 0.68rem; color: #2dd4bf; font-weight: 800;">(Completed)</span>';
+                        else if (slotStr === currentSlot) statusBadge = ' <span style="font-size: 0.68rem; color: #38bdf8; font-weight: 800;">(Current)</span>';
+
+                        return `
+                            <label style="display: flex; align-items: center; justify-content: space-between; padding: 5px 8px; background: ${isChecked ? 'rgba(45, 212, 191, 0.12)' : 'rgba(15, 23, 42, 0.6)'}; border: 1px solid ${isChecked ? 'rgba(45, 212, 191, 0.4)' : 'rgba(255, 255, 255, 0.08)'}; border-radius: 6px; font-size: 0.78rem; cursor: pointer;">
+                                <span style="display: flex; align-items: center; gap: 8px; flex: 1; min-width: 0;">
+                                    <input type="checkbox" class="multi-slot-chk" data-slot="${slotStr}" ${isChecked ? 'checked' : ''} style="cursor: pointer; accent-color: #2dd4bf;" />
+                                    <span style="font-family: 'JetBrains Mono', monospace; color: #2dd4bf; font-weight: 800; font-size: 0.76rem; flex-shrink: 0;">${rangeLabel}${statusBadge}</span>
+                                </span>
+                                <span style="font-size: 0.72rem; color: var(--text-secondary); max-width: 140px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; margin-left: 8px;">${loggedText}</span>
+                            </label>
+                        `;
+                    }).join('');
+
+                    container.querySelectorAll('.multi-slot-chk').forEach(chk => {
+                        chk.addEventListener('change', (e) => {
+                            const slotVal = e.target.dataset.slot;
+                            if (e.target.checked) selectedMultiSlots.add(slotVal);
+                            else selectedMultiSlots.delete(slotVal);
+                            updateMultiSelectCount();
+                        });
+                    });
+
+                    updateMultiSelectCount();
+                }
+
+                function updateMultiSelectCount() {
+                    const countBadge = document.getElementById('quickLogMultiCount');
+                    const cnt = selectedMultiSlots.size;
+                    const mins = cnt * 15;
+                    const h = Math.floor(mins / 60);
+                    const m = mins % 60;
+                    const durationText = h > 0 ? `${h}h ${m > 0 ? m + 'm' : ''}` : `${mins} mins`;
+
+                    if (countBadge) {
+                        countBadge.textContent = `${cnt} slot${cnt === 1 ? '' : 's'} selected (${durationText})`;
+                    }
+                    updateSaveBtnLabel();
+                }
+
+                function updateSaveBtnLabel() {
+                    const quickSaveBtn = document.getElementById('saveQuickLogBtn');
+                    if (!quickSaveBtn) return;
+                    if (isMultiSelectMode && selectedMultiSlots.size > 1) {
+                        quickSaveBtn.textContent = `Save ${selectedMultiSlots.size} Slots`;
+                    } else {
+                        quickSaveBtn.textContent = 'Save Log';
+                    }
+                }
+
+                const multiToggleBtnEl = document.getElementById('quickLogMultiToggle');
+                if (multiToggleBtnEl) multiToggleBtnEl.addEventListener('click', () => toggleMultiSelectMode());
+
+                const selectUnloggedBtn = document.getElementById('quickLogSelectUnloggedBtn');
+                if (selectUnloggedBtn) {
+                    selectUnloggedBtn.addEventListener('click', () => {
+                        const currentSlot = getCurrentTimeSlot();
+                        for (let hour = 21; hour >= 5; hour--) {
+                            for (let min = 45; min >= 0; min -= 15) {
+                                const slotStr = `${String(hour).padStart(2, '0')}:${String(min).padStart(2, '0')}`;
+                                if (slotStr <= currentSlot && (!todayLoggedSlots || !todayLoggedSlots[slotStr])) {
+                                    selectedMultiSlots.add(slotStr);
+                                }
+                            }
+                        }
+                        renderMultiSelectCheckboxes();
+                    });
+                }
+
+                const clearMultiBtn = document.getElementById('quickLogClearMultiBtn');
+                if (clearMultiBtn) {
+                    clearMultiBtn.addEventListener('click', () => {
+                        selectedMultiSlots.clear();
+                        renderMultiSelectCheckboxes();
+                    });
+                }
 
                 function populateSlotPicker(targetSlot) {
                     const select = document.getElementById('quickLogSlotSelect');
@@ -1555,12 +1693,19 @@
                         return;
                     }
 
-                    // Check if slot already has a log and warn before overwriting!
-                    if (todayLoggedSlots && todayLoggedSlots[activeSlot]) {
-                        const existingSlotObj = todayLoggedSlots[activeSlot];
+                    let targetSlots = [];
+                    if (isMultiSelectMode && selectedMultiSlots.size > 0) {
+                        targetSlots = Array.from(selectedMultiSlots);
+                    } else {
+                        targetSlots = [activeSlot || getCompletedTimeSlot()];
+                    }
+
+                    // Check if any slot already has a log and warn before overwriting!
+                    if (targetSlots.length === 1 && todayLoggedSlots && todayLoggedSlots[targetSlots[0]]) {
+                        const existingSlotObj = todayLoggedSlots[targetSlots[0]];
                         const existingText = (typeof existingSlotObj === 'string') ? existingSlotObj : (existingSlotObj.raw_text || '');
                         if (existingText && existingText.trim() !== '' && existingText.trim() !== rawText.trim()) {
-                            const confirmOverwrite = confirm(`⚠️ Slot ${activeSlot} is already logged as:\n"${existingText}"\n\nAre you sure you want to overwrite it with:\n"${rawText}"?`);
+                            const confirmOverwrite = confirm(`⚠️ Slot ${targetSlots[0]} is already logged as:\n"${existingText}"\n\nAre you sure you want to overwrite it with:\n"${rawText}"?`);
                             if (!confirmOverwrite) {
                                 return;
                             }
@@ -1578,10 +1723,9 @@
                                 'X-CSRFToken': csrfToken
                             },
                             body: JSON.stringify({
-                                time_slot: activeSlot,
+                                time_slots: targetSlots,
+                                time_slot: targetSlots[0],
                                 raw_text: rawText,
-                                // Reuse the category this text carried in history so a
-                                // predicted chip saves under the colour it was shown in.
                                 category: category || undefined,
                                 source: 'web'
                             })
@@ -1589,9 +1733,11 @@
                         const data = await res.json();
                         if (data.status === 'success') {
                             if (quickInput) quickInput.value = '';
-                            // Keep modal open — auto-advance to next unlogged slot
+                            
+                            const slotCount = data.count || targetSlots.length;
+                            const slotMsg = slotCount > 1 ? `${slotCount} slots (${slotCount * 15} mins)` : targetSlots[0];
                             if (window.showToast) {
-                                window.showToast(`Logged "${rawText}" for ${activeSlot}!`, 'success');
+                                window.showToast(`Logged "${rawText}" for ${slotMsg}!`, 'success');
                             }
                             if (data.auto_executed_protocols && data.auto_executed_protocols.length > 0) {
                                 data.auto_executed_protocols.forEach(ap => {
@@ -1606,24 +1752,17 @@
                             if (typeof loadHabitProtocols === 'function') {
                                 loadHabitProtocols();
                             }
-                            // Reload feed and auto-advance slot picker
-                            await loadTodayAuditFeed();
-                            // Auto-advance to next unlogged slot
-                            const select = document.getElementById('quickLogSlotSelect');
-                            if (select) {
-                                const opts = Array.from(select.options);
-                                const currentIdx = opts.findIndex(o => o.value === activeSlot);
-                                // Try next slot in the dropdown (next older slot)
-                                for (let i = currentIdx + 1; i < opts.length; i++) {
-                                    const slotVal = opts[i].value;
-                                    if (!todayLoggedSlots || !todayLoggedSlots[slotVal]) {
-                                        select.value = slotVal;
-                                        activeSlot = slotVal;
-                                        await loadTodayAuditFeed();
-                                        break;
-                                    }
-                                }
+
+                            // Requirement 2: ALWAYS default activeSlot back to the currently running / completed slot!
+                            activeSlot = getCompletedTimeSlot();
+                            populateSlotPicker(activeSlot);
+
+                            // Turn off multi-select mode after successful batch save
+                            if (isMultiSelectMode) {
+                                toggleMultiSelectMode(false);
                             }
+
+                            await loadTodayAuditFeed();
                             if (quickInput) quickInput.focus();
                         } else {
                             alert(data.message || 'Error saving log');

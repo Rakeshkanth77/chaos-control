@@ -1604,7 +1604,7 @@ def save_time_audit(request):
     """
     POST /api/time-audit/save/
     Payload: {
-        "time_slot": "10:15",
+        "time_slot": "10:15", OR "time_slots": ["10:00", "10:15", "10:30"],
         "raw_text": "debugging django view",
         "date": "2026-08-05" (optional),
         "category": "projects" (optional, auto-detected if missing/other),
@@ -1613,11 +1613,18 @@ def save_time_audit(request):
     """
     try:
         data = json.loads(request.body)
-        time_slot = data.get('time_slot')
-        raw_text = data.get('raw_text', '').strip()
+        time_slots = data.get('time_slots')
+        single_slot = data.get('time_slot')
 
-        if not time_slot or not raw_text:
-            return JsonResponse({'status': 'error', 'message': 'time_slot and raw_text are required'}, status=400)
+        if not time_slots:
+            if single_slot:
+                time_slots = [single_slot]
+            else:
+                return JsonResponse({'status': 'error', 'message': 'time_slot or time_slots is required'}, status=400)
+
+        raw_text = data.get('raw_text', '').strip()
+        if not raw_text:
+            return JsonResponse({'status': 'error', 'message': 'raw_text is required'}, status=400)
 
         date_val = get_date_from_request(data)
         category = data.get('category')
@@ -1626,27 +1633,31 @@ def save_time_audit(request):
 
         source = data.get('source', 'web')
 
-        audit_entry, created = TimeAuditLog.objects.update_or_create(
-            user=request.user,
-            date=date_val,
-            time_slot=time_slot,
-            defaults={
-                'raw_text': raw_text,
-                'category': category,
-                'source': source
-            }
-        )
+        saved_entries = []
+        for slot in time_slots:
+            audit_entry, created = TimeAuditLog.objects.update_or_create(
+                user=request.user,
+                date=date_val,
+                time_slot=slot,
+                defaults={
+                    'raw_text': raw_text,
+                    'category': category,
+                    'source': source
+                }
+            )
+            saved_entries.append(audit_entry)
 
         auto_executed = check_and_trigger_habit_protocols(request.user, raw_text, date_val)
 
+        first_entry = saved_entries[0] if saved_entries else None
         return JsonResponse({
             'status': 'success',
-            'created': created,
-            'id': audit_entry.id,
-            'time_slot': audit_entry.time_slot,
-            'raw_text': audit_entry.raw_text,
-            'category': audit_entry.category,
-            'category_display': audit_entry.get_category_display(),
+            'count': len(saved_entries),
+            'time_slot': first_entry.time_slot if first_entry else '',
+            'time_slots': [e.time_slot for e in saved_entries],
+            'raw_text': raw_text,
+            'category': category,
+            'category_display': first_entry.get_category_display() if first_entry else '',
             'auto_executed_protocols': auto_executed
         })
     except Exception as e:
