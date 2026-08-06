@@ -25,6 +25,8 @@ document.addEventListener('DOMContentLoaded', () => {
     }
 
     // Chart.js helper for common styling
+    function sum(arr) { return (arr || []).reduce((a, b) => a + b, 0); }
+    function round2(n) { return Math.round(n * 100) / 100; }
     const commonChartOptions = {
         responsive: true,
         maintainAspectRatio: false,
@@ -461,8 +463,8 @@ document.addEventListener('DOMContentLoaded', () => {
                             datasets: [{
                                 data: res.eisenhower_distribution.values,
                                 backgroundColor: [
-                                    '#2dd4bf',                 // ⚡ Signal (Focus)
-                                    'rgba(148, 163, 184, 0.45)' // 💤 Noise (Low Priority)
+                                '#2dd4bf',                 // 🎯 Signal (Focus)
+                                    'rgba(148, 163, 184, 0.45)' // 📦 Noise (Low Priority)
                                 ],
                                 borderWidth: 1,
                                 borderColor: 'rgba(255, 255, 255, 0.6)'
@@ -556,6 +558,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                     stack: 'audit'
                                 },
                                 {
+                                    label: '💪 Exercise',
+                                    data: ab.exercise_hours || ab.phd_hours.map(() => 0),
+                                    backgroundColor: 'rgba(236, 72, 153, 0.85)',
+                                    borderColor: '#ec4899',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
                                     label: '🚨 Distracted',
                                     data: ab.distracted_hours,
                                     backgroundColor: 'rgba(244, 63, 94, 0.85)',
@@ -598,6 +609,21 @@ document.addEventListener('DOMContentLoaded', () => {
                             }
                         }
                     });
+                }
+
+                // Update the Audit Donut Chart from the same view-specific data
+                if (res.time_audit_breakdown) {
+                    const ab = res.time_audit_breakdown;
+                    const auditCatMap = [
+                        { name: 'PhD', hours: round2(sum(ab.phd_hours)) },
+                        { name: 'Side Projects', hours: round2(sum(ab.projects_hours)) },
+                        { name: 'Life Skills', hours: round2(sum(ab.life_spiritual_hours)) },
+                        { name: 'Exercise', hours: round2(sum(ab.exercise_hours || [])) },
+                        { name: 'Break', hours: round2(sum(ab.break_hours)) },
+                        { name: 'Distracted', hours: round2(sum(ab.distracted_hours)) },
+                        { name: 'Other', hours: round2(sum(ab.other_hours)) },
+                    ].filter(c => c.hours > 0);
+                    renderAuditDonutChart(auditCatMap);
                 }
             }
         } catch (err) {
@@ -680,6 +706,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'Spiritual': '#8b5cf6',
             'Cooking': '#f97316',
             'Driving': '#06b6d4',
+            'Exercise': '#ec4899',
             'Distracted': '#f43f5e',
             'Break': '#14b8a6',
             'Other': '#9ca3af'

@@ -3942,7 +3942,10 @@ body {
         margin-bottom: 16px !important;
     }
 
-    .analytics-two-plots-grid {
+    .analytics-two-plots-grid,
+    .analytics-three-plots-grid,
+    .audit-micro-panel-grid,
+    .pomo-split-grid {
         grid-template-columns: 1fr !important;
         gap: 16px !important;
         margin-bottom: 16px !important;

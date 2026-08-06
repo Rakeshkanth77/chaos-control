@@ -1242,6 +1242,7 @@
                     spiritual: '#a78bfa',
                     cooking: '#fb923c',
                     driving: '#22d3ee',
+                    exercise: '#ec4899',
                     distracted: '#fb7185',
                     break: '#2dd4bf',
                     other: '#94a3b8'
@@ -1379,6 +1380,7 @@
                                     { code: 'spiritual', label: 'Spiritual' },
                                     { code: 'cooking', label: 'Cooking' },
                                     { code: 'driving', label: 'Driving' },
+                                    { code: 'exercise', label: 'Exercise' },
                                     { code: 'distracted', label: 'Distracted' },
                                     { code: 'break', label: 'Break' },
                                     { code: 'other', label: 'Other' }
@@ -1556,7 +1558,7 @@
                         const data = await res.json();
                         if (data.status === 'success') {
                             if (quickInput) quickInput.value = '';
-                            closeQuickLogModal();
+                            // Keep modal open — auto-advance to next unlogged slot
                             if (window.showToast) {
                                 window.showToast(`Logged "${rawText}" for ${activeSlot}!`, 'success');
                             }
@@ -1573,7 +1575,25 @@
                             if (typeof loadHabitProtocols === 'function') {
                                 loadHabitProtocols();
                             }
-                            loadTodayAuditFeed();
+                            // Reload feed and auto-advance slot picker
+                            await loadTodayAuditFeed();
+                            // Auto-advance to next unlogged slot
+                            const select = document.getElementById('quickLogSlotSelect');
+                            if (select) {
+                                const opts = Array.from(select.options);
+                                const currentIdx = opts.findIndex(o => o.value === activeSlot);
+                                // Try next slot in the dropdown (next older slot)
+                                for (let i = currentIdx + 1; i < opts.length; i++) {
+                                    const slotVal = opts[i].value;
+                                    if (!todayLoggedSlots || !todayLoggedSlots[slotVal]) {
+                                        select.value = slotVal;
+                                        activeSlot = slotVal;
+                                        await loadTodayAuditFeed();
+                                        break;
+                                    }
+                                }
+                            }
+                            if (quickInput) quickInput.focus();
                         } else {
                             alert(data.message || 'Error saving log');
                         }
@@ -1786,6 +1806,46 @@
                         });
                     }
                 }, 1000); // Check every second for exact boundary match
+
+                // ── Hourly Break Reminder with Positive Statements ──
+                const BREAK_STATEMENTS = [
+                    "🌟 You've been crushing it! Take 5 minutes to stretch and reset — your brain will thank you.",
+                    "💪 Great focus this hour! Step away briefly — the best ideas come when you breathe.",
+                    "🚀 Momentum is strong! A quick break now keeps burnout at bay. You've earned it.",
+                    "🏆 One more hour conquered. Stand up, hydrate, and come back sharper.",
+                    "✨ Excellence needs rest. Take a 5-minute break — you'll return with fresh perspective.",
+                    "🧠 Your brain has been running full-speed. Give it a micro-reset — walk, stretch, or breathe.",
+                    "🔥 Solid hour of work! Quick break time — top performers rest strategically.",
+                    "🌊 Flow state is powerful, but even rivers pause. Take a breather and recharge.",
+                    "⭐ Another productive hour! Reward yourself with a short break. You deserve it.",
+                    "🎯 Focused work deserves focused rest. Step back for 5 minutes — then dominate the next hour."
+                ];
+                let lastBreakHour = -1;
+
+                setInterval(() => {
+                    if (!isAuditRunningNow()) return;
+                    const now = new Date();
+                    const currentHour = now.getHours();
+                    // Fire at the top of every hour (within 0-1 min)
+                    if (now.getMinutes() !== 0) return;
+                    if (currentHour === lastBreakHour) return;
+                    lastBreakHour = currentHour;
+
+                    const msg = BREAK_STATEMENTS[Math.floor(Math.random() * BREAK_STATEMENTS.length)];
+                    if (window.showToast) window.showToast(msg, 'info', 8000);
+
+                    // Also fire a system notification if permission granted
+                    if ('Notification' in window && Notification.permission === 'granted') {
+                        try {
+                            new Notification('☕ Break Reminder', {
+                                body: msg.replace(/^[^\s]+\s/, ''), // strip the emoji prefix
+                                icon: '/static/images/icon-192.png',
+                                tag: 'hourly-break',
+                                renotify: true
+                            });
+                        } catch (e) { /* mobile may block direct Notification */ }
+                    }
+                }, 60000); // Check every minute
             }
         });
     </script>

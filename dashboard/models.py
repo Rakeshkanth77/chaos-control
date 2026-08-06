@@ -96,6 +96,7 @@ class TimeAuditLog(models.Model):
         ('spiritual', 'Spiritual'),
         ('cooking', 'Cooking'),
         ('driving', 'Driving'),
+        ('exercise', 'Exercise'),
         ('distracted', 'Distracted'),
         ('break', 'Break'),
         ('other', 'Other'),

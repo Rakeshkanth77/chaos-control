@@ -593,7 +593,7 @@ document.addEventListener('DOMContentLoaded', () => {
         <div class="glass-panel eisenhower-column mode-signal" data-mobile-tab="2">
             <div class="eisenhower-header-bar" style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin-bottom: 14px;">
                 <div>
-                    <h2 class="panel-title" style="margin-bottom: 2px;">⚡ Signal &amp; Noise Focus</h2>
+                    <h2 class="panel-title" style="margin-bottom: 2px;">🎯 Signal &amp; Noise Focus</h2>
                     <div style="font-size: 0.78rem; color: var(--text-secondary);">Keep high-impact priorities at top, move low-value tasks to noise.</div>
                 </div>
             </div>
@@ -602,7 +602,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="priority-block urgent_important" style="border: 2px solid #2dd4bf !important; background: rgba(45, 212, 191, 0.12) !important; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 0 16px rgba(45, 212, 191, 0.15);">
                 <div class="priority-header" style="border-bottom: 1px solid rgba(45, 212, 191, 0.3); padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
                     <span style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 0.95rem; color: #2dd4bf;">
-                        <span style="font-size: 1.1rem;">⚡</span>
+                        <span style="font-size: 1.1rem;">🎯</span>
                         <span>SIGNAL (Focus Objectives)</span>
                     </span>
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -618,8 +618,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned">Prioritize</option>
-                                    <option value="urgent_important" selected>⚡ SIGNAL</option>
-                                    <option value="neither">💤 NOISE</option>
+                                    <option value="urgent_important" selected>🎯 SIGNAL</option>
+                                    <option value="neither">📦 NOISE</option>
                                 </select>
                             </div>
                             <div class="todo-actions">
@@ -636,8 +636,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned">Prioritize</option>
-                                    <option value="urgent_important" selected>⚡ SIGNAL</option>
-                                    <option value="neither">💤 NOISE</option>
+                                    <option value="urgent_important" selected>🎯 SIGNAL</option>
+                                    <option value="neither">📦 NOISE</option>
                                 </select>
                             </div>
                             <div class="todo-actions">
@@ -654,7 +654,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="priority-block neither" style="border: 1px solid rgba(255, 255, 255, 0.12) !important; background: rgba(0, 0, 0, 0.2) !important; border-radius: 16px; padding: 16px;">
                 <div class="priority-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
                     <span style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; color: rgba(255, 255, 255, 0.7);">
-                        <span style="font-size: 1.1rem;">💤</span>
+                        <span style="font-size: 1.1rem;">📦</span>
                         <span>NOISE (Low Priority &amp; Boundaries)</span>
                     </span>
                     <div style="display: flex; align-items: center; gap: 8px;">
@@ -670,8 +670,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned">Prioritize</option>
-                                    <option value="urgent_important">⚡ SIGNAL</option>
-                                    <option value="neither" selected>💤 NOISE</option>
+                                    <option value="urgent_important">🎯 SIGNAL</option>
+                                    <option value="neither" selected>📦 NOISE</option>
                                 </select>
                             </div>
                             <div class="todo-actions">
@@ -688,8 +688,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned">Prioritize</option>
-                                    <option value="urgent_important">⚡ SIGNAL</option>
-                                    <option value="neither" selected>💤 NOISE</option>
+                                    <option value="urgent_important">🎯 SIGNAL</option>
+                                    <option value="neither" selected>📦 NOISE</option>
                                 </select>
                             </div>
                             <div class="todo-actions">
@@ -706,8 +706,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 <span class="todo-text">{{ todo.title }}</span>
                                 <select class="todo-priority-select" data-id="{{ todo.id }}" title="Change priority">
                                     <option value="unassigned">Prioritize</option>
-                                    <option value="urgent_important">⚡ SIGNAL</option>
-                                    <option value="neither" selected>💤 NOISE</option>
+                                    <option value="urgent_important">🎯 SIGNAL</option>
+                                    <option value="neither" selected>📦 NOISE</option>
                                 </select>
                             </div>
                             <div class="todo-actions">
@@ -737,8 +737,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="breakdown-priority-selector">
                 <span class="priority-label">Category:</span>
                 <div class="priority-buttons">
-                    <button class="p-btn urgent-important" data-priority-val="urgent_important" title="⚡ SIGNAL (Focus Objectives)"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #2dd4bf; vertical-align: middle;"></span> ⚡ SIGNAL</button>
-                    <button class="p-btn neither" data-priority-val="neither" title="💤 NOISE (Low Priority &amp; Boundaries)"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #9ca3af; vertical-align: middle;"></span> 💤 NOISE</button>
+                    <button class="p-btn urgent-important" data-priority-val="urgent_important" title="🎯 SIGNAL (Focus Objectives)"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #2dd4bf; vertical-align: middle;"></span> 🎯 SIGNAL</button>
+                    <button class="p-btn neither" data-priority-val="neither" title="📦 NOISE (Low Priority &amp; Boundaries)"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #9ca3af; vertical-align: middle;"></span> 📦 NOISE</button>
                     <button class="p-btn unassigned" data-priority-val="unassigned" title="Unassigned"><span style="display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: #6b7280; vertical-align: middle;"></span> Prioritize</button>
                 </div>
             </div>

@@ -85,9 +85,20 @@ document.addEventListener('DOMContentLoaded', () => {
         const activeTodoEl = todoElement || document.querySelector(`.todo-item[data-id="${todoId}"]`);
         if (activeTodoEl) {
             const listParent = activeTodoEl.closest('.priority-list');
-            const currentPriority = listParent ? (listParent.dataset.priority || 'unassigned') : 'unassigned';
+            const rawPriority = listParent ? (listParent.dataset.priority || 'unassigned') : 'unassigned';
+            // Map internal priorities to visual Signal/Noise categories
+            // Signal: urgent_important + important_not_urgent
+            // Noise: neither + urgent_not_important + stop_todo
+            const SIGNAL_PRIORITIES = ['urgent_important', 'important_not_urgent'];
+            const NOISE_PRIORITIES = ['neither', 'urgent_not_important', 'stop_todo'];
+            let visualPriority = rawPriority;
+            if (SIGNAL_PRIORITIES.includes(rawPriority)) {
+                visualPriority = 'urgent_important';
+            } else if (NOISE_PRIORITIES.includes(rawPriority)) {
+                visualPriority = 'neither';
+            }
             document.querySelectorAll('.breakdown-priority-selector .p-btn').forEach(btn => {
-                if (btn.dataset.priorityVal === currentPriority) {
+                if (btn.dataset.priorityVal === visualPriority) {
                     btn.classList.add('active');
                 } else {
                     btn.classList.remove('active');
