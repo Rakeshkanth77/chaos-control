@@ -576,6 +576,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                     stack: 'audit'
                                 },
                                 {
+                                    label: '👔 Getting Ready',
+                                    data: ab.getting_ready_hours || [],
+                                    backgroundColor: 'rgba(129, 140, 248, 0.85)',
+                                    borderColor: '#818cf8',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
                                     label: '☕ Break',
                                     data: ab.break_hours || [],
                                     backgroundColor: 'rgba(20, 184, 166, 0.85)',
@@ -649,6 +658,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         { name: 'Cooking', hours: round2(sum(ab.cooking_hours)) },
                         { name: 'Driving', hours: round2(sum(ab.driving_hours)) },
                         { name: 'Exercise', hours: round2(sum(ab.exercise_hours)) },
+                        { name: 'Getting Ready', hours: round2(sum(ab.getting_ready_hours)) },
                         { name: 'Break', hours: round2(sum(ab.break_hours)) },
                         { name: 'Distracted', hours: round2(sum(ab.distracted_hours)) },
                         { name: 'Other', hours: round2(sum(ab.other_hours)) },
@@ -737,6 +747,7 @@ document.addEventListener('DOMContentLoaded', () => {
             'Cooking': '#f97316',
             'Driving': '#06b6d4',
             'Exercise': '#ec4899',
+            'Getting Ready': '#818cf8',
             'Distracted': '#f43f5e',
             'Break': '#14b8a6',
             'Other': '#9ca3af'
@@ -895,6 +906,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 'spiritual': 'rgba(139, 92, 246, 0.18)',
                                 'cooking': 'rgba(249, 115, 22, 0.18)',
                                 'driving': 'rgba(6, 182, 212, 0.18)',
+                                'exercise': 'rgba(236, 72, 153, 0.18)',
+                                'getting_ready': 'rgba(129, 140, 248, 0.18)',
                                 'distracted': 'rgba(244, 63, 94, 0.2)',
                                 'break': 'rgba(20, 184, 166, 0.2)'
                             };

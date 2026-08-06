@@ -1544,6 +1544,7 @@ CATEGORY_SHORTCODES = {
     's': 'spiritual', 'spiritual': 'spiritual',
     'c': 'cooking', 'cook': 'cooking', 'cooking': 'cooking',
     'v': 'driving', 'drive': 'driving', 'driving': 'driving',
+    'g': 'getting_ready', 'getting_ready': 'getting_ready', 'ready': 'getting_ready', 'dress': 'getting_ready', 'bath': 'getting_ready', 'shower': 'getting_ready',
     'd': 'distracted', 'distraction': 'distracted', 'distracted': 'distracted',
 }
 
@@ -1552,6 +1553,9 @@ CATEGORY_SHORTCODES = {
 # earlier entry here wins an equal score. Generic buckets (life_skills) sit last
 # so their broad words ('plan', 'learn') don't outrank a concrete match.
 CATEGORY_KEYWORDS = [
+    ('getting_ready', ['getting ready', 'ready', 'dress', 'dressing', 'dressed', 'bath',
+                       'bathing', 'shower', 'showering', 'brush', 'brushing', 'hygiene',
+                       'groom', 'grooming', 'wash', 'outfit', 'skincare', 'makeup']),
     ('distracted', ['reel', 'insta', 'instagram', 'youtube', 'yt', 'twitter', 'x.com',
                     'tiktok', 'scroll', 'game', 'gaming', 'gameplay', 'reddit', 'meme',
                     'distract', 'distraction']),
