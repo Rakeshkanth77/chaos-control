@@ -1987,9 +1987,9 @@
                 }
 
                 // Trigger the prompt when a 15-minute slot finishes (:00, :15, :30, :45)
-                // during the 5am - 10pm window.
+                // during the 5am - 10pm window, ONLY if the slot hasn't been logged yet.
                 let lastPromptedSlot = '';
-                setInterval(() => {
+                setInterval(async () => {
                     updateAuditBtnUI();
                     if (!isAuditRunningNow()) return;
 
@@ -1999,6 +1999,19 @@
                     const completedSlot = getCompletedTimeSlot();
                     if (completedSlot === lastPromptedSlot) return;
                     lastPromptedSlot = completedSlot;
+
+                    // Skip prompt if user already logged this slot
+                    try {
+                        const todayStr = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
+                        const res = await fetch(`/api/time-audit/today/?date=${todayStr}`);
+                        const data = await res.json();
+                        if (data.status === 'success' && data.slots && data.slots[completedSlot] && data.slots[completedSlot].raw_text) {
+                            console.log(`Slot ${completedSlot} is already logged. Skipping notification prompt.`);
+                            return;
+                        }
+                    } catch (err) {
+                        // continue fallback on network error
+                    }
 
                     const modalIsOpen = quickModal && quickModal.style.display !== 'none';
                     if (modalIsOpen) {

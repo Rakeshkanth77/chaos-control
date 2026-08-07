@@ -82,10 +82,51 @@ def get_slot_range_str(slot_str):
     end_h = (h + 1) % 24 if end_m == 0 else h
     return f"{slot_str} - {end_h:02d}:{end_m:02d}"
 
-def show_popup(target_slot=None):
+def is_slot_already_logged(target_slot):
+    """
+    Checks whether the target_slot is already logged for today:
+    1. Checks Django Web App API /api/time-audit/today/ if Django server is running.
+    2. Checks the local CSV file backup (~/Desktop/15min_time_log.csv).
+    Returns True if already logged, False otherwise.
+    """
+    now_dt = datetime.datetime.now()
+    date_str = now_dt.strftime("%Y-%m-%d")
+
+    # 1. Check Django Web App API
+    try:
+        today_api_url = f"http://127.0.0.1:8000/api/time-audit/today/?date={date_str}"
+        req = urllib.request.Request(today_api_url)
+        with urllib.request.urlopen(req, timeout=2) as resp:
+            data = json.loads(resp.read().decode('utf-8'))
+            if data.get('status') == 'success' and 'slots' in data:
+                if target_slot in data['slots'] and data['slots'][target_slot].get('raw_text'):
+                    return True
+    except Exception:
+        pass
+
+    # 2. Check Local CSV File Backup
+    if os.path.isfile(LOG_FILE):
+        try:
+            with open(LOG_FILE, mode='r', newline='', encoding='utf-8') as f:
+                reader = csv.reader(f)
+                header = next(reader, None)
+                for row in reader:
+                    if len(row) >= 3 and row[0] == date_str and row[1] == target_slot:
+                        if row[2].strip():
+                            return True
+        except Exception:
+            pass
+
+    return False
+
+def show_popup(target_slot=None, force=False):
     """Displays AlwaysOnTop Tkinter window for quick input."""
     if not target_slot:
         target_slot = get_completed_slot_str()
+
+    if not force and is_slot_already_logged(target_slot):
+        print(f"[{target_slot}] Slot is already logged for today! Skipping popup prompt.")
+        return
 
     slot_range = get_slot_range_str(target_slot)
 
