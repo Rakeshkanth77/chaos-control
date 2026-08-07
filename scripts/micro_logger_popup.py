@@ -24,8 +24,8 @@ DJANGO_API_URL = "http://127.0.0.1:8000/api/time-audit/save/"
 INTERVAL_MINUTES = 15
 
 CATEGORIES_HELP = (
-    "[P] PhD     [J] Side Projects   [L] Life Skills   [S] Spiritual\n"
-    "[C] Cooking [V] Driving         [D] Distracted    [B] Break\n"
+    "[P] PhD     [J] Side Projects   [PL] Planning   [L] Life Skills\n"
+    "[S] Spiritual [C] Cooking [V] Driving [D] Distracted [B] Break\n"
     "(or type custom description & press Enter)"
 )
 

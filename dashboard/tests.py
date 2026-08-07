@@ -330,6 +330,18 @@ class TimeAuditApiTestCase(TestCase):
         self.assertEqual(data['status'], 'success')
         self.assertEqual(data['category'], 'distracted')
 
+    def test_save_time_audit_auto_categorize_planning(self):
+        response = self.client.post('/api/time-audit/save/', data=json.dumps({
+            'time_slot': '10:30',
+            'raw_text': 'weekly schedule planning and prioritizing tasks',
+            'date': self.today_str
+        }), content_type='application/json')
+        
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertEqual(data['status'], 'success')
+        self.assertEqual(data['category'], 'planning')
+
     def test_get_time_audit_today_and_stats(self):
         # Create 2 logs
         self.client.post('/api/time-audit/save/', data=json.dumps({

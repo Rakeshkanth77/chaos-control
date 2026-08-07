@@ -531,6 +531,15 @@ document.addEventListener('DOMContentLoaded', () => {
                                     stack: 'audit'
                                 },
                                 {
+                                    label: '📅 Planning',
+                                    data: ab.planning_hours || [],
+                                    backgroundColor: 'rgba(168, 85, 247, 0.85)',
+                                    borderColor: '#a855f7',
+                                    borderRadius: 4,
+                                    borderWidth: 1,
+                                    stack: 'audit'
+                                },
+                                {
                                     label: '🛠️ Life Skills',
                                     data: ab.life_skills_hours || [],
                                     backgroundColor: 'rgba(245, 158, 11, 0.85)',
@@ -681,6 +690,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     const auditCatMap = [
                         { name: 'PhD', hours: round2(sum(ab.phd_hours)) },
                         { name: 'Side Projects', hours: round2(sum(ab.projects_hours)) },
+                        { name: 'Planning', hours: round2(sum(ab.planning_hours)) },
                         { name: 'Life Skills', hours: round2(sum(ab.life_skills_hours)) },
                         { name: 'Spiritual', hours: round2(sum(ab.spiritual_hours)) },
                         { name: 'Cooking', hours: round2(sum(ab.cooking_hours)) },
@@ -771,6 +781,7 @@ document.addEventListener('DOMContentLoaded', () => {
         const colorMap = {
             'PhD': '#10b981',
             'Side Projects': '#3b82f6',
+            'Planning': '#a855f7',
             'Life Skills': '#f59e0b',
             'Spiritual': '#8b5cf6',
             'Cooking': '#f97316',
@@ -934,6 +945,7 @@ document.addEventListener('DOMContentLoaded', () => {
                             const catColors = {
                                 'phd': 'rgba(16, 185, 129, 0.18)',
                                 'projects': 'rgba(59, 130, 246, 0.18)',
+                                'planning': 'rgba(168, 85, 247, 0.18)',
                                 'life_skills': 'rgba(245, 158, 11, 0.18)',
                                 'spiritual': 'rgba(139, 92, 246, 0.18)',
                                 'cooking': 'rgba(249, 115, 22, 0.18)',
@@ -991,7 +1003,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     badge.addEventListener('click', async (e) => {
                         const slot = e.currentTarget.dataset.slot;
                         const currentCat = e.currentTarget.dataset.cat;
-                        const catChoices = "phd, projects, life_skills, spiritual, cooking, driving, distracted, break, other";
+                        const catChoices = "phd, projects, planning, life_skills, spiritual, cooking, driving, getting_ready, phone_call, distracted, break, other";
                         const newCat = prompt(`Change category for ${slot} (current: ${currentCat}):\nOptions: ${catChoices}`, currentCat);
                         if (newCat && newCat.trim() !== '' && newCat !== currentCat) {
                             const res = await fetch('/api/time-audit/update-category/', {

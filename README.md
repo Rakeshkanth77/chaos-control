@@ -26,7 +26,7 @@ Chaos Control is a full-featured productivity dashboard and time-audit system bu
 
 ### 5. Productive Analytics & Reporting
 - Dynamic Day, Week, and Month analytics views.
-- 10-category breakdown tracking (PhD, Side Projects, Life Skills, Spiritual, Cooking, Driving, Exercise, Break, Distracted, Other) across interactive bar and donut charts.
+- Multi-category breakdown tracking (PhD, Side Projects, Planning, Life Skills, Spiritual, Cooking, Driving, Exercise, Phone Call, Getting Ready, Break, Distracted, Other) across interactive bar and donut charts.
 - Exportable Markdown time-audit reports with preset timeframes (Today, 3 Days, 1 Week, 1 Month, 1 Year, All Time).
 
 ---

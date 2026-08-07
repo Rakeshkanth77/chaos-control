@@ -92,6 +92,7 @@ class TimeAuditLog(models.Model):
     CATEGORY_CHOICES = [
         ('phd', 'PhD'),
         ('projects', 'Side Projects'),
+        ('planning', 'Planning'),
         ('life_skills', 'Life Skills'),
         ('spiritual', 'Spiritual'),
         ('cooking', 'Cooking'),

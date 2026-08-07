@@ -339,6 +339,7 @@ def get_summary_stats(request):
         cat_hours = {
             'phd': [0.0] * num_slots,
             'projects': [0.0] * num_slots,
+            'planning': [0.0] * num_slots,
             'life_skills': [0.0] * num_slots,
             'spiritual': [0.0] * num_slots,
             'cooking': [0.0] * num_slots,
@@ -415,6 +416,7 @@ def get_summary_stats(request):
             'time_audit_breakdown': {
                 'phd_hours': [round(x, 2) for x in cat_hours['phd']],
                 'projects_hours': [round(x, 2) for x in cat_hours['projects']],
+                'planning_hours': [round(x, 2) for x in cat_hours['planning']],
                 'life_skills_hours': [round(x, 2) for x in cat_hours['life_skills']],
                 'spiritual_hours': [round(x, 2) for x in cat_hours['spiritual']],
                 'cooking_hours': [round(x, 2) for x in cat_hours['cooking']],
@@ -430,6 +432,7 @@ def get_summary_stats(request):
                 'total_audit_minutes': total_audit_mins,
                 'phd_minutes': cat_mins['phd'],
                 'projects_minutes': cat_mins['projects'],
+                'planning_minutes': cat_mins['planning'],
                 'life_skills_minutes': cat_mins['life_skills'],
                 'spiritual_minutes': cat_mins['spiritual'],
                 'cooking_minutes': cat_mins['cooking'],

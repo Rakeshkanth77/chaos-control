@@ -1540,6 +1540,7 @@ from .models import BrainDump, Todo, DailyReflection, PomodoroSession, UserProfi
 CATEGORY_SHORTCODES = {
     'p': 'phd', 'phd': 'phd',
     'j': 'projects', 'project': 'projects', 'projects': 'projects',
+    'pl': 'planning', 'plan': 'planning', 'planning': 'planning',
     'l': 'life_skills', 'life_skills': 'life_skills', 'lifeskills': 'life_skills',
     's': 'spiritual', 'spiritual': 'spiritual',
     'c': 'cooking', 'cook': 'cooking', 'cooking': 'cooking',
@@ -1567,12 +1568,15 @@ CATEGORY_KEYWORDS = [
     ('cooking', ['cook', 'cooking', 'meal', 'meal prep', 'kitchen', 'bake', 'baking', 'recipe']),
     ('driving', ['drive', 'driving', 'car', 'commute', 'commuting', 'travel',
                  'travelling', 'traveling', 'road']),
+    ('planning', ['plan', 'planning', 'planner', 'schedule', 'scheduling', 'agenda',
+                  'organize', 'organizing', 'todo', 'task list', 'roadmap', 'strategy',
+                  'strategize', 'strategizing', 'time block', 'timeblocking', 'prioritize',
+                  'prioritizing', 'weekly plan', 'daily plan']),
     ('phd', ['phd', 'paper', 'thesis', 'research', 'article', 'study', 'literature',
              'experiment', 'supervisor']),
     ('projects', ['code', 'coding', 'debug', 'debugging', 'bug', 'django', 'python',
                   'js', 'html', 'css', 'build', 'github', 'app', 'project']),
-    ('life_skills', ['read', 'book', 'skill', 'learn', 'course', 'finance', 'budget',
-                     'plan', 'planning']),
+    ('life_skills', ['read', 'book', 'skill', 'learn', 'course', 'finance', 'budget']),
 ]
 
 # Whole-word match with common inflections, so 'read' hits "reading" but not
