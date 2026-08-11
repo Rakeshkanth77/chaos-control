@@ -652,4 +652,37 @@ class HabitProtocolTestCase(TestCase):
         self.assertEqual(t_data['streak_count'], 1)
 
 
+class ExportTimeAuditMdTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='exportuser', password='password123')
+        self.client.login(username='exportuser', password='password123')
+        self.today = timezone.localdate()
+        TimeAuditLog.objects.create(
+            user=self.user,
+            date=self.today,
+            time_slot='09:00',
+            category='phd',
+            raw_text='Deep work on research | thesis\nwriting',
+            source='manual'
+        )
+
+    def test_export_md_authenticated(self):
+        ranges = ['today', '3days', 'week', 'month', 'year', 'all']
+        for r in ranges:
+            response = self.client.get(f'/api/time-audit/export-md/?range={r}')
+            self.assertEqual(response.status_code, 200)
+            self.assertIn('text/markdown', response.headers.get('Content-Type', ''))
+            self.assertIn('attachment; filename=', response.headers.get('Content-Disposition', ''))
+            content = response.content.decode('utf-8')
+            self.assertIn('# ⏱️ 15-Minute Time Audit Report:', content)
+            self.assertIn('09:00', content)
+            self.assertIn('Deep work on research &#124; thesis writing', content)
+
+    def test_export_md_unauthenticated(self):
+        self.client.logout()
+        response = self.client.get('/api/time-audit/export-md/?range=today')
+        self.assertEqual(response.status_code, 401)
+
+
+
 

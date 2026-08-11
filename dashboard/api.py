@@ -3,7 +3,7 @@ import re
 from collections import Counter
 from functools import wraps
 from django.conf import settings
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.views.decorators.http import require_POST
 from django.utils import timezone
 from datetime import datetime, timedelta
@@ -1715,8 +1715,6 @@ def update_time_audit_category(request):
         return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
 
 
-from django.http import HttpResponse
-
 @api_login_required
 def export_time_audit_md(request):
     """
@@ -1728,22 +1726,22 @@ def export_time_audit_md(request):
         today = timezone.localdate()
         
         range_title = "Custom Range"
-        if range_param in ['today', '1']:
+        if range_param in ['today', 'day', '1', '1day']:
             days = 1
             range_title = "Today"
-        elif range_param in ['3days', '3']:
+        elif range_param in ['3days', '3day', '3']:
             days = 3
             range_title = "Past 3 Days"
-        elif range_param in ['week', '1week', '7']:
+        elif range_param in ['week', '1week', '7', '7days', '7day']:
             days = 7
             range_title = "Past 1 Week"
-        elif range_param in ['month', '1month', '30']:
+        elif range_param in ['month', '1month', '30', '30days', '30day']:
             days = 30
             range_title = "Past 1 Month"
-        elif range_param in ['year', '1year', '365']:
+        elif range_param in ['year', '1year', '365', '365days', '365day']:
             days = 365
             range_title = "Past 1 Year"
-        elif range_param in ['all', '3650']:
+        elif range_param in ['all', 'alltime', 'all_time', '3650']:
             days = 3650
             range_title = "All Time"
         else:
@@ -1794,10 +1792,11 @@ def export_time_audit_md(request):
         ])
 
         for a in audits:
-            summary_lines.append(f"| {a.date} | `{a.time_slot}` | **{a.get_category_display()}** | {a.raw_text} | {a.source} |")
+            safe_text = (a.raw_text or '').replace('\r', '').replace('\n', ' ').replace('|', '&#124;')
+            summary_lines.append(f"| {a.date} | `{a.time_slot}` | **{a.get_category_display()}** | {safe_text} | {a.source} |")
 
         md_content = "\n".join(summary_lines)
-        response = HttpResponse(md_content, content_type='text/markdown')
+        response = HttpResponse(md_content, content_type='text/markdown; charset=utf-8')
         clean_range = range_param.replace(' ', '_')
         response['Content-Disposition'] = f'attachment; filename="time_audit_{clean_range}_{today.strftime("%Y%m%d")}.md"'
         return response
