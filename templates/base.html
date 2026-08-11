@@ -1787,13 +1787,37 @@
                         e.preventDefault();
                         e.stopPropagation();
                     }
-                    if (exportMdOverlay) exportMdOverlay.style.display = 'block';
-                    if (exportMdModal) exportMdModal.style.display = 'flex';
+                    const overlay = document.getElementById('exportMdOverlay');
+                    const modal = document.getElementById('exportMdModal');
+                    if (overlay) {
+                        overlay.style.display = 'block';
+                        overlay.classList.add('open');
+                        overlay.style.opacity = '1';
+                        overlay.style.pointerEvents = 'auto';
+                    }
+                    if (modal) {
+                        modal.style.display = 'flex';
+                        modal.classList.add('open');
+                        modal.style.opacity = '1';
+                        modal.style.pointerEvents = 'auto';
+                    }
                 }
 
                 function closeExportMdModal() {
-                    if (exportMdOverlay) exportMdOverlay.style.display = 'none';
-                    if (exportMdModal) exportMdModal.style.display = 'none';
+                    const overlay = document.getElementById('exportMdOverlay');
+                    const modal = document.getElementById('exportMdModal');
+                    if (overlay) {
+                        overlay.classList.remove('open');
+                        overlay.style.display = 'none';
+                        overlay.style.opacity = '0';
+                        overlay.style.pointerEvents = 'none';
+                    }
+                    if (modal) {
+                        modal.classList.remove('open');
+                        modal.style.display = 'none';
+                        modal.style.opacity = '0';
+                        modal.style.pointerEvents = 'none';
+                    }
                 }
 
                 window.openExportMdModal = openExportMdModal;
