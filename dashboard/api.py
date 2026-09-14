@@ -222,6 +222,28 @@ def delete_todo(request):
 
 @require_POST
 @api_login_required
+def reorder_todos(request):
+    """
+    POST /api/todo/reorder/
+    Payload: { "ids": [1, 5, 2, ...] }
+    Updates order index for todos belonging to the logged-in user.
+    """
+    try:
+        data = json.loads(request.body)
+        todo_ids = data.get('ids', [])
+        if not isinstance(todo_ids, list):
+            return JsonResponse({'status': 'error', 'message': 'ids must be a list'}, status=400)
+            
+        for index, tid in enumerate(todo_ids):
+            Todo.objects.filter(id=tid, user=request.user).update(order=index)
+            
+        return JsonResponse({'status': 'success', 'updated_count': len(todo_ids)})
+    except Exception as e:
+        return JsonResponse({'status': 'error', 'message': str(e)}, status=400)
+
+
+@require_POST
+@api_login_required
 def save_reflection(request):
     try:
         data = json.loads(request.body)

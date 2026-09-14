@@ -684,5 +684,59 @@ class ExportTimeAuditMdTestCase(TestCase):
         self.assertEqual(response.status_code, 401)
 
 
+class TodoReorderAndCompletionTestCase(TestCase):
+    def setUp(self):
+        self.user = User.objects.create_user(username='reorderuser', password='password123')
+        self.client.login(username='reorderuser', password='password123')
+        self.today = timezone.localdate()
+        self.todo1 = Todo.objects.create(user=self.user, title='Task 1', priority='urgent_important', date=self.today, order=0)
+        self.todo2 = Todo.objects.create(user=self.user, title='Task 2', priority='urgent_important', date=self.today, order=1)
+        self.todo3 = Todo.objects.create(user=self.user, title='Task 3', priority='urgent_important', date=self.today, order=2)
+
+    def test_reorder_todos_api(self):
+        # Reverse the order: todo3, todo2, todo1
+        res = self.client.post('/api/todo/reorder/', data=json.dumps({
+            'ids': [self.todo3.id, self.todo2.id, self.todo1.id]
+        }), content_type='application/json')
+        self.assertEqual(res.status_code, 200)
+        self.assertEqual(res.json()['status'], 'success')
+
+        self.todo3.refresh_from_db()
+        self.todo2.refresh_from_db()
+        self.todo1.refresh_from_db()
+        self.assertEqual(self.todo3.order, 0)
+        self.assertEqual(self.todo2.order, 1)
+        self.assertEqual(self.todo1.order, 2)
+
+    def test_completed_todos_ordered_at_bottom(self):
+        # Complete todo1
+        self.todo1.is_completed = True
+        self.todo1.save()
+
+        # Query index view
+        response = self.client.get('/')
+        self.assertEqual(response.status_code, 200)
+        urgent_todos = list(response.context['todos_by_priority']['urgent_important'])
+        # Active tasks (todo2, todo3) should appear before completed task (todo1)
+        self.assertFalse(urgent_todos[0].is_completed)
+        self.assertFalse(urgent_todos[1].is_completed)
+        self.assertTrue(urgent_todos[2].is_completed)
+        self.assertEqual(urgent_todos[2].id, self.todo1.id)
+
+    def test_merged_column4_and_action_icons_markup(self):
+        response = self.client.get('/')
+        html = response.content.decode('utf-8')
+        # Check Column 4 toggle and 8-to-8 timeline
+        self.assertIn('col4TabReflection', html)
+        self.assertIn('col4TabLogs', html)
+        self.assertIn('col4TimelineFeed', html)
+        self.assertIn('daily_logs_panel', html)
+        # Check action button SVG icons
+        self.assertIn('title="Edit task"', html)
+        self.assertIn('title="Task breakdown details"', html)
+        self.assertIn('title="Delete task"', html)
+
+
+
 
 

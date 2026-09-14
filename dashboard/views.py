@@ -79,8 +79,8 @@ def index(request):
     # Get or create brain dump for selected date owned by request.user
     braindump = BrainDump.objects.filter(date=selected_date, user=request.user).first()
     
-    # Get todos for selected date owned by request.user
-    todos = Todo.objects.filter(date=selected_date, user=request.user)
+    # Get todos for selected date owned by request.user (active tasks first, completed at bottom)
+    todos = Todo.objects.filter(date=selected_date, user=request.user).order_by('is_completed', 'order', 'created_at')
     
     # Get pending (incomplete) todos from past days owned by request.user
     pending_todos = Todo.objects.filter(

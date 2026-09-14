@@ -418,24 +418,42 @@ body {
 }
 
 .action-btn {
-    background: none;
-    border: none;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid transparent;
     color: var(--text-secondary);
     font-size: 0.75rem;
     cursor: pointer;
-    padding: 2px 6px;
-    border-radius: 4px;
-    transition: background 0.2s, color 0.2s;
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 6px;
+    transition: all 0.18s ease;
+    flex-shrink: 0;
+}
+
+.action-btn svg {
+    pointer-events: none;
+    display: block;
 }
 
 .action-btn:hover {
-    background: rgba(0, 0, 0, 0.05);
+    background: rgba(255, 255, 255, 0.12);
     color: var(--text-primary);
+}
+
+.action-btn.edit:hover {
+    color: #38bdf8;
+    border-color: rgba(56, 189, 248, 0.35);
+    background: rgba(56, 189, 248, 0.12);
 }
 
 .action-btn.delete:hover {
     color: #ef4444;
-    background: rgba(239, 68, 68, 0.1);
+    border-color: rgba(239, 68, 68, 0.35);
+    background: rgba(239, 68, 68, 0.12);
 }
 
 .action-btn.focus-pomo {
@@ -451,12 +469,18 @@ body {
 }
 
 .action-btn.breakdown {
-    background: rgba(12, 88, 85, 0.05);
-    border: 1px solid rgba(45, 212, 191, 0.3) !important;
-    color: var(--accent-color);
+    background: rgba(12, 88, 85, 0.08);
+    border: 1px solid rgba(45, 212, 191, 0.35) !important;
+    color: #2dd4bf;
     font-weight: 600;
     box-shadow: 0 0 4px rgba(45, 212, 191, 0.15);
     animation: breakdownGlow 2s infinite ease-in-out;
+}
+
+.action-btn.breakdown:hover {
+    color: #5eead4;
+    border-color: rgba(45, 212, 191, 0.6) !important;
+    background: rgba(45, 212, 191, 0.22);
 }
 
 @keyframes breakdownGlow {
@@ -4359,11 +4383,187 @@ body {
         border-color: rgba(12, 88, 85, 0.7);
     }
 
-    .nav-link.active,
-    .today-badge {
-        outline: 1px solid var(--accent-hover);
-    }
 }
+
+/* ══════════════════════════════════════════════════════
+   TASK REORDERING & DRAG-AND-DROP STYLES
+══════════════════════════════════════════════════════ */
+.todo-item {
+    cursor: grab;
+    transition: transform 0.22s ease, opacity 0.22s ease, box-shadow 0.2s ease;
+}
+
+.todo-item:active {
+    cursor: grabbing;
+}
+
+.todo-item.is-dragging {
+    opacity: 0.45;
+    cursor: grabbing;
+    transform: scale(0.98);
+    border: 1px dashed rgba(45, 212, 191, 0.6) !important;
+    background: rgba(45, 212, 191, 0.06) !important;
+}
+
+.todo-item.moving-reorder {
+    animation: todoReorderPulse 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+@keyframes todoReorderPulse {
+    0% { transform: scale(1); }
+    50% { transform: scale(0.97); }
+    100% { transform: scale(1); }
+}
+
+/* ══════════════════════════════════════════════════════
+   COLUMN 4: MERGED REFLECTION & 8 AM - 8 PM LOGS STYLES
+══════════════════════════════════════════════════════ */
+.col4-segmented-control {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.85);
+    padding: 3px;
+    border-radius: 10px;
+    border: 1px solid rgba(45, 212, 191, 0.22);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);
+    gap: 3px;
+}
+
+.col4-segment-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.8rem;
+    font-weight: 600;
+    padding: 5px 12px;
+    border-radius: 7px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+    outline: none;
+}
+
+.col4-segment-btn:hover {
+    color: var(--text-primary);
+    background: rgba(255, 255, 255, 0.05);
+}
+
+.col4-segment-btn.active {
+    background: rgba(45, 212, 191, 0.18);
+    color: #2dd4bf;
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    font-weight: 700;
+    box-shadow: 0 2px 8px rgba(45, 212, 191, 0.15);
+}
+
+.daily-audit-feed {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(45, 212, 191, 0.3) transparent;
+}
+
+.daily-audit-feed::-webkit-scrollbar {
+    width: 5px;
+}
+
+.daily-audit-feed::-webkit-scrollbar-thumb {
+    background: rgba(45, 212, 191, 0.3);
+    border-radius: 10px;
+}
+
+.timeline-slot-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 6px 10px;
+    background: rgba(15, 23, 42, 0.65);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 10px;
+    transition: all 0.18s ease;
+}
+
+.timeline-slot-row:hover {
+    background: rgba(15, 23, 42, 0.85);
+    border-color: rgba(45, 212, 191, 0.25);
+}
+
+.timeline-slot-row.is-current-slot {
+    border-color: rgba(56, 189, 248, 0.6) !important;
+    background: rgba(56, 189, 248, 0.08) !important;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+}
+
+.timeline-slot-row.is-logged {
+    border-color: rgba(45, 212, 191, 0.3);
+    background: rgba(45, 212, 191, 0.05);
+}
+
+.slot-time-badge {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #2dd4bf;
+    background: rgba(45, 212, 191, 0.15);
+    border: 1px solid rgba(45, 212, 191, 0.28);
+    padding: 3px 7px;
+    border-radius: 6px;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.timeline-slot-row.is-current-slot .slot-time-badge {
+    color: #38bdf8;
+    background: rgba(56, 189, 248, 0.2);
+    border-color: rgba(56, 189, 248, 0.45);
+}
+
+.slot-input {
+    flex: 1;
+    min-width: 0;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    color: #f8fafc;
+    font-size: 0.82rem;
+    font-weight: 500;
+    border-radius: 6px;
+    padding: 5px 8px;
+    outline: none;
+    transition: all 0.18s ease;
+}
+
+.slot-input:focus {
+    background: rgba(15, 23, 42, 0.9);
+    border-color: rgba(45, 212, 191, 0.5);
+    box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+}
+
+.slot-cat-select {
+    background: rgba(30, 41, 59, 0.9);
+    color: #38bdf8;
+    border: 1px solid rgba(56, 189, 248, 0.35);
+    border-radius: 6px;
+    padding: 4px 6px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    cursor: pointer;
+    outline: none;
+    flex-shrink: 0;
+}
+
+.slot-save-indicator {
+    font-size: 0.72rem;
+    color: #2dd4bf;
+    opacity: 0;
+    transition: opacity 0.2s ease;
+    flex-shrink: 0;
+}
+
+.slot-save-indicator.visible {
+    opacity: 1;
+}
+
 
 
 

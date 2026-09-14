@@ -26,6 +26,7 @@ urlpatterns = [
     path('api/todo/toggle/', api.toggle_todo, name='api_toggle_todo'),
     path('api/todo/today-summary/', api.today_summary, name='api_today_summary'),
     path('api/todo/delete/', api.delete_todo, name='api_delete_todo'),
+    path('api/todo/reorder/', api.reorder_todos, name='api_reorder_todos'),
     path('api/reflection/save/', api.save_reflection, name='api_save_reflection'),
     path('api/reflection/generate-suggestions/', api.generate_suggestions_view, name='api_generate_suggestions'),
     path('api/pomodoro/start/', api.start_pomodoro, name='api_start_pomodoro'),

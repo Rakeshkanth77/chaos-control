@@ -65,13 +65,51 @@ document.addEventListener('DOMContentLoaded', () => {
     window.updatePriorityCounts = updatePriorityCounts;
     window.syncSelectClasses = syncSelectClasses;
 
-    // Toggle todo complete handler (using delegation)
+    // Helper to persist the current DOM order of a priority list to the server
+    function syncListOrder(container) {
+        if (!container) return;
+        const items = [...container.querySelectorAll('.todo-item')];
+        const ids = items.map(item => parseInt(item.dataset.id, 10)).filter(Boolean);
+        if (ids.length > 0) {
+            window.apiPost('/api/todo/reorder/', { ids }).catch(err => {
+                console.error('Failed to sync todo reorder:', err);
+            });
+        }
+    }
+    window.syncListOrder = syncListOrder;
+
+    // Toggle todo complete handler: moves task to bottom of that category when checked, or back up when unchecked
     document.addEventListener('change', async (e) => {
         if (e.target.classList.contains('todo-checkbox')) {
             const todoItem = e.target.closest('.todo-item');
+            if (!todoItem) return;
             const id = todoItem.dataset.id;
+            const isChecked = e.target.checked;
+            const parentList = todoItem.closest('.priority-list');
             
-            todoItem.classList.toggle('completed', e.target.checked);
+            todoItem.classList.toggle('completed', isChecked);
+
+            if (parentList) {
+                todoItem.classList.add('moving-reorder');
+                if (isChecked) {
+                    // Move down to the bottom of its category list
+                    parentList.appendChild(todoItem);
+                } else {
+                    // Move back up above completed items
+                    const firstCompleted = parentList.querySelector('.todo-item.completed:not([data-id="' + id + '"])');
+                    if (firstCompleted) {
+                        parentList.insertBefore(todoItem, firstCompleted);
+                    } else {
+                        parentList.appendChild(todoItem);
+                    }
+                }
+                setTimeout(() => {
+                    todoItem.classList.remove('moving-reorder');
+                }, 300);
+
+                // Persist new ordering for this category
+                syncListOrder(parentList);
+            }
             
             try {
                 await window.apiPost('/api/todo/toggle/', { id });
@@ -79,6 +117,7 @@ document.addEventListener('DOMContentLoaded', () => {
             } catch (err) {
                 e.target.checked = !e.target.checked;
                 todoItem.classList.toggle('completed', e.target.checked);
+                if (parentList) syncListOrder(parentList);
             }
         }
     });
@@ -243,7 +282,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     // Append item dynamically
                     const todo = response.todo;
                     const itemHtml = `
-                        <div class="todo-item" data-id="${todo.id}">
+                        <div class="todo-item" data-id="${todo.id}" draggable="true">
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox">
                                 <span class="todo-text">${todo.title}</span>
@@ -254,8 +293,8 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </select>
                             </div>
                             <div class="todo-actions">
-                                <button class="action-btn edit">edit</button>
-                                <button class="action-btn delete">delete</button>
+                                <button class="action-btn edit" title="Edit task" aria-label="Edit task"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
+                                <button class="action-btn delete" title="Delete task" aria-label="Delete task"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                             </div>
                         </div>
                     `;
@@ -403,7 +442,7 @@ document.addEventListener('DOMContentLoaded', () => {
                     
                     // Generate new todo element HTML matching standard focus column items
                     const itemHtml = `
-                        <div class="todo-item" data-id="${todo.id}">
+                        <div class="todo-item" data-id="${todo.id}" draggable="true">
                             <div class="todo-content-wrapper">
                                 <input type="checkbox" class="todo-checkbox">
                                 <span class="todo-text">${todo.title}</span>
@@ -414,9 +453,9 @@ document.addEventListener('DOMContentLoaded', () => {
                                 </select>
                             </div>
                             <div class="todo-actions">
-                                <button class="action-btn edit">edit</button>
-                                <button class="action-btn breakdown">details</button>
-                                <button class="action-btn delete">delete</button>
+                                <button class="action-btn edit" title="Edit task" aria-label="Edit task"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg></button>
+                                <button class="action-btn breakdown" title="Task breakdown details" aria-label="Task breakdown details"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg></button>
+                                <button class="action-btn delete" title="Delete task" aria-label="Delete task"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="pointer-events:none;"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg></button>
                             </div>
                         </div>
                     `;
@@ -491,6 +530,75 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Always default to minimal Signal & Noise mode
     setEisenhowerViewMode('signal');
+
+    // ── Drag and Drop Reordering Setup ──
+    function getDragAfterElement(container, y) {
+        const draggableElements = [...container.querySelectorAll('.todo-item:not(.is-dragging)')];
+        return draggableElements.reduce((closest, child) => {
+            const box = child.getBoundingClientRect();
+            const offset = y - box.top - box.height / 2;
+            if (offset < 0 && offset > closest.offset) {
+                return { offset: offset, element: child };
+            } else {
+                return closest;
+            }
+        }, { offset: Number.NEGATIVE_INFINITY }).element;
+    }
+
+    function initDragAndDrop() {
+        document.querySelectorAll('.todo-item').forEach(item => {
+            item.setAttribute('draggable', 'true');
+        });
+
+        document.querySelectorAll('.priority-list').forEach(list => {
+            list.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'move';
+                const dragging = document.querySelector('.todo-item.is-dragging');
+                if (!dragging) return;
+                
+                const afterElement = getDragAfterElement(list, e.clientY);
+                if (afterElement == null) {
+                    list.appendChild(dragging);
+                } else {
+                    list.insertBefore(dragging, afterElement);
+                }
+            });
+
+            list.addEventListener('drop', (e) => {
+                e.preventDefault();
+                const dragging = document.querySelector('.todo-item.is-dragging');
+                if (dragging) {
+                    dragging.classList.remove('is-dragging');
+                    syncListOrder(list);
+                }
+            });
+        });
+
+        document.addEventListener('dragstart', (e) => {
+            const todoItem = e.target.closest('.todo-item');
+            if (!todoItem) return;
+            if (e.target.tagName === 'INPUT' || e.target.tagName === 'BUTTON' || e.target.tagName === 'SELECT' || e.target.tagName === 'TEXTAREA') {
+                e.preventDefault();
+                return;
+            }
+            todoItem.classList.add('is-dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/plain', todoItem.dataset.id || '');
+        });
+
+        document.addEventListener('dragend', (e) => {
+            const todoItem = e.target.closest('.todo-item');
+            if (todoItem) {
+                todoItem.classList.remove('is-dragging');
+                const list = todoItem.closest('.priority-list');
+                if (list) syncListOrder(list);
+            }
+        });
+    }
+
+    initDragAndDrop();
+    window.initDragAndDrop = initDragAndDrop;
 });
 
 
