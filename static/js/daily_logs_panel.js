@@ -105,7 +105,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (isLogged) loggedCount++;
 
             const textValue = isLogged ? item.raw_text : '';
-            const activeCategory = (item && item.category) ? item.category : 'phd';
+            const activeCategory = (item && item.category) ? item.category : 'other';
             const isCurrent = slot === currentSlot;
 
             const optionsHtml = AUDIT_CATEGORIES.map(c => 
@@ -143,7 +143,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const text = input.value.trim();
                 const row = input.closest('.timeline-slot-row');
                 const catSelect = row.querySelector('.slot-cat-select');
-                const category = catSelect ? catSelect.value : 'phd';
+                const category = catSelect ? catSelect.value : 'other';
                 const indicator = document.getElementById(`save-ind-${slot.replace(':', '')}`);
 
                 const oldEntry = cachedLoggedSlots[slot];
