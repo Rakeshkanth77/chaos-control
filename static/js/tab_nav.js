@@ -12,6 +12,9 @@ document.addEventListener('DOMContentLoaded', () => {
     function switchTab(tabId) {
         if (!tabId) return;
 
+        // Normalise tabId for Column 4 content card
+        const activeCardTab = (tabId === 'logs' || tabId === 'reflection') ? '3' : tabId;
+
         // Update active class on tab buttons
         tabButtons.forEach(btn => {
             if (btn.dataset.mobileTab === tabId) {
@@ -25,12 +28,19 @@ document.addEventListener('DOMContentLoaded', () => {
 
         // Update active class on tab contents
         tabContents.forEach(content => {
-            if (content.dataset.mobileTab === tabId) {
+            if (content.dataset.mobileTab === activeCardTab) {
                 content.classList.add('active-tab-content');
             } else {
                 content.classList.remove('active-tab-content');
             }
         });
+
+        // Activate specific view inside Column 4 if switching to logs or reflection
+        if (tabId === 'logs' && window.setCol4Tab) {
+            window.setCol4Tab('logs');
+        } else if (tabId === 'reflection' && window.setCol4Tab) {
+            window.setCol4Tab('reflection');
+        }
 
         // Hide parent grid-columns on mobile if they have no active children
         document.querySelectorAll('.grid-column').forEach(col => {
@@ -57,6 +67,20 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('active_mobile_tab_id', tabId);
     }
     window.switchMobileTab = switchTab;
+
+    window.syncMobileCol4Tab = function(col4Tab) {
+        if (!isMobile()) return;
+        tabButtons.forEach(btn => {
+            if (btn.dataset.mobileTab === col4Tab) {
+                btn.classList.add('active');
+                btn.setAttribute('aria-selected', 'true');
+            } else if (btn.dataset.mobileTab === 'logs' || btn.dataset.mobileTab === 'reflection') {
+                btn.classList.remove('active');
+                btn.setAttribute('aria-selected', 'false');
+            }
+        });
+        localStorage.setItem('active_mobile_tab_id', col4Tab);
+    };
 
     // Attach click listeners to all tab buttons
     tabButtons.forEach(btn => {

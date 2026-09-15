@@ -1339,13 +1339,7 @@ body {
     .reflection-results-stack { max-height: 250px !important; }
 
     /* Always show todo actions on mobile (touch devices have no :hover) */
-    .todo-actions { opacity: 1 !important; }
-
-    /* Ensure grid column that holds Notes is never hidden */
-    .dashboard-grid .grid-column:last-child {
-        display: flex !important;
-        flex-direction: column !important;
-    }
+    /* Ensure grid columns follow active mobile tab navigation */
 
 
     .glass-panel { padding: 16px !important; }
@@ -4418,13 +4412,31 @@ body {
 /* ══════════════════════════════════════════════════════
    COLUMN 4: MERGED REFLECTION & 8 AM - 8 PM LOGS STYLES
 ══════════════════════════════════════════════════════ */
+.col4-header-bar {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    background: rgba(15, 23, 42, 0.95);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    padding: 6px 4px 10px 4px;
+    border-bottom: 1px solid rgba(45, 212, 191, 0.18);
+    margin-bottom: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    flex-wrap: wrap;
+    border-radius: 12px 12px 0 0;
+}
+
 .col4-segmented-control {
     display: inline-flex;
     align-items: center;
     background: rgba(15, 23, 42, 0.85);
     padding: 3px;
     border-radius: 10px;
-    border: 1px solid rgba(45, 212, 191, 0.22);
+    border: 1px solid rgba(45, 212, 191, 0.25);
     box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);
     gap: 3px;
 }
@@ -4433,10 +4445,11 @@ body {
     background: none;
     border: none;
     color: var(--text-secondary);
-    font-size: 0.8rem;
+    font-size: 0.82rem;
     font-weight: 600;
-    padding: 5px 12px;
-    border-radius: 7px;
+    padding: 7px 14px;
+    min-height: 38px;
+    border-radius: 8px;
     cursor: pointer;
     transition: all 0.2s ease;
     display: inline-flex;
@@ -4448,7 +4461,7 @@ body {
 
 .col4-segment-btn:hover {
     color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.06);
 }
 
 .col4-segment-btn.active {
@@ -4456,7 +4469,338 @@ body {
     color: #2dd4bf;
     border: 1px solid rgba(45, 212, 191, 0.35);
     font-weight: 700;
-    box-shadow: 0 2px 8px rgba(45, 212, 191, 0.15);
+    box-shadow: 0 2px 8px rgba(45, 212, 191, 0.18);
+}
+
+/* Sub-toggle for Timetable vs Slots view */
+.col4-subview-toggle {
+    display: inline-flex;
+    align-items: center;
+    background: rgba(15, 23, 42, 0.75);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+}
+
+.col4-subview-btn {
+    background: none;
+    border: none;
+    color: var(--text-secondary);
+    font-size: 0.72rem;
+    font-weight: 600;
+    padding: 4px 9px;
+    border-radius: 6px;
+    cursor: pointer;
+    transition: all 0.15s ease;
+}
+
+.col4-subview-btn:hover {
+    color: var(--text-primary);
+}
+
+.col4-subview-btn.active {
+    background: rgba(45, 212, 191, 0.16);
+    color: #2dd4bf;
+    font-weight: 700;
+}
+
+/* ── TIMETABLE SCHEDULE COMPONENT (Matching Reference Screenshot) ── */
+.timetable-schedule-card {
+    display: flex;
+    flex-direction: column;
+    background: rgba(15, 23, 42, 0.55);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 14px;
+    overflow: hidden;
+    position: relative;
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.timetable-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 14px;
+    background: rgba(15, 23, 42, 0.9);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.timetable-day-title {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+}
+
+.timetable-day-name {
+    font-size: 0.76rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+    color: var(--text-secondary);
+}
+
+.timetable-day-number {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: #f8fafc;
+    font-family: 'Outfit', sans-serif;
+}
+
+.timetable-quick-add-tip {
+    font-size: 0.7rem;
+    color: #2dd4bf;
+    background: rgba(45, 212, 191, 0.1);
+    border: 1px solid rgba(45, 212, 191, 0.2);
+    padding: 2px 7px;
+    border-radius: 6px;
+}
+
+.timetable-scroll-viewport {
+    max-height: 520px;
+    overflow-y: auto;
+    position: relative;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(45, 212, 191, 0.3) transparent;
+}
+
+.timetable-scroll-viewport::-webkit-scrollbar {
+    width: 5px;
+}
+
+.timetable-scroll-viewport::-webkit-scrollbar-thumb {
+    background: rgba(45, 212, 191, 0.3);
+    border-radius: 10px;
+}
+
+.timetable-layout {
+    display: flex;
+    position: relative;
+    height: 780px; /* 13 hours: 08:00 to 21:00 @ 60px/hour */
+    user-select: none;
+}
+
+/* Left Hour Axis */
+.timetable-hours-axis {
+    width: 54px;
+    flex-shrink: 0;
+    position: relative;
+    border-right: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.35);
+}
+
+.timetable-hour-label {
+    position: absolute;
+    right: 8px;
+    transform: translateY(-50%);
+    font-size: 0.73rem;
+    font-weight: 600;
+    color: #94a3b8;
+    font-family: 'JetBrains Mono', monospace;
+    letter-spacing: -0.2px;
+}
+
+.timetable-hour-label.noon-label {
+    font-weight: 700;
+    color: #cbd5e1;
+    font-family: inherit;
+    font-size: 0.78rem;
+}
+
+/* Right Grid Area */
+.timetable-grid-canvas {
+    flex: 1;
+    position: relative;
+    background: rgba(15, 23, 42, 0.2);
+    cursor: pointer;
+}
+
+.timetable-grid-line {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.07);
+    pointer-events: none;
+}
+
+.timetable-grid-subline {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: rgba(255, 255, 255, 0.03);
+    border-top: 1px dashed rgba(255, 255, 255, 0.05);
+    pointer-events: none;
+}
+
+/* Current Time Indicator Red Line */
+.timetable-now-indicator {
+    position: absolute;
+    left: -54px;
+    right: 0;
+    height: 2px;
+    background: #ef4444;
+    z-index: 25;
+    pointer-events: none;
+    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+.timetable-now-dot {
+    position: absolute;
+    left: 48px;
+    top: -4px;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #ef4444;
+    box-shadow: 0 0 10px #ef4444;
+}
+
+/* Event Blocks (Faithful reproduction of user's screenshot) */
+.timetable-event-block {
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    border-radius: 10px;
+    padding: 7px 12px;
+    box-sizing: border-box;
+    overflow: hidden;
+    z-index: 10;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    cursor: pointer;
+    transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+}
+
+.timetable-event-block:hover {
+    transform: scale(1.012);
+    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
+    filter: brightness(1.08);
+    z-index: 15;
+}
+
+.timetable-event-title {
+    font-size: 0.84rem;
+    font-weight: 700;
+    line-height: 1.25;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+    letter-spacing: -0.2px;
+}
+
+.timetable-event-time {
+    font-size: 0.72rem;
+    font-weight: 600;
+    font-family: 'JetBrains Mono', monospace;
+    opacity: 0.92;
+    white-space: nowrap;
+}
+
+/* Color Themes for Event Blocks matching screenshot */
+/* Coral / Salmon theme (e.g. Calculus I, Intro to Programming, Literature, Data Structures) */
+.timetable-event-block.theme-coral {
+    background: rgba(224, 140, 130, 0.5);
+    border: 1px solid rgba(224, 140, 130, 0.85);
+    color: #ffffff;
+}
+.timetable-event-block.theme-coral .timetable-event-title {
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Soft Blue theme (e.g. Gym, Exercise) */
+.timetable-event-block.theme-blue {
+    background: rgba(147, 197, 253, 0.45);
+    border: 1px solid rgba(147, 197, 253, 0.85);
+    color: #ffffff;
+}
+.timetable-event-block.theme-blue .timetable-event-title {
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Soft Purple / Lavender theme (e.g. Part-time Job Cafe, Projects) */
+.timetable-event-block.theme-purple {
+    background: rgba(192, 132, 252, 0.45);
+    border: 1px solid rgba(192, 132, 252, 0.85);
+    color: #ffffff;
+}
+.timetable-event-block.theme-purple .timetable-event-title {
+    color: #ffffff;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+}
+
+/* Mint / Teal theme (Spiritual, Life skills) */
+.timetable-event-block.theme-teal {
+    background: rgba(45, 212, 191, 0.4);
+    border: 1px solid rgba(45, 212, 191, 0.8);
+    color: #ffffff;
+}
+.timetable-event-block.theme-teal .timetable-event-title {
+    color: #ffffff;
+}
+
+/* Amber / Orange theme (Cooking, Break) */
+.timetable-event-block.theme-amber {
+    background: rgba(251, 146, 60, 0.45);
+    border: 1px solid rgba(251, 146, 60, 0.85);
+    color: #ffffff;
+}
+.timetable-event-block.theme-amber .timetable-event-title {
+    color: #ffffff;
+}
+
+/* Slate theme (Other / Misc) */
+.timetable-event-block.theme-slate {
+    background: rgba(148, 163, 184, 0.35);
+    border: 1px solid rgba(148, 163, 184, 0.7);
+    color: #ffffff;
+}
+.timetable-event-block.theme-slate .timetable-event-title {
+    color: #ffffff;
+}
+
+/* Timetable Event Edit/Create Modal */
+.timetable-modal-backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    z-index: 10000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 16px;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.2s ease;
+}
+
+.timetable-modal-backdrop.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+
+.timetable-modal-content {
+    background: rgba(15, 23, 42, 0.96);
+    border: 1px solid rgba(45, 212, 191, 0.35);
+    border-radius: 16px;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    width: 100%;
+    max-width: 420px;
+    padding: 20px;
+    transform: scale(0.95);
+    transition: transform 0.2s ease;
+}
+
+.timetable-modal-backdrop.show .timetable-modal-content {
+    transform: scale(1);
 }
 
 .daily-audit-feed {

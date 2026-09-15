@@ -1655,11 +1655,22 @@ def save_time_audit(request):
             else:
                 return JsonResponse({'status': 'error', 'message': 'time_slot or time_slots is required'}, status=400)
 
-        raw_text = data.get('raw_text', '').strip()
-        if not raw_text:
-            return JsonResponse({'status': 'error', 'message': 'raw_text is required'}, status=400)
-
+        raw_text = (data.get('raw_text') or data.get('text') or '').strip()
         date_val = get_date_from_request(data)
+
+        if not raw_text:
+            # If empty text provided, delete/clear the entries for these slots
+            deleted_count, _ = TimeAuditLog.objects.filter(
+                user=request.user, 
+                date=date_val, 
+                time_slot__in=time_slots
+            ).delete()
+            return JsonResponse({
+                'status': 'success',
+                'deleted': True,
+                'count': deleted_count,
+                'time_slots': time_slots
+            })
         category = data.get('category')
         if not category or category == 'other':
             category = auto_categorize_text(raw_text)
