@@ -792,7 +792,7 @@ document.addEventListener('DOMContentLoaded', () => {
     <!-- COLUMN 4: Merged Daily Reflection Notes & 8 AM - 8 PM Logs Panel -->
     <div class="grid-column">
         <div class="glass-panel reflection-card" data-mobile-tab="3" style="display: flex; flex-direction: column; min-height: 480px; position: relative;">
-            <!-- Sticky Header with Segmented Toggle & Subview Switcher -->
+            <!-- Sticky Header with Segmented Toggle (Reflection vs Logs) -->
             <div class="col4-header-bar">
                 <div class="col4-segmented-control" role="tablist" aria-label="Reflection or Logs">
                     <button type="button" class="col4-segment-btn active" id="col4TabReflection" role="tab" aria-selected="true" data-col4-tab="reflection">
@@ -806,11 +806,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
                 <div id="col4-status-area" style="font-size: 0.76rem; color: #cbd5e1; display: flex; align-items: center; gap: 8px;">
                     <span class="panel-subtitle" id="reflection-save-status" style="color: #94a3b8; font-weight: 600;">Saved</span>
-                    <!-- Sub-view switcher for Logs (Timetable Schedule vs 15-min Slots list) -->
-                    <div class="col4-subview-toggle" id="col4SubviewToggle" style="display: none;">
-                        <button type="button" class="col4-subview-btn active" id="col4SubTimetable" title="Visual Timetable View">📅 Schedule</button>
-                        <button type="button" class="col4-subview-btn" id="col4SubSlots" title="15-min Slots List">📋 Slots</button>
-                    </div>
                     <span id="col4-logs-counter" style="display: none; font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: #5eead4; background: rgba(45, 212, 191, 0.22); border: 1px solid rgba(45, 212, 191, 0.5); padding: 3px 8px; border-radius: 6px; font-weight: 800;">0 logged</span>
                 </div>
             </div>
@@ -825,124 +820,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 >{% if reflection %}{{ reflection.notes }}{% endif %}</textarea>
             </div>
 
-            <!-- Pane 2: 8 AM to 8 PM Logs (Always shows from 8:00 to 21:00) -->
+            <!-- Pane 2: 8 AM to 8 PM Logs (Always shows from 8:00 AM to 8:00 PM) -->
             <div id="col4PaneLogs" class="col4-pane" style="display: none; flex: 1; flex-direction: column; gap: 8px;">
-                <!-- Subview 1: Timetable Schedule (Matches Reference Image) -->
-                <div id="col4TimetableContainer" class="timetable-schedule-card">
-                    <div class="timetable-day-header">
-                        <div class="timetable-day-title">
-                            <span class="timetable-day-name" id="timetableDayName">Mon</span>
-                            <span class="timetable-day-number" id="timetableDayNumber">--</span>
-                            <span style="font-size: 0.78rem; color: #cbd5e1; font-weight: 600; margin-left: 4px;" id="timetableMonthYear"></span>
-                        </div>
-                        <span class="timetable-quick-add-tip">⚡ Click any slot to log</span>
-                    </div>
-                    <div class="timetable-scroll-viewport" id="timetableScrollViewport">
-                        <div class="timetable-layout">
-                            <!-- Left Hour Axis: 08:00 to 21:00 with Noon at 12:00 -->
-                            <div class="timetable-hours-axis" id="timetableHoursAxis">
-                                <!-- Populated dynamically -->
-                            </div>
-                            <!-- Right Grid Canvas -->
-                            <div class="timetable-grid-canvas" id="timetableGridCanvas">
-                                <!-- Grid horizontal lines and event blocks placed here -->
-                            </div>
-                        </div>
-                    </div>
+                <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 118, 110, 0.25); border: 1px solid rgba(45, 212, 191, 0.4); border-radius: 8px; margin-bottom: 8px; font-size: 0.78rem;">
+                    <span style="color: #2dd4bf; font-weight: 800; display: flex; align-items: center; gap: 6px;">
+                        <span>📅</span>
+                        <span>8:00 AM – 8:00 PM Log Feed</span>
+                    </span>
+                    <span style="font-family: 'JetBrains Mono', monospace; color: #94a3b8; font-size: 0.74rem; font-weight: 700;">15-min blocks</span>
                 </div>
-
-                <!-- Subview 2: Granular 15-min Slot List (Optional secondary view) -->
-                <div id="col4SlotsContainer" style="display: none; flex-direction: column;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 118, 110, 0.25); border: 1px solid rgba(45, 212, 191, 0.4); border-radius: 8px; margin-bottom: 8px; font-size: 0.78rem;">
-                        <span style="color: #2dd4bf; font-weight: 800; display: flex; align-items: center; gap: 6px;">
-                            <span>📅</span>
-                            <span>8:00 AM – 8:00 PM Log Feed</span>
-                        </span>
-                        <span style="font-family: 'JetBrains Mono', monospace; color: #94a3b8; font-size: 0.74rem; font-weight: 700;">15-min blocks</span>
-                    </div>
-                    <div id="col4TimelineFeed" class="daily-audit-feed" style="max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
-                        <!-- Populated dynamically with all 49 slots from 08:00 to 20:00 -->
-                    </div>
+                <div id="col4TimelineFeed" class="daily-audit-feed" style="max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
+                    <!-- Populated dynamically with all 49 slots from 08:00 to 20:00 -->
                 </div>
             </div>
         </div>
     </div>
 
 </div><!-- end .dashboard-grid -->
-
-<!-- ── Timetable Quick Log / Edit Modal ── -->
-<div class="timetable-modal-backdrop" id="timetableModalBackdrop" role="dialog" aria-modal="true" aria-labelledby="timetableModalTitle">
-    <div class="timetable-modal-content">
-        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; border-bottom: 1px solid rgba(255,255,255,0.08); padding-bottom: 10px;">
-            <h3 id="timetableModalTitle" style="font-size: 1.05rem; font-weight: 700; color: #f8fafc; margin: 0; display: flex; align-items: center; gap: 8px;">
-                <span>📅</span>
-                <span id="timetableModalHeaderLabel">Log Schedule Block</span>
-            </h3>
-            <button type="button" id="btnTimetableModalClose" style="background: none; border: none; color: var(--text-secondary); font-size: 1.2rem; cursor: pointer; padding: 4px;">✕</button>
-        </div>
-
-        <form id="timetableModalForm" onsubmit="return false;" style="display: flex; flex-direction: column; gap: 14px;">
-            <div>
-                <label for="timetableModalTitleInput" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Activity / Title</label>
-                <input 
-                    type="text" 
-                    id="timetableModalTitleInput" 
-                    placeholder="e.g. Calculus I, Introduction to Programming, Gym..." 
-                    style="width: 100%; background: rgba(15, 23, 42, 0.8); border: 1px solid rgba(45, 212, 191, 0.4); border-radius: 8px; padding: 9px 12px; font-size: 0.9rem; color: #f8fafc; outline: none; box-sizing: border-box;"
-                    required 
-                    autocomplete="off"
-                />
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label for="timetableModalStartSlot" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Start Time</label>
-                    <select id="timetableModalStartSlot" style="width: 100%; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 8px 10px; font-size: 0.85rem; color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-weight: 600; outline: none;">
-                        <!-- 08:00 to 20:45 -->
-                    </select>
-                </div>
-                <div>
-                    <label for="timetableModalEndSlot" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">End Time</label>
-                    <select id="timetableModalEndSlot" style="width: 100%; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 8px 10px; font-size: 0.85rem; color: #38bdf8; font-family: 'JetBrains Mono', monospace; font-weight: 600; outline: none;">
-                        <!-- 08:15 to 21:00 -->
-                    </select>
-                </div>
-            </div>
-
-            <div>
-                <label for="timetableModalCategory" style="display: block; font-size: 0.75rem; font-weight: 700; color: var(--text-secondary); margin-bottom: 6px; text-transform: uppercase; letter-spacing: 0.5px;">Category & Theme</label>
-                <select id="timetableModalCategory" style="width: 100%; background: rgba(30, 41, 59, 0.9); border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 8px; padding: 8px 10px; font-size: 0.85rem; color: #f8fafc; font-weight: 600; outline: none;">
-                    <option value="phd">PhD / Study / Classes (Coral/Salmon)</option>
-                    <option value="exercise">Exercise / Gym (Soft Blue)</option>
-                    <option value="projects">Side Projects / Jobs (Soft Purple)</option>
-                    <option value="spiritual">Spiritual / Faith (Mint Teal)</option>
-                    <option value="life_skills">Life Skills / Habits (Mint Teal)</option>
-                    <option value="planning">Planning / Schedule (Coral)</option>
-                    <option value="cooking">Cooking / Meal (Amber/Orange)</option>
-                    <option value="break">Break / Rest (Amber)</option>
-                    <option value="phone_call">Phone Call (Slate)</option>
-                    <option value="driving">Driving / Travel (Slate)</option>
-                    <option value="distracted">Distracted (Slate)</option>
-                    <option value="other">Other (Slate)</option>
-                </select>
-            </div>
-
-            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 10px; gap: 8px;">
-                <button type="button" id="btnTimetableModalDelete" style="display: none; background: rgba(239, 68, 68, 0.15); border: 1px solid rgba(239, 68, 68, 0.4); color: #f87171; font-weight: 600; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; cursor: pointer; transition: all 0.15s ease;">
-                    🗑️ Delete
-                </button>
-                <div style="display: flex; align-items: center; gap: 8px; margin-left: auto;">
-                    <button type="button" id="btnTimetableModalCancel" style="background: rgba(255, 255, 255, 0.08); border: 1px solid rgba(255, 255, 255, 0.15); color: #cbd5e1; font-weight: 600; font-size: 0.82rem; padding: 8px 14px; border-radius: 8px; cursor: pointer;">
-                        Cancel
-                    </button>
-                    <button type="button" id="btnTimetableModalSave" style="background: linear-gradient(135deg, #0c5855, #2dd4bf); border: none; color: #0f2928; font-weight: 700; font-size: 0.85rem; padding: 8px 18px; border-radius: 8px; cursor: pointer; box-shadow: 0 2px 10px rgba(45, 212, 191, 0.25);">
-                        Save Block
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-</div>
 
 <!-- ── Mobile Bottom Tab Navigation (Accessible & Easy to Reach) ── -->
 <nav class="mobile-tab-bar" id="mobileTabBar" role="tablist" aria-label="Dashboard sections">
@@ -995,7 +889,7 @@ document.addEventListener('DOMContentLoaded', () => {
 <script src="{% static 'js/task_breakdown.js' %}?v=3"></script>
 <script src="{% static 'js/tab_nav.js' %}?v=4"></script>
 <script src="{% static 'js/projects.js' %}?v=4"></script>
-<script src="{% static 'js/daily_logs_panel.js' %}?v=2"></script>
+<script src="{% static 'js/daily_logs_panel.js' %}?v=3"></script>
 
 <script>
 /* ══════════════════════════════════════════════════════
