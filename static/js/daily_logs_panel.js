@@ -17,20 +17,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const selectedDate = urlParams.get('date') || '';
 
-    // Standard categories for time audit
+    // Standard categories for time audit (matches models.py TimeAuditLog.CATEGORY_CHOICES)
     const AUDIT_CATEGORIES = [
-        { code: 'phd', label: 'PhD / Study / Classes' },
-        { code: 'exercise', label: 'Exercise / Gym' },
-        { code: 'projects', label: 'Side Projects / Jobs' },
-        { code: 'spiritual', label: 'Spiritual' },
-        { code: 'life_skills', label: 'Life Skills' },
+        { code: 'phd', label: 'PhD' },
+        { code: 'projects', label: 'Side Projects' },
         { code: 'planning', label: 'Planning' },
+        { code: 'life_skills', label: 'Life Skills' },
+        { code: 'spiritual', label: 'Spiritual' },
         { code: 'cooking', label: 'Cooking' },
-        { code: 'break', label: 'Break' },
-        { code: 'phone_call', label: 'Phone Call' },
         { code: 'driving', label: 'Driving' },
+        { code: 'exercise', label: 'Exercise' },
         { code: 'getting_ready', label: 'Getting Ready' },
+        { code: 'phone_call', label: 'Phone Call' },
         { code: 'distracted', label: 'Distracted' },
+        { code: 'break', label: 'Break' },
         { code: 'other', label: 'Other' }
     ];
 
