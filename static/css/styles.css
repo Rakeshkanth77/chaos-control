@@ -4416,11 +4416,11 @@ body {
     position: sticky;
     top: 0;
     z-index: 50;
-    background: rgba(15, 23, 42, 0.95);
-    backdrop-filter: blur(16px);
-    -webkit-backdrop-filter: blur(16px);
-    padding: 6px 4px 10px 4px;
-    border-bottom: 1px solid rgba(45, 212, 191, 0.18);
+    background: rgba(15, 23, 42, 0.98);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    padding: 8px 8px 10px 8px;
+    border-bottom: 1px solid rgba(45, 212, 191, 0.3);
     margin-bottom: 10px;
     display: flex;
     align-items: center;
@@ -4433,21 +4433,21 @@ body {
 .col4-segmented-control {
     display: inline-flex;
     align-items: center;
-    background: rgba(15, 23, 42, 0.85);
-    padding: 3px;
+    background: #1e293b;
+    padding: 4px;
     border-radius: 10px;
-    border: 1px solid rgba(45, 212, 191, 0.25);
-    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.3);
-    gap: 3px;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: inset 0 1px 4px rgba(0, 0, 0, 0.4);
+    gap: 4px;
 }
 
 .col4-segment-btn {
     background: none;
     border: none;
-    color: var(--text-secondary);
-    font-size: 0.82rem;
+    color: #e2e8f0;
+    font-size: 0.84rem;
     font-weight: 600;
-    padding: 7px 14px;
+    padding: 7px 15px;
     min-height: 38px;
     border-radius: 8px;
     cursor: pointer;
@@ -4460,70 +4460,88 @@ body {
 }
 
 .col4-segment-btn:hover {
-    color: var(--text-primary);
-    background: rgba(255, 255, 255, 0.06);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.12);
 }
 
 .col4-segment-btn.active {
-    background: rgba(45, 212, 191, 0.18);
-    color: #2dd4bf;
-    border: 1px solid rgba(45, 212, 191, 0.35);
+    background: #0f766e;
+    color: #5eead4;
+    border: 1px solid #2dd4bf;
     font-weight: 700;
-    box-shadow: 0 2px 8px rgba(45, 212, 191, 0.18);
+    box-shadow: 0 2px 10px rgba(45, 212, 191, 0.35);
 }
 
 /* Sub-toggle for Timetable vs Slots view */
 .col4-subview-toggle {
     display: inline-flex;
     align-items: center;
-    background: rgba(15, 23, 42, 0.75);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.16);
     border-radius: 8px;
-    padding: 2px;
-    gap: 2px;
+    padding: 3px;
+    gap: 3px;
 }
 
 .col4-subview-btn {
     background: none;
     border: none;
-    color: var(--text-secondary);
-    font-size: 0.72rem;
+    color: #cbd5e1;
+    font-size: 0.76rem;
     font-weight: 600;
-    padding: 4px 9px;
+    padding: 5px 12px;
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.15s ease;
 }
 
 .col4-subview-btn:hover {
-    color: var(--text-primary);
+    color: #ffffff;
+    background: rgba(255, 255, 255, 0.1);
 }
 
 .col4-subview-btn.active {
-    background: rgba(45, 212, 191, 0.16);
-    color: #2dd4bf;
+    background: #0f766e;
+    color: #5eead4;
     font-weight: 700;
+    border: 1px solid #2dd4bf;
+}
+
+#col4-status-area {
+    color: #cbd5e1 !important;
+}
+
+#reflection-save-status {
+    color: #94a3b8 !important;
+    font-weight: 600;
+}
+
+#col4-logs-counter {
+    color: #5eead4 !important;
+    background: rgba(45, 212, 191, 0.22) !important;
+    border: 1px solid rgba(45, 212, 191, 0.5) !important;
+    font-weight: 700 !important;
 }
 
 /* ── TIMETABLE SCHEDULE COMPONENT (Matching Reference Screenshot) ── */
 .timetable-schedule-card {
     display: flex;
     flex-direction: column;
-    background: rgba(15, 23, 42, 0.55);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(15, 23, 42, 0.7);
+    border: 1px solid rgba(255, 255, 255, 0.12);
     border-radius: 14px;
     overflow: hidden;
     position: relative;
-    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+    box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.3);
 }
 
 .timetable-day-header {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 8px 14px;
-    background: rgba(15, 23, 42, 0.9);
-    border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+    padding: 10px 16px;
+    background: #1e293b;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.14);
 }
 
 .timetable-day-title {
@@ -4533,26 +4551,32 @@ body {
 }
 
 .timetable-day-name {
-    font-size: 0.76rem;
-    font-weight: 700;
+    font-size: 0.84rem;
+    font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.6px;
-    color: var(--text-secondary);
+    letter-spacing: 0.8px;
+    color: #94a3b8;
 }
 
 .timetable-day-number {
-    font-size: 1.15rem;
+    font-size: 1.25rem;
     font-weight: 800;
-    color: #f8fafc;
+    color: #ffffff;
     font-family: 'Outfit', sans-serif;
 }
 
+#timetableMonthYear {
+    color: #cbd5e1 !important;
+    font-weight: 600;
+}
+
 .timetable-quick-add-tip {
-    font-size: 0.7rem;
-    color: #2dd4bf;
-    background: rgba(45, 212, 191, 0.1);
-    border: 1px solid rgba(45, 212, 191, 0.2);
-    padding: 2px 7px;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: #5eead4;
+    background: rgba(45, 212, 191, 0.18);
+    border: 1px solid rgba(45, 212, 191, 0.4);
+    padding: 3px 9px;
     border-radius: 6px;
 }
 
@@ -4561,15 +4585,15 @@ body {
     overflow-y: auto;
     position: relative;
     scrollbar-width: thin;
-    scrollbar-color: rgba(45, 212, 191, 0.3) transparent;
+    scrollbar-color: rgba(45, 212, 191, 0.4) transparent;
 }
 
 .timetable-scroll-viewport::-webkit-scrollbar {
-    width: 5px;
+    width: 6px;
 }
 
 .timetable-scroll-viewport::-webkit-scrollbar-thumb {
-    background: rgba(45, 212, 191, 0.3);
+    background: rgba(45, 212, 191, 0.4);
     border-radius: 10px;
 }
 
@@ -4582,36 +4606,36 @@ body {
 
 /* Left Hour Axis */
 .timetable-hours-axis {
-    width: 54px;
+    width: 58px;
     flex-shrink: 0;
     position: relative;
-    border-right: 1px solid rgba(255, 255, 255, 0.08);
-    background: rgba(15, 23, 42, 0.35);
+    border-right: 1px solid rgba(255, 255, 255, 0.14);
+    background: rgba(15, 23, 42, 0.5);
 }
 
 .timetable-hour-label {
     position: absolute;
-    right: 8px;
+    right: 9px;
     transform: translateY(-50%);
-    font-size: 0.73rem;
-    font-weight: 600;
-    color: #94a3b8;
+    font-size: 0.78rem;
+    font-weight: 700;
+    color: #cbd5e1;
     font-family: 'JetBrains Mono', monospace;
     letter-spacing: -0.2px;
 }
 
 .timetable-hour-label.noon-label {
-    font-weight: 700;
-    color: #cbd5e1;
+    font-weight: 800;
+    color: #ffffff;
     font-family: inherit;
-    font-size: 0.78rem;
+    font-size: 0.84rem;
 }
 
 /* Right Grid Area */
 .timetable-grid-canvas {
     flex: 1;
     position: relative;
-    background: rgba(15, 23, 42, 0.2);
+    background: rgba(15, 23, 42, 0.35);
     cursor: pointer;
 }
 
@@ -4620,7 +4644,7 @@ body {
     left: 0;
     right: 0;
     height: 1px;
-    background: rgba(255, 255, 255, 0.07);
+    background: rgba(255, 255, 255, 0.1);
     pointer-events: none;
 }
 
@@ -4629,35 +4653,35 @@ body {
     left: 0;
     right: 0;
     height: 1px;
-    background: rgba(255, 255, 255, 0.03);
-    border-top: 1px dashed rgba(255, 255, 255, 0.05);
+    background: rgba(255, 255, 255, 0.04);
+    border-top: 1px dashed rgba(255, 255, 255, 0.08);
     pointer-events: none;
 }
 
 /* Current Time Indicator Red Line */
 .timetable-now-indicator {
     position: absolute;
-    left: -54px;
+    left: -58px;
     right: 0;
     height: 2px;
     background: #ef4444;
     z-index: 25;
     pointer-events: none;
-    box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+    box-shadow: 0 0 10px rgba(239, 68, 68, 0.8);
 }
 
 .timetable-now-dot {
     position: absolute;
-    left: 48px;
-    top: -4px;
-    width: 10px;
-    height: 10px;
+    left: 52px;
+    top: -5px;
+    width: 12px;
+    height: 12px;
     border-radius: 50%;
     background: #ef4444;
-    box-shadow: 0 0 10px #ef4444;
+    box-shadow: 0 0 12px #ef4444;
 }
 
-/* Event Blocks (Faithful reproduction of user's screenshot) */
+/* Event Blocks (Faithful reproduction of user's screenshot with high-contrast text) */
 .timetable-event-block {
     position: absolute;
     left: 8px;
@@ -4672,104 +4696,81 @@ body {
     justify-content: flex-start;
     cursor: pointer;
     transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
-    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.25);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.35);
 }
 
 .timetable-event-block:hover {
     transform: scale(1.012);
-    box-shadow: 0 6px 18px rgba(0, 0, 0, 0.4);
-    filter: brightness(1.08);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5);
+    filter: brightness(1.12);
     z-index: 15;
 }
 
 .timetable-event-title {
-    font-size: 0.84rem;
-    font-weight: 700;
+    font-size: 0.86rem;
+    font-weight: 800;
     line-height: 1.25;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
     margin-bottom: 2px;
     letter-spacing: -0.2px;
+    color: #ffffff !important;
+    text-shadow: 0 1px 3px rgba(0, 0, 0, 0.6);
 }
 
 .timetable-event-time {
-    font-size: 0.72rem;
-    font-weight: 600;
+    font-size: 0.74rem;
+    font-weight: 700;
     font-family: 'JetBrains Mono', monospace;
-    opacity: 0.92;
+    opacity: 0.96;
     white-space: nowrap;
+    color: #f8fafc !important;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* Color Themes for Event Blocks matching screenshot */
-/* Coral / Salmon theme (e.g. Calculus I, Intro to Programming, Literature, Data Structures) */
+/* Color Themes for Event Blocks */
+/* Coral / Salmon theme (Calculus I, Intro to Programming, Literature, Data Structures) */
 .timetable-event-block.theme-coral {
-    background: rgba(224, 140, 130, 0.5);
-    border: 1px solid rgba(224, 140, 130, 0.85);
-    color: #ffffff;
-}
-.timetable-event-block.theme-coral .timetable-event-title {
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    background: rgba(220, 80, 70, 0.85);
+    border: 1px solid rgba(254, 202, 202, 0.85);
 }
 
-/* Soft Blue theme (e.g. Gym, Exercise) */
+/* Soft Blue theme (Gym, Exercise) */
 .timetable-event-block.theme-blue {
-    background: rgba(147, 197, 253, 0.45);
-    border: 1px solid rgba(147, 197, 253, 0.85);
-    color: #ffffff;
-}
-.timetable-event-block.theme-blue .timetable-event-title {
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    background: rgba(37, 99, 235, 0.85);
+    border: 1px solid rgba(191, 219, 254, 0.85);
 }
 
-/* Soft Purple / Lavender theme (e.g. Part-time Job Cafe, Projects) */
+/* Soft Purple / Lavender theme (Part-time Job Cafe, Projects) */
 .timetable-event-block.theme-purple {
-    background: rgba(192, 132, 252, 0.45);
-    border: 1px solid rgba(192, 132, 252, 0.85);
-    color: #ffffff;
-}
-.timetable-event-block.theme-purple .timetable-event-title {
-    color: #ffffff;
-    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+    background: rgba(147, 51, 234, 0.85);
+    border: 1px solid rgba(233, 213, 255, 0.85);
 }
 
 /* Mint / Teal theme (Spiritual, Life skills) */
 .timetable-event-block.theme-teal {
-    background: rgba(45, 212, 191, 0.4);
-    border: 1px solid rgba(45, 212, 191, 0.8);
-    color: #ffffff;
-}
-.timetable-event-block.theme-teal .timetable-event-title {
-    color: #ffffff;
+    background: rgba(13, 148, 136, 0.85);
+    border: 1px solid rgba(153, 246, 228, 0.85);
 }
 
 /* Amber / Orange theme (Cooking, Break) */
 .timetable-event-block.theme-amber {
-    background: rgba(251, 146, 60, 0.45);
-    border: 1px solid rgba(251, 146, 60, 0.85);
-    color: #ffffff;
-}
-.timetable-event-block.theme-amber .timetable-event-title {
-    color: #ffffff;
+    background: rgba(217, 119, 6, 0.85);
+    border: 1px solid rgba(254, 240, 138, 0.85);
 }
 
 /* Slate theme (Other / Misc) */
 .timetable-event-block.theme-slate {
-    background: rgba(148, 163, 184, 0.35);
-    border: 1px solid rgba(148, 163, 184, 0.7);
-    color: #ffffff;
-}
-.timetable-event-block.theme-slate .timetable-event-title {
-    color: #ffffff;
+    background: rgba(71, 85, 105, 0.9);
+    border: 1px solid rgba(226, 232, 240, 0.8);
 }
 
 /* Timetable Event Edit/Create Modal */
 .timetable-modal-backdrop {
     position: fixed;
     inset: 0;
-    background: rgba(0, 0, 0, 0.65);
+    background: rgba(0, 0, 0, 0.75);
     backdrop-filter: blur(8px);
     -webkit-backdrop-filter: blur(8px);
     z-index: 10000;
@@ -4788,10 +4789,10 @@ body {
 }
 
 .timetable-modal-content {
-    background: rgba(15, 23, 42, 0.96);
-    border: 1px solid rgba(45, 212, 191, 0.35);
+    background: #0f172a;
+    border: 1px solid rgba(45, 212, 191, 0.45);
     border-radius: 16px;
-    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.7);
     width: 100%;
     max-width: 420px;
     padding: 20px;
@@ -4805,100 +4806,117 @@ body {
 
 .daily-audit-feed {
     scrollbar-width: thin;
-    scrollbar-color: rgba(45, 212, 191, 0.3) transparent;
+    scrollbar-color: rgba(45, 212, 191, 0.4) transparent;
 }
 
 .daily-audit-feed::-webkit-scrollbar {
-    width: 5px;
+    width: 6px;
 }
 
 .daily-audit-feed::-webkit-scrollbar-thumb {
-    background: rgba(45, 212, 191, 0.3);
+    background: rgba(45, 212, 191, 0.4);
     border-radius: 10px;
 }
 
+/* ── Slot Row (List View) with Crisp Contrast ── */
 .timeline-slot-row {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 6px 10px;
-    background: rgba(15, 23, 42, 0.65);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    border-radius: 10px;
+    gap: 10px;
+    padding: 8px 12px;
+    background: #1e293b;
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    border-radius: 12px;
     transition: all 0.18s ease;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
 }
 
 .timeline-slot-row:hover {
-    background: rgba(15, 23, 42, 0.85);
-    border-color: rgba(45, 212, 191, 0.25);
+    background: #334155;
+    border-color: rgba(45, 212, 191, 0.6);
 }
 
 .timeline-slot-row.is-current-slot {
-    border-color: rgba(56, 189, 248, 0.6) !important;
-    background: rgba(56, 189, 248, 0.08) !important;
-    box-shadow: 0 0 10px rgba(56, 189, 248, 0.15);
+    border-color: #38bdf8 !important;
+    background: rgba(14, 116, 144, 0.35) !important;
+    box-shadow: 0 0 14px rgba(56, 189, 248, 0.35) !important;
 }
 
 .timeline-slot-row.is-logged {
-    border-color: rgba(45, 212, 191, 0.3);
-    background: rgba(45, 212, 191, 0.05);
+    border-color: rgba(45, 212, 191, 0.6);
+    background: rgba(13, 148, 136, 0.25);
 }
 
 .slot-time-badge {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: #2dd4bf;
-    background: rgba(45, 212, 191, 0.15);
-    border: 1px solid rgba(45, 212, 191, 0.28);
-    padding: 3px 7px;
-    border-radius: 6px;
+    font-size: 0.82rem;
+    font-weight: 800;
+    color: #5eead4;
+    background: rgba(15, 118, 110, 0.45);
+    border: 1px solid rgba(45, 212, 191, 0.55);
+    padding: 5px 10px;
+    border-radius: 8px;
     white-space: nowrap;
     flex-shrink: 0;
+    letter-spacing: 0.3px;
 }
 
 .timeline-slot-row.is-current-slot .slot-time-badge {
-    color: #38bdf8;
-    background: rgba(56, 189, 248, 0.2);
-    border-color: rgba(56, 189, 248, 0.45);
+    color: #ffffff;
+    background: #0284c7;
+    border-color: #38bdf8;
+    box-shadow: 0 0 10px rgba(56, 189, 248, 0.6);
 }
 
 .slot-input {
     flex: 1;
     min-width: 0;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.1);
-    color: #f8fafc;
-    font-size: 0.82rem;
-    font-weight: 500;
-    border-radius: 6px;
-    padding: 5px 8px;
+    background: #0f172a;
+    border: 1px solid rgba(255, 255, 255, 0.22);
+    color: #ffffff !important;
+    font-size: 0.9rem;
+    font-weight: 600;
+    border-radius: 8px;
+    padding: 7px 12px;
     outline: none;
     transition: all 0.18s ease;
 }
 
+.slot-input::placeholder {
+    color: #94a3b8 !important;
+    opacity: 1;
+    font-weight: 500;
+}
+
 .slot-input:focus {
-    background: rgba(15, 23, 42, 0.9);
-    border-color: rgba(45, 212, 191, 0.5);
-    box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.15);
+    background: #020617;
+    border-color: #2dd4bf;
+    box-shadow: 0 0 0 2px rgba(45, 212, 191, 0.3);
+    color: #ffffff !important;
 }
 
 .slot-cat-select {
-    background: rgba(30, 41, 59, 0.9);
+    background: #0f172a;
     color: #38bdf8;
-    border: 1px solid rgba(56, 189, 248, 0.35);
-    border-radius: 6px;
-    padding: 4px 6px;
-    font-size: 0.72rem;
-    font-weight: 600;
+    border: 1px solid rgba(56, 189, 248, 0.5);
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-size: 0.78rem;
+    font-weight: 700;
     cursor: pointer;
     outline: none;
     flex-shrink: 0;
 }
 
+.slot-cat-select option {
+    background: #0f172a;
+    color: #f8fafc;
+}
+
 .slot-save-indicator {
-    font-size: 0.72rem;
-    color: #2dd4bf;
+    font-size: 0.85rem;
+    font-weight: 800;
+    color: #5eead4;
     opacity: 0;
     transition: opacity 0.2s ease;
     flex-shrink: 0;

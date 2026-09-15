@@ -804,14 +804,14 @@ document.addEventListener('DOMContentLoaded', () => {
                         <span>Logs</span>
                     </button>
                 </div>
-                <div id="col4-status-area" style="font-size: 0.72rem; color: var(--text-secondary); display: flex; align-items: center; gap: 6px;">
-                    <span class="panel-subtitle" id="reflection-save-status">Saved</span>
+                <div id="col4-status-area" style="font-size: 0.76rem; color: #cbd5e1; display: flex; align-items: center; gap: 8px;">
+                    <span class="panel-subtitle" id="reflection-save-status" style="color: #94a3b8; font-weight: 600;">Saved</span>
                     <!-- Sub-view switcher for Logs (Timetable Schedule vs 15-min Slots list) -->
                     <div class="col4-subview-toggle" id="col4SubviewToggle" style="display: none;">
                         <button type="button" class="col4-subview-btn active" id="col4SubTimetable" title="Visual Timetable View">📅 Schedule</button>
                         <button type="button" class="col4-subview-btn" id="col4SubSlots" title="15-min Slots List">📋 Slots</button>
                     </div>
-                    <span id="col4-logs-counter" style="display: none; font-family: 'JetBrains Mono', monospace; font-size: 0.72rem; color: #2dd4bf; background: rgba(45, 212, 191, 0.15); border: 1px solid rgba(45, 212, 191, 0.3); padding: 2px 7px; border-radius: 6px; font-weight: 700;">0 logged</span>
+                    <span id="col4-logs-counter" style="display: none; font-family: 'JetBrains Mono', monospace; font-size: 0.74rem; color: #5eead4; background: rgba(45, 212, 191, 0.22); border: 1px solid rgba(45, 212, 191, 0.5); padding: 3px 8px; border-radius: 6px; font-weight: 800;">0 logged</span>
                 </div>
             </div>
 
@@ -833,7 +833,7 @@ document.addEventListener('DOMContentLoaded', () => {
                         <div class="timetable-day-title">
                             <span class="timetable-day-name" id="timetableDayName">Mon</span>
                             <span class="timetable-day-number" id="timetableDayNumber">--</span>
-                            <span style="font-size: 0.75rem; color: var(--text-secondary); margin-left: 4px;" id="timetableMonthYear"></span>
+                            <span style="font-size: 0.78rem; color: #cbd5e1; font-weight: 600; margin-left: 4px;" id="timetableMonthYear"></span>
                         </div>
                         <span class="timetable-quick-add-tip">⚡ Click any slot to log</span>
                     </div>
@@ -853,14 +853,14 @@ document.addEventListener('DOMContentLoaded', () => {
 
                 <!-- Subview 2: Granular 15-min Slot List (Optional secondary view) -->
                 <div id="col4SlotsContainer" style="display: none; flex-direction: column;">
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 6px 10px; background: rgba(45, 212, 191, 0.08); border: 1px solid rgba(45, 212, 191, 0.2); border-radius: 8px; margin-bottom: 8px; font-size: 0.75rem;">
-                        <span style="color: #2dd4bf; font-weight: 700; display: flex; align-items: center; gap: 6px;">
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: rgba(15, 118, 110, 0.25); border: 1px solid rgba(45, 212, 191, 0.4); border-radius: 8px; margin-bottom: 8px; font-size: 0.78rem;">
+                        <span style="color: #2dd4bf; font-weight: 800; display: flex; align-items: center; gap: 6px;">
                             <span>📅</span>
                             <span>8:00 AM – 8:00 PM Log Feed</span>
                         </span>
-                        <span style="font-family: 'JetBrains Mono', monospace; color: var(--text-secondary); font-size: 0.7rem;">15-min blocks</span>
+                        <span style="font-family: 'JetBrains Mono', monospace; color: #94a3b8; font-size: 0.74rem; font-weight: 700;">15-min blocks</span>
                     </div>
-                    <div id="col4TimelineFeed" class="daily-audit-feed" style="max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 5px; padding-right: 4px;">
+                    <div id="col4TimelineFeed" class="daily-audit-feed" style="max-height: 520px; overflow-y: auto; display: flex; flex-direction: column; gap: 6px; padding-right: 4px;">
                         <!-- Populated dynamically with all 49 slots from 08:00 to 20:00 -->
                     </div>
                 </div>
