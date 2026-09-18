@@ -415,9 +415,36 @@
             <button class="mobile-nav-close" onclick="closeMobileNav()" aria-label="Close menu">✕</button>
         </div>
         {% if request.user.is_authenticated %}
-            <button id="mobile-quick-log-nav-btn" class="mobile-nav-link" style="background:none; border:none; width:100%; text-align:left; cursor:pointer; font-family:inherit; font-size:inherit;">Log</button>
-            <a href="/analytics/" class="mobile-nav-link {% if '/analytics' in request.path or request.GET.tab == 'analytics' %}active{% endif %}">Analytics</a>
-            <a href="/bible-memory/" class="mobile-nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">Practice Portal</a>
+            <div style="padding: 10px 16px 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px;">Workspaces</div>
+            <a href="/" class="mobile-nav-link {% if active_workspace == 'work' or request.path == '/' and not active_workspace %}active{% endif %}">
+                <span style="margin-right: 8px;">💼</span> Work (Tasks &amp; Matrix)
+            </a>
+            <a href="/body/" class="mobile-nav-link {% if active_workspace == 'body' or '/body/' in request.path %}active{% endif %}">
+                <span style="margin-right: 8px;">🏋️</span> Body &amp; Vitals
+            </a>
+            <a href="/finance/" class="mobile-nav-link {% if active_workspace == 'finance' or '/finance/' in request.path %}active{% endif %}">
+                <span style="margin-right: 8px;">💰</span> Shared Finance
+            </a>
+            
+            <div class="mobile-nav-divider"></div>
+            <div style="padding: 10px 16px 4px; font-size: 0.72rem; font-weight: 700; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px;">Tools &amp; Focus</div>
+            <button id="mobile-quick-log-nav-btn" class="mobile-nav-link" style="background:none; border:none; width:100%; text-align:left; cursor:pointer; font-family:inherit; font-size:inherit;">
+                <span style="margin-right: 8px;">⏱️</span> Quick Log
+            </button>
+            <button id="mobile-pomo-nav-btn" class="mobile-nav-link" style="background:none; border:none; width:100%; text-align:left; cursor:pointer; font-family:inherit; font-size:inherit; position: relative;">
+                <span style="margin-right: 8px;">🍅</span> Pomodoro Focus
+                <span id="mobile-pomo-nav-badge" style="position: absolute; right: 16px; top: 14px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: none;"></span>
+            </button>
+            <button id="mobile-toggle-projects-btn" class="mobile-nav-link" style="background:none; border:none; width:100%; text-align:left; cursor:pointer; font-family:inherit; font-size:inherit;">
+                <span style="margin-right: 8px;">📁</span> Projects
+            </button>
+            <a href="/analytics/" class="mobile-nav-link {% if '/analytics' in request.path or request.GET.tab == 'analytics' %}active{% endif %}">
+                <span style="margin-right: 8px;">📊</span> Analytics
+            </a>
+            <a href="/bible-memory/" class="mobile-nav-link {% if '/bible-memory/' in request.path %}active{% endif %}">
+                <span style="margin-right: 8px;">📖</span> Practice Portal
+            </a>
+            
             <div class="mobile-nav-divider"></div>
             <a href="/profile/" class="mobile-nav-link {% if request.path == '/profile/' and not request.GET.tab %}active{% endif %}">
                 {% if request.user.profile.avatar or request.user.profile.avatar_url %}
@@ -428,177 +455,275 @@
             <a href="/privacy/" class="mobile-nav-link {% if request.path == '/privacy/' %}active{% endif %}">Privacy</a>
             <div class="mobile-nav-divider"></div>
             <a href="/accounts/logout/" class="mobile-nav-logout">Sign Out</a>
+            
+            <!-- Hidden mobile helper elements for JS event listener compatibility -->
+            <button class="reminder-toggle-btn mobile-reminder-btn" style="display: none;"></button>
         {% else %}
             <a href="/accounts/login/" class="mobile-nav-link active">Sign In</a>
         {% endif %}
     </nav>
 
-    <div class="app-container">
-        <!-- Header -->
-        <header class="app-header">
-            <div class="header-logo">
-                <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
-                    <img src="{% static 'images/logo.svg' %}" alt="Logo" style="width: 32px; height: 32px;">
-                    <div class="header-logo-container">
-                        <h1><span>to-do</span></h1>
-                        <span class="header-logo-sub">made by researcher</span>
-                    </div>
+    <div class="app-layout" id="appLayout">
+        {% if request.user.is_authenticated %}
+        <!-- Collapsible ChatGPT-style Sidebar -->
+        <aside class="app-sidebar" id="appSidebar">
+            <!-- Sidebar Header / Brand -->
+            <div class="sidebar-header">
+                <a href="/" class="sidebar-brand">
+                    <img src="{% static 'images/logo.svg' %}" alt="Logo" class="sidebar-logo">
+                    <span class="sidebar-brand-text">to-do</span>
                 </a>
+                <button type="button" class="sidebar-toggle-btn" id="sidebarCollapseBtn" title="Toggle Sidebar (Ctrl + [)" aria-label="Toggle Sidebar">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                        <line x1="9" y1="3" x2="9" y2="21"></line>
+                    </svg>
+                </button>
             </div>
-            
-            {% if request.user.is_authenticated %}
-                <!-- Date Navigator (desktop only) -->
-                <div class="date-navigator">
-                    {% if selected_date_formatted %}
-                        <a href="?date={{ previous_date }}" class="nav-btn" id="prev-date-btn">←</a>
-                        <span class="current-date-display" id="date-display">{{ selected_date_formatted }}</span>
-                        <a href="?date={{ next_date }}" class="nav-btn" id="next-date-btn">→</a>
-                        {% if not is_today %}
-                            <a href="?" class="today-badge">Go to Today</a>
-                        {% endif %}
-                    {% endif %}
+
+            <!-- Sidebar Content -->
+            <div class="sidebar-content">
+                <!-- 1. Core Workspaces -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Workspaces</div>
+                    <nav class="sidebar-nav">
+                        <!-- 1. Work -->
+                        <a href="/" class="sidebar-nav-item {% if active_workspace == 'work' or request.path == '/' and not active_workspace %}active{% endif %}" title="Work / Command Center">
+                            <span class="sidebar-nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"></rect><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"></path></svg>
+                            </span>
+                            <span class="sidebar-nav-label">Work</span>
+                            <span class="sidebar-nav-badge">Tasks</span>
+                        </a>
+
+                        <!-- 2. Body -->
+                        <a href="/body/" class="sidebar-nav-item {% if active_workspace == 'body' or '/body/' in request.path %}active{% endif %}" title="Body Tracking & Vitals">
+                            <span class="sidebar-nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
+                            </span>
+                            <span class="sidebar-nav-label">Body</span>
+                            <span class="sidebar-nav-badge">Vitals</span>
+                        </a>
+
+                        <!-- 3. Finance -->
+                        <a href="/finance/" class="sidebar-nav-item {% if active_workspace == 'finance' or '/finance/' in request.path %}active{% endif %}" title="Minimal Finance for 2 People">
+                            <span class="sidebar-nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="5" width="20" height="14" rx="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
+                            </span>
+                            <span class="sidebar-nav-label">Finance</span>
+                            <span class="sidebar-nav-badge">2-Split</span>
+                        </a>
+                    </nav>
                 </div>
 
-                <!-- Desktop Nav -->
-                <nav class="app-nav desktop-nav" style="display: flex; align-items: center; gap: 12px;">
-                    <!-- 1. Log -->
-                    <div style="display: flex; align-items: center; gap: 4px;">
-                        <button id="quick-log-nav-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 12px;" title="Quick 15-Minute Log">
-                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                            <span>Log</span>
-                            <span id="audit-slot-timer-badge" style="font-family: 'JetBrains Mono', monospace; font-size: 0.76rem; font-weight: bold; background: rgba(59, 130, 246, 0.15); color: #3b82f6; padding: 2px 6px; border-radius: 6px; margin-left: 2px; font-variant-numeric: tabular-nums;">--:--</span>
+                <!-- 2. Productivity Tools -->
+                <div class="sidebar-section">
+                    <div class="sidebar-section-title">Focus &amp; Tools</div>
+                    <nav class="sidebar-nav">
+                        <!-- Quick Log -->
+                        <button type="button" id="quick-log-nav-btn" class="sidebar-nav-item" title="Quick 15-Minute Log">
+                            <span class="sidebar-nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            </span>
+                            <span class="sidebar-nav-label">Quick Log</span>
+                            <span id="audit-slot-timer-badge" class="sidebar-timer-badge">--:--</span>
                         </button>
-                    </div>
 
-                    <!-- 2. Pomodoro -->
-                    <button id="pomo-nav-btn" class="nav-link pomo-nav-btn" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px; position: relative;" title="Pomodoro Focus Timer">
-                        <svg class="pomo-icon-svg" width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                        <span class="pomo-btn-text">Pomodoro</span>
-                        <span id="pomo-nav-timer" style="font-family: 'JetBrains Mono', monospace; font-size: 0.82rem; font-weight: bold; background: rgba(239, 68, 68, 0.15); color: #ef4444; padding: 2px 6px; border-radius: 6px; display: none;">00:00</span>
-                    </button>
+                        <!-- Pomodoro Focus -->
+                        <button type="button" id="pomo-nav-btn" class="sidebar-nav-item pomo-nav-btn" title="Pomodoro Focus Timer">
+                            <span class="sidebar-nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                            </span>
+                            <span class="sidebar-nav-label pomo-btn-text">Pomodoro</span>
+                            <span id="pomo-nav-timer" class="sidebar-timer-badge pomo-badge" style="display: none;">00:00</span>
+                        </button>
 
-                    <!-- 3. Projects -->
-                    <button id="toggle-projects-btn" class="nav-link" style="background: none; border: none; cursor: pointer; font-family: inherit; font-size: inherit; font-weight: inherit; display: flex; align-items: center; gap: 6px; outline: none; padding: 8px 16px;" title="Current Projects">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                        <span>Projects</span>
-                    </button>
+                        <!-- Projects -->
+                        <button type="button" id="toggle-projects-btn" class="sidebar-nav-item" title="Current Projects">
+                            <span class="sidebar-nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+                            </span>
+                            <span class="sidebar-nav-label">Projects</span>
+                        </button>
 
-                    <!-- 4. Analytics -->
-                    <a href="/analytics/" class="nav-link {% if '/analytics' in request.path or request.GET.tab == 'analytics' %}active{% endif %}" style="display: flex; align-items: center; gap: 6px; padding: 8px 16px;" title="Analytics">
-                        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="vertical-align: middle;"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                        <span>Analytics</span>
-                    </a>
+                        <!-- Analytics -->
+                        <a href="/analytics/" class="sidebar-nav-item {% if '/analytics' in request.path or request.GET.tab == 'analytics' %}active{% endif %}" title="Analytics">
+                            <span class="sidebar-nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                            </span>
+                            <span class="sidebar-nav-label">Analytics</span>
+                        </a>
 
-                    <!-- Profile Dropdown Menu -->
-                    <div class="profile-dropdown-wrapper" id="profileDropdownWrapper">
-                        <button type="button" class="user-profile-badge profile-dropdown-btn {% if '/profile/' in request.path %}active{% endif %}" id="profileDropdownBtn" aria-expanded="false" aria-label="User profile menu">
+                        <!-- Practice Portal -->
+                        <a href="/bible-memory/" class="sidebar-nav-item {% if '/bible-memory/' in request.path %}active{% endif %}" title="Practice Portal">
+                            <span class="sidebar-nav-icon">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+                            </span>
+                            <span class="sidebar-nav-label">Practice Portal</span>
+                        </a>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Sidebar Footer: Profile & Settings (ChatGPT-style) -->
+            <div class="sidebar-footer">
+                <div class="profile-dropdown-wrapper" id="profileDropdownWrapper" style="width: 100%;">
+                    <button type="button" class="sidebar-user-pill" id="profileDropdownBtn" aria-expanded="false" aria-label="User profile and settings">
+                        <div class="sidebar-user-avatar">
                             {% if request.user.profile.avatar or request.user.profile.avatar_url %}
                                 <img src="{{ request.user.profile.get_avatar_url }}" alt="Avatar" class="avatar-img">
                             {% else %}
                                 <div class="avatar-img">{{ request.user.email|slice:":1"|upper }}</div>
                             {% endif %}
-                            <span>Profile</span>
-                            <svg class="dropdown-chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9l6 6 6-6"/></svg>
+                        </div>
+                        <div class="sidebar-user-meta">
+                            <span class="sidebar-user-name">{% firstof request.user.first_name request.user.username %}</span>
+                            <span class="sidebar-user-plan">Settings &bull; Profile</span>
+                        </div>
+                        <svg class="sidebar-settings-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+                    </button>
+
+                    <div class="profile-dropdown-menu" id="profileDropdownMenu">
+                        <div class="dropdown-user-header">
+                            <div class="dropdown-user-avatar">
+                                {% if request.user.profile.avatar or request.user.profile.avatar_url %}
+                                    <img src="{{ request.user.profile.get_avatar_url }}" alt="Avatar" class="avatar-img">
+                                {% else %}
+                                    <div class="avatar-img">{{ request.user.email|slice:":1"|upper }}</div>
+                                {% endif %}
+                            </div>
+                            <div class="dropdown-user-info">
+                                <div class="dropdown-user-name">{% firstof request.user.first_name request.user.username %}</div>
+                                <div class="dropdown-user-email">{{ request.user.email }}</div>
+                            </div>
+                        </div>
+                        
+                        <div class="dropdown-divider"></div>
+
+                        <a href="/profile/" class="dropdown-item {% if request.path == '/profile/' and not request.GET.tab %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                            <span>Profile &amp; Settings</span>
+                        </a>
+
+                        <a href="/profile/?tab=habits" class="dropdown-item {% if request.GET.tab == 'habits' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            <span>Daily Habits</span>
+                        </a>
+
+                        <a href="/profile/?tab=analytics" class="dropdown-item {% if request.GET.tab == 'analytics' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+                            <span>Productivity Analytics</span>
+                        </a>
+
+                        <button type="button" id="toggle-audit-session-btn" class="dropdown-item dropdown-reminder-btn" title="Pause or enable the 15-minute audit prompts">
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                                <span>15-Min Audit</span>
+                            </span>
+                            <span id="audit-session-status-text" class="reminder-status-badge">⏹ Pause Audit</span>
                         </button>
 
-                        <div class="profile-dropdown-menu" id="profileDropdownMenu">
-                            <div class="dropdown-user-header">
-                                <div class="dropdown-user-avatar">
-                                    {% if request.user.profile.avatar or request.user.profile.avatar_url %}
-                                        <img src="{{ request.user.profile.get_avatar_url }}" alt="Avatar" class="avatar-img">
-                                    {% else %}
-                                        <div class="avatar-img">{{ request.user.email|slice:":1"|upper }}</div>
-                                    {% endif %}
-                                </div>
-                                <div class="dropdown-user-info">
-                                    <div class="dropdown-user-name">{% firstof request.user.first_name request.user.username %}</div>
-                                    <div class="dropdown-user-email">{{ request.user.email }}</div>
-                                </div>
-                            </div>
-                            
-                            <div class="dropdown-divider"></div>
+                        <button type="button" class="dropdown-item reminder-toggle-btn dropdown-reminder-btn" title="Workflows & Systems">
+                            <span style="display: flex; align-items: center; gap: 10px;">
+                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
+                                <span>Workflows &amp; Systems</span>
+                            </span>
+                            <span class="reminder-status-badge">OFF</span>
+                        </button>
 
-                            <a href="/profile/" class="dropdown-item {% if request.path == '/profile/' and not request.GET.tab %}active{% endif %}">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                                <span>Profile &amp; Settings</span>
-                            </a>
+                        <a href="/privacy/" class="dropdown-item {% if request.path == '/privacy/' %}active{% endif %}">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                            <span>Privacy Policy</span>
+                        </a>
 
-                            <a href="/profile/?tab=habits" class="dropdown-item {% if request.GET.tab == 'habits' %}active{% endif %}">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                                <span>Daily Habits</span>
-                            </a>
+                        <div class="dropdown-divider"></div>
 
-                            <a href="/profile/?tab=analytics" class="dropdown-item {% if request.GET.tab == 'analytics' %}active{% endif %}">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-                                <span>Productivity Analytics</span>
-                            </a>
-
-                            <a href="/bible-memory/" class="dropdown-item {% if '/bible-memory/' in request.path %}active{% endif %}">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
-                                <span>Practice Portal</span>
-                            </a>
-
-                            <button type="button" id="toggle-audit-session-btn" class="dropdown-item dropdown-reminder-btn" title="Pause or enable the 15-minute audit prompts">
-                                <span style="display: flex; align-items: center; gap: 10px;">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                                    <span>15-Min Audit</span>
-                                </span>
-                                <span id="audit-session-status-text" class="reminder-status-badge">⏹ Pause Audit</span>
-                            </button>
-
-                            <button type="button" class="dropdown-item reminder-toggle-btn dropdown-reminder-btn" title="Workflows & Systems">
-                                <span style="display: flex; align-items: center; gap: 10px;">
-                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                                    <span>Workflows &amp; Systems</span>
-                                </span>
-                                <span class="reminder-status-badge">OFF</span>
-                            </button>
-
-                            <div class="dropdown-divider"></div>
-
-                            <a href="/accounts/logout/" class="dropdown-item dropdown-logout-item">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
-                                <span>Logout</span>
-                            </a>
-                        </div>
+                        <a href="/accounts/logout/" class="dropdown-item dropdown-logout-item">
+                            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+                            <span>Logout</span>
+                        </a>
                     </div>
-                </nav>
+                </div>
+            </div>
+        </aside>
+        {% endif %}
 
-                <!-- Mobile projects shortcut button -->
-                <button id="mobile-toggle-projects-btn" class="nav-btn" style="display: none; width: 34px; height: 34px; margin-right: 8px; align-items: center; justify-content: center; border-radius: 10px;" title="Current Projects">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-                </button>
+        <!-- Main App Container Canvas -->
+        <div class="app-container">
+            {% if request.user.is_authenticated %}
+            <!-- Slim Context Header -->
+            <header class="app-header slim-context-header">
+                <div class="header-left">
+                    <!-- Mobile hamburger button -->
+                    <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="Open menu">
+                        <span></span><span></span><span></span>
+                    </button>
 
-                <!-- Mobile reminders bell -->
-                <button class="nav-btn reminder-toggle-btn mobile-reminder-btn" style="display: none; width: 34px; height: 34px; margin-right: 8px; align-items: center; justify-content: center; border-radius: 10px;" title="Workflows &amp; Systems">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
-                </button>
+                    <!-- Desktop Sidebar Collapse Toggle -->
+                    <button type="button" class="header-sidebar-toggle" id="headerSidebarToggleBtn" title="Toggle Sidebar">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect>
+                            <line x1="9" y1="3" x2="9" y2="21"></line>
+                        </svg>
+                    </button>
 
-                <!-- Mobile Pomodoro button -->
-                <button id="mobile-pomo-nav-btn" class="nav-btn" style="display: none; width: 34px; height: 34px; margin-right: 8px; position: relative; align-items: center; justify-content: center; border-radius: 10px;" title="Pomodoro Focus Timer">
-                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
-                    <span id="mobile-pomo-nav-badge" style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: none; box-shadow: 0 0 6px #ef4444;"></span>
-                </button>
+                    <!-- Active Workspace Breadcrumb -->
+                    <div class="workspace-breadcrumb">
+                        {% if active_workspace == 'body' %}
+                            <span class="breadcrumb-icon">🏋️</span>
+                            <span class="breadcrumb-title">Body &amp; Vitals</span>
+                        {% elif active_workspace == 'finance' %}
+                            <span class="breadcrumb-icon">💰</span>
+                            <span class="breadcrumb-title">Shared Finance</span>
+                        {% else %}
+                            <span class="breadcrumb-icon">💼</span>
+                            <span class="breadcrumb-title">Work &amp; Command Center</span>
+                        {% endif %}
+                    </div>
+                </div>
 
-                <!-- Mobile hamburger -->
-                <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="Open menu">
-                    <span></span><span></span><span></span>
-                </button>
-
+                <div class="header-right">
+                    <!-- Date Navigator -->
+                    <div class="date-navigator">
+                        {% if selected_date_formatted %}
+                            <a href="?date={{ previous_date }}" class="nav-btn" id="prev-date-btn" title="Previous day">←</a>
+                            <span class="current-date-display" id="date-display">{{ selected_date_formatted }}</span>
+                            <a href="?date={{ next_date }}" class="nav-btn" id="next-date-btn" title="Next day">→</a>
+                            {% if not is_today %}
+                                <a href="?" class="today-badge">Go to Today</a>
+                            {% endif %}
+                        {% else %}
+                            <span class="current-date-display" style="font-size: 0.88rem; font-weight: 600; color: var(--text-secondary);">{% now "D, M j, Y" %}</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </header>
             {% else %}
+            <!-- Unauthenticated Header -->
+            <header class="app-header">
+                <div class="header-logo">
+                    <a href="/" style="display: flex; align-items: center; gap: 12px; text-decoration: none;">
+                        <img src="{% static 'images/logo.svg' %}" alt="Logo" style="width: 32px; height: 32px;">
+                        <div class="header-logo-container">
+                            <h1><span>to-do</span></h1>
+                            <span class="header-logo-sub">made by researcher</span>
+                        </div>
+                    </a>
+                </div>
                 <nav class="app-nav desktop-nav">
                     <a href="/accounts/login/" class="nav-link active">Sign In</a>
                 </nav>
                 <button class="hamburger-btn" id="hamburgerBtn" onclick="toggleMobileNav()" aria-label="Open menu">
                     <span></span><span></span><span></span>
                 </button>
+            </header>
             {% endif %}
-        </header>
 
-        <!-- Main Content -->
-        <main class="main-content">
-            {% block content %}{% endblock %}
-        </main>
+            <!-- Main Content -->
+            <main class="main-content">
+                {% block content %}{% endblock %}
+            </main>
+        </div>
     </div>
 
     <!-- CSRF Token helper for JS -->
@@ -1137,8 +1262,36 @@
             window.updateAuditSlotTimer = tick;
         })();
 
-        // Profile Dropdown Interactivity
+        // Profile Dropdown & ChatGPT Sidebar Interactivity
         document.addEventListener('DOMContentLoaded', () => {
+            const appLayout = document.getElementById('appLayout');
+            const collapseBtn = document.getElementById('sidebarCollapseBtn');
+            const headerToggleBtn = document.getElementById('headerSidebarToggleBtn');
+
+            // Restore sidebar collapsed state
+            if (appLayout && localStorage.getItem('sidebar_collapsed') === 'true') {
+                appLayout.classList.add('sidebar-collapsed');
+            }
+
+            const toggleSidebar = () => {
+                if (!appLayout) return;
+                appLayout.classList.toggle('sidebar-collapsed');
+                const isCollapsed = appLayout.classList.contains('sidebar-collapsed');
+                localStorage.setItem('sidebar_collapsed', isCollapsed ? 'true' : 'false');
+            };
+
+            if (collapseBtn) collapseBtn.addEventListener('click', toggleSidebar);
+            if (headerToggleBtn) headerToggleBtn.addEventListener('click', toggleSidebar);
+
+            // Shortcut: Ctrl + [ or Cmd + [
+            document.addEventListener('keydown', (e) => {
+                if ((e.ctrlKey || e.metaKey) && e.key === '[') {
+                    e.preventDefault();
+                    toggleSidebar();
+                }
+            });
+
+            // Profile Dropdown Interactivity (Bottom of Sidebar)
             const wrapper = document.getElementById('profileDropdownWrapper');
             const btn = document.getElementById('profileDropdownBtn');
 

@@ -54,6 +54,8 @@ INSTALLED_APPS = [
     # Custom apps
     'dashboard',
     'analytics',
+    'body',
+    'finance',
 
     # Authentication apps
     'allauth',

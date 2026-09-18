@@ -133,6 +133,7 @@ def index(request):
         'is_new_user': is_new_user,
         'profile': profile,
         'projects': Project.objects.filter(user=request.user),
+        'active_workspace': 'work',
     }
     
     return render(request, 'dashboard/index.html', context)
