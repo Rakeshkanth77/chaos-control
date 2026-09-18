@@ -4630,8 +4630,10 @@ body {
     width: 250px;
     min-width: 250px;
     height: 100vh;
-    position: sticky;
+    position: fixed;
     top: 0;
+    left: 0;
+    bottom: 0;
     display: flex;
     flex-direction: column;
     background: rgba(8, 28, 26, 0.97);
@@ -4643,6 +4645,13 @@ body {
     transition: width 0.22s cubic-bezier(0.16, 1, 0.3, 1), transform 0.22s ease;
     user-select: none;
     box-shadow: 4px 0 24px rgba(0, 0, 0, 0.15);
+}
+
+.app-layout .app-container {
+    margin-left: 250px;
+    width: calc(100% - 250px);
+    max-width: none;
+    transition: margin-left 0.22s cubic-bezier(0.16, 1, 0.3, 1), width 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 .sidebar-header {
@@ -4901,6 +4910,11 @@ body {
     min-width: 68px;
 }
 
+.sidebar-collapsed .app-container {
+    margin-left: 68px !important;
+    width: calc(100% - 68px) !important;
+}
+
 .sidebar-collapsed .sidebar-brand-text,
 .sidebar-collapsed .sidebar-section-title,
 .sidebar-collapsed .sidebar-nav-label,
@@ -4992,6 +5006,12 @@ body {
     }
     .header-sidebar-toggle {
         display: none !important;
+    }
+    .app-layout .app-container {
+        margin-left: 0 !important;
+        width: 100% !important;
+        max-width: 100% !important;
+        padding: 12px !important;
     }
     .app-container {
         padding: 12px !important;

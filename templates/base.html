@@ -365,42 +365,58 @@
 
         /* ── Responsive header ── */
         @media (max-width: 768px) {
-            /* 2-row clean header:
-               Row 1 = [Logo]  [Hamburger]
-               Row 2 = [← date →] centered */
+            /* Clean mobile top bar:
+               Hamburger & Workspace Breadcrumb on left, Date Navigator or today on right */
             .app-header {
                 padding: 10px 14px !important;
                 display: flex !important;
                 flex-direction: row !important;
-                flex-wrap: wrap !important;
+                flex-wrap: nowrap !important;
                 align-items: center !important;
-                row-gap: 8px !important;
-                column-gap: 0 !important;
+                justify-content: space-between !important;
+                gap: 10px !important;
+                margin-bottom: 14px !important;
+                border-radius: 14px !important;
             }
-            /* Logo: row 1, takes available space */
+            .header-left {
+                display: flex !important;
+                align-items: center !important;
+                gap: 10px !important;
+                min-width: 0 !important;
+                flex: 1 1 auto !important;
+            }
+            /* Hamburger: far left of header-left */
+            .hamburger-btn {
+                display: flex !important;
+                flex-shrink: 0 !important;
+            }
+            .workspace-breadcrumb {
+                font-size: 0.92rem !important;
+                white-space: nowrap !important;
+                overflow: hidden !important;
+                text-overflow: ellipsis !important;
+            }
+            .header-right {
+                flex-shrink: 0 !important;
+            }
+            .date-navigator {
+                gap: 4px !important;
+            }
+            .date-navigator .current-date-display {
+                font-size: 0.78rem !important;
+                padding: 4px 8px !important;
+            }
+            .date-navigator .nav-btn {
+                width: 28px !important;
+                height: 28px !important;
+                font-size: 0.8rem !important;
+            }
             .header-logo {
-                order: 1;
                 flex: 1 1 auto;
                 min-width: 0;
             }
-            #mobile-toggle-projects-btn,
-            #mobile-pomo-nav-btn {
-                order: 1 !important;
-            }
-            /* Hamburger: row 1, far right */
-            .hamburger-btn {
-                display: flex !important;
-                order: 1 !important;
-                flex-shrink: 0;
-            }
             /* Hide the desktop nav on mobile */
             .app-nav.desktop-nav { display: none !important; }
-            /* Date navigator: row 2, full-width, centered (styles.css handles display+styling) */
-            .date-navigator {
-                order: 2;
-                width: 100%;
-                justify-content: center;
-            }
             .app-container { padding: 12px !important; }
         }
 
