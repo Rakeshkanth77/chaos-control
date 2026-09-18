@@ -651,14 +651,20 @@ body {
     background: rgba(255, 255, 255, 0.5);
     border: 1px solid rgba(12, 88, 85, 0.15);
     border-radius: 12px;
-    padding: 12px;
+    padding: 14px;
     font-family: inherit;
-    font-size: 0.9rem;
+    font-size: 0.92rem;
+    line-height: 1.6;
     color: var(--text-primary);
     outline: none;
-    resize: none;
+    resize: vertical;
     overflow-y: auto;
     transition: border-color 0.2s, background-color 0.2s;
+}
+
+.reflection-textarea::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.75;
 }
 
 .reflection-textarea:focus {
@@ -1334,8 +1340,8 @@ body {
     .priority-block { flex: none !important; height: auto !important; min-height: 80px !important; }
     .priority-list { max-height: 150px !important; overflow-y: auto; }
 
-    .reflection-card { flex: none !important; min-height: 200px; display: flex !important; flex-direction: column !important; }
-    .reflection-textarea { min-height: 120px !important; flex: 1 !important; }
+    .reflection-card { flex: none !important; min-height: 440px !important; display: flex !important; flex-direction: column !important; }
+    .reflection-textarea { min-height: 360px !important; flex: 1 !important; }
     .reflection-results-stack { max-height: 250px !important; }
 
     /* Always show todo actions on mobile (touch devices have no :hover) */

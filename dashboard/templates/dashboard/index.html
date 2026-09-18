@@ -791,25 +791,17 @@ document.addEventListener('DOMContentLoaded', () => {
 
     <!-- COLUMN 4: Daily Reflection Notes -->
     <div class="grid-column">
-        <div class="glass-panel reflection-card" data-mobile-tab="3" style="display: flex; flex-direction: column; min-height: 480px; position: relative;">
-            <!-- Header with Reflection title & save status -->
-            <div class="panel-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
-                <div class="panel-title-wrap" style="display: flex; align-items: center; gap: 8px;">
-                    <span style="font-size: 1.1rem;">📝</span>
-                    <h2 style="font-size: 1.05rem; font-weight: 700; color: #f1f5f9; margin: 0;">How was your day?</h2>
-                </div>
-                <div class="panel-subtitle" id="reflection-save-status" style="color: #94a3b8; font-size: 0.78rem; font-weight: 600;">Saved</div>
-            </div>
+        <div class="glass-panel reflection-card" data-mobile-tab="3">
+            <h2 class="panel-title">
+                <span>📝 How was your day?</span>
+                <span class="panel-subtitle" id="reflection-save-status">Saved</span>
+            </h2>
 
-            <!-- Reflection notes textarea -->
-            <div style="flex: 1; display: flex; flex-direction: column;">
-                <textarea 
-                    id="reflection-input" 
-                    class="reflection-textarea" 
-                    style="flex: 1; min-height: 380px; width: 100%; border-radius: 12px; background: rgba(15, 23, 42, 0.45); border: 1px solid rgba(255, 255, 255, 0.1); color: #f8fafc; padding: 14px; font-size: 0.95rem; line-height: 1.6; resize: vertical; box-sizing: border-box;"
-                    placeholder="How was your day? Write down your activities, feelings, successes, or details on mistakes you made..."
-                >{% if reflection %}{{ reflection.notes }}{% endif %}</textarea>
-            </div>
+            <textarea 
+                id="reflection-input" 
+                class="reflection-textarea" 
+                placeholder="How was your day? Write down your activities, feelings, successes, or details on mistakes you made..."
+            >{% if reflection %}{{ reflection.notes }}{% endif %}</textarea>
         </div>
     </div>
 
