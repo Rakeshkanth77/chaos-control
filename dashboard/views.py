@@ -109,6 +109,14 @@ def index(request):
         user=request.user
     ).count()
 
+    # Task statistics for mobile-first summary cards
+    total_tasks_count = todos.count()
+    completed_tasks_count = todos.filter(is_completed=True).count()
+    completion_rate = int((completed_tasks_count / total_tasks_count) * 100) if total_tasks_count > 0 else 0
+    signal_todos = todos.filter(priority__in=['urgent_important', 'important_not_urgent'])
+    signal_tasks_count = signal_todos.count()
+    signal_completed_count = signal_todos.filter(is_completed=True).count()
+
     from datetime import timedelta
     previous_date = selected_date - timedelta(days=1)
     next_date = selected_date + timedelta(days=1)
@@ -130,6 +138,11 @@ def index(request):
         'pending_todos': pending_todos,
         'reflection': reflection,
         'pomodoros_completed': pomodoros_completed,
+        'total_tasks_count': total_tasks_count,
+        'completed_tasks_count': completed_tasks_count,
+        'completion_rate': completion_rate,
+        'signal_tasks_count': signal_tasks_count,
+        'signal_completed_count': signal_completed_count,
         'is_new_user': is_new_user,
         'profile': profile,
         'projects': Project.objects.filter(user=request.user),

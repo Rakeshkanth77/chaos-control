@@ -26,6 +26,13 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
+        // Update active class on top segment buttons
+        document.querySelectorAll('.work-segment-btn').forEach(btn => {
+            const isMatch = (btn.dataset.workTab === activeCardTab);
+            btn.classList.toggle('active', isMatch);
+            btn.setAttribute('aria-selected', isMatch ? 'true' : 'false');
+        });
+
         // Update active class on tab contents
         tabContents.forEach(content => {
             if (content.dataset.mobileTab === activeCardTab) {
@@ -60,6 +67,7 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('active_mobile_tab_id', tabId);
     }
     window.switchMobileTab = switchTab;
+    window.switchWorkTab = switchTab;
 
     window.syncMobileCol4Tab = function(col4Tab) {
         if (!isMobile()) return;
@@ -75,11 +83,18 @@ document.addEventListener('DOMContentLoaded', () => {
         localStorage.setItem('active_mobile_tab_id', col4Tab);
     };
 
-    // Attach click listeners to all tab buttons
+    // Attach click listeners to bottom mobile tab buttons
     tabButtons.forEach(btn => {
         btn.addEventListener('click', (e) => {
             const tabId = btn.dataset.mobileTab;
-            console.log('Mobile Tab Button Clicked:', tabId);
+            switchTab(tabId);
+        });
+    });
+
+    // Attach click listeners to top work segment buttons
+    document.querySelectorAll('.work-segment-btn').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+            const tabId = btn.dataset.workTab;
             switchTab(tabId);
         });
     });

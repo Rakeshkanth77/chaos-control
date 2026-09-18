@@ -404,9 +404,10 @@
 {% endblock %}
 
 {% block content %}
+<div class="work-mobile-container" style="max-width: 1080px; margin: 0 auto; display: flex; flex-direction: column; gap: 16px; padding-bottom: 70px;">
 
 <!-- ── Command Center Neural Banner ── -->
-<div class="command-banner" id="commandBanner">
+<div class="command-banner" id="commandBanner" style="border-radius: 18px; margin-bottom: 0;">
     <div class="command-banner-canvas-wrap">
         <canvas id="dashBannerCanvas"></canvas>
     </div>
@@ -414,7 +415,7 @@
         <div class="banner-left">
             <div class="banner-pulse-dot"></div>
             <div>
-                <div class="banner-title">⚡ Command Center Active</div>
+                <div class="banner-title">⚡ Work &amp; Execution</div>
                 <div class="banner-subtitle">Thoughts organizing. Priorities locked. Execute.</div>
             </div>
         </div>
@@ -470,6 +471,92 @@
             </div>
         </div>
     </div>
+</div>
+
+<!-- 2. THE BIG 3 CARDS: Mobile-First Glanceable Summary -->
+<div class="work-summary-cards" style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px;">
+    
+    <!-- CARD 1: 🎯 Signal Priorities (Focus Objectives) -->
+    <div class="glass-panel" onclick="window.switchMobileTab('2')" style="padding: 18px 20px; border-radius: 18px; border-left: 5px solid #0c5855; background: rgba(255, 255, 255, 0.85); cursor: pointer; transition: transform 0.15s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.76rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-color);">🎯 Signal Focus</span>
+            {% if signal_tasks_count > 0 and signal_completed_count == signal_tasks_count %}
+                <span style="font-size: 0.74rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 10px;">All Crushed 🔥</span>
+            {% elif signal_tasks_count > 0 %}
+                <span style="font-size: 0.74rem; font-weight: 700; color: var(--accent-color); background: rgba(12, 88, 85, 0.1); padding: 2px 8px; border-radius: 10px;">In Focus ⚡</span>
+            {% else %}
+                <span style="font-size: 0.74rem; font-weight: 700; color: #f59e0b; background: rgba(245, 158, 11, 0.15); padding: 2px 8px; border-radius: 10px;">Ready</span>
+            {% endif %}
+        </div>
+        <div style="margin-top: 8px; display: flex; align-items: baseline; gap: 8px;">
+            <span id="work-stat-signal" style="font-size: 2.2rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: var(--text-primary); letter-spacing: -0.5px;">
+                {{ signal_tasks_count|default:"0" }}
+            </span>
+            <span style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary);">signal tasks</span>
+        </div>
+        <div id="work-stat-signal-sub" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 3px;">
+            {{ signal_completed_count|default:"0" }} of {{ signal_tasks_count|default:"0" }} finished today
+        </div>
+    </div>
+
+    <!-- CARD 2: ✅ Task Completion Fuel Bar -->
+    <div class="glass-panel" onclick="window.switchMobileTab('1')" style="padding: 18px 20px; border-radius: 18px; border-left: 5px solid #10b981; background: rgba(255, 255, 255, 0.85); cursor: pointer; transition: transform 0.15s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.76rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: #047857;">✅ Tasks Done</span>
+            <span style="font-size: 0.74rem; font-weight: 700; color: #047857; background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 10px;">
+                {{ completed_tasks_count|default:"0" }}/{{ total_tasks_count|default:"0" }}
+            </span>
+        </div>
+        <div style="margin-top: 8px; display: flex; align-items: baseline; gap: 8px;">
+            <span id="work-stat-done" style="font-size: 2.2rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: #047857; letter-spacing: -0.5px;">
+                {{ completed_tasks_count|default:"0" }} / {{ total_tasks_count|default:"0" }}
+            </span>
+        </div>
+        <!-- Progress Bar -->
+        <div style="width: 100%; height: 7px; background: rgba(12, 88, 85, 0.1); border-radius: 6px; margin-top: 7px; overflow: hidden;">
+            <div id="work-stat-progress-bar" style="width: {{ completion_rate|default:0 }}%; height: 100%; background: #10b981; border-radius: 6px; transition: width 0.3s ease;"></div>
+        </div>
+        <div id="work-stat-done-pct" style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+            {{ completion_rate|default:0 }}% completed today
+        </div>
+    </div>
+
+    <!-- CARD 3: 📝 Daily Reflection Status -->
+    <div class="glass-panel" onclick="window.switchMobileTab('3')" style="padding: 18px 20px; border-radius: 18px; border-left: 5px solid #3b82f6; background: rgba(255, 255, 255, 0.85); cursor: pointer; transition: transform 0.15s ease;">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <span style="font-size: 0.76rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: #1d4ed8;">📝 Day Reflection</span>
+            <span style="font-size: 0.74rem; font-weight: 700; color: #1d4ed8; background: rgba(59, 130, 246, 0.12); padding: 2px 8px; border-radius: 10px;">
+                Review
+            </span>
+        </div>
+        <div style="margin-top: 8px; display: flex; align-items: baseline; gap: 8px;">
+            <span style="font-size: 1.25rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: var(--text-primary); margin-top: 4px;">
+                {% if reflection and reflection.notes %}Saved &amp; Logged ✓{% else %}Ready for Review ✏️{% endif %}
+            </span>
+        </div>
+        <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">
+            Capture accomplishments, hurdles &amp; learnings before signing off
+        </div>
+    </div>
+
+</div>
+
+<!-- 3. TOP SEGMENTED NAVIGATION (Accessible One-Touch Mobile Switcher) -->
+<div class="work-segment-tabs" role="tablist" aria-label="Work dashboard sections" style="display: flex; gap: 8px; background: rgba(12, 88, 85, 0.08); padding: 5px; border-radius: 14px; margin-bottom: 6px;">
+    <button type="button" class="work-segment-btn active" data-work-tab="1" role="tab" aria-selected="true" style="flex: 1; padding: 10px 14px; border: none; border-radius: 10px; background: #ffffff; color: var(--text-primary); font-size: 0.88rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,0.06); transition: all 0.2s ease;">
+        <span style="font-size: 1.05rem;">📋</span>
+        <span>Tasks</span>
+        {% if total_tasks_count > 0 %}<span style="font-size: 0.72rem; background: rgba(12, 88, 85, 0.12); color: var(--accent-color); padding: 2px 7px; border-radius: 10px; font-weight: 800;">{{ total_tasks_count }}</span>{% endif %}
+    </button>
+    <button type="button" class="work-segment-btn" data-work-tab="2" role="tab" aria-selected="false" style="flex: 1; padding: 10px 14px; border: none; border-radius: 10px; background: transparent; color: var(--text-secondary); font-size: 0.88rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
+        <span style="font-size: 1.05rem;">🎯</span>
+        <span>Focus Matrix</span>
+        {% if signal_tasks_count > 0 %}<span style="font-size: 0.72rem; background: rgba(16, 185, 129, 0.15); color: #047857; padding: 2px 7px; border-radius: 10px; font-weight: 800;">{{ signal_tasks_count }}</span>{% endif %}
+    </button>
+    <button type="button" class="work-segment-btn" data-work-tab="3" role="tab" aria-selected="false" style="flex: 1; padding: 10px 14px; border: none; border-radius: 10px; background: transparent; color: var(--text-secondary); font-size: 0.88rem; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; transition: all 0.2s ease;">
+        <span style="font-size: 1.05rem;">📝</span>
+        <span>Reflection</span>
+    </button>
 </div>
 
 
@@ -599,15 +686,15 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
             
             <!-- SLOT 1: ⚡ SIGNAL (High Impact Focus Objectives) -->
-            <div class="priority-block urgent_important" style="border: 2px solid #2dd4bf !important; background: rgba(45, 212, 191, 0.12) !important; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 0 16px rgba(45, 212, 191, 0.15);">
-                <div class="priority-header" style="border-bottom: 1px solid rgba(45, 212, 191, 0.3); padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-                    <span style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 0.95rem; color: #2dd4bf;">
+            <div class="priority-block urgent_important" style="border: 1.5px solid rgba(12, 88, 85, 0.28) !important; background: rgba(12, 88, 85, 0.06) !important; border-radius: 16px; padding: 16px; margin-bottom: 16px; box-shadow: 0 4px 16px rgba(12, 88, 85, 0.05);">
+                <div class="priority-header" style="border-bottom: 1px solid rgba(12, 88, 85, 0.15); padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="display: flex; align-items: center; gap: 8px; font-weight: 800; font-size: 0.95rem; color: var(--accent-color);">
                         <span style="font-size: 1.1rem;">🎯</span>
                         <span>SIGNAL (Focus Objectives)</span>
                     </span>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="priority-count" id="count-urgent_important" style="background: rgba(45, 212, 191, 0.25); color: #2dd4bf; font-weight: 800; padding: 2px 8px; border-radius: 12px;">0</span>
-                        <button class="add-priority-task-btn" data-priority="urgent_important" title="Add Signal Task" style="color: #2dd4bf; font-size: 1.1rem; font-weight: bold; background: none; border: none; cursor: pointer;">+</button>
+                        <span class="priority-count" id="count-urgent_important" style="background: rgba(12, 88, 85, 0.12); color: var(--accent-color); font-weight: 800; padding: 2px 8px; border-radius: 12px;">0</span>
+                        <button class="add-priority-task-btn" data-priority="urgent_important" title="Add Signal Task" style="color: var(--accent-color); font-size: 1.2rem; font-weight: bold; background: none; border: none; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">+</button>
                     </div>
                 </div>
                 <div id="list-urgent_important" class="priority-list" data-priority="urgent_important">
@@ -651,15 +738,15 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
 
             <!-- SLOT 2: 💤 NOISE (Low Priority & Boundaries) -->
-            <div class="priority-block neither" style="border: 1px solid rgba(255, 255, 255, 0.12) !important; background: rgba(0, 0, 0, 0.2) !important; border-radius: 16px; padding: 16px;">
-                <div class="priority-header" style="border-bottom: 1px solid rgba(255, 255, 255, 0.1); padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
-                    <span style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; color: rgba(255, 255, 255, 0.7);">
+            <div class="priority-block neither" style="border: 1px solid rgba(203, 213, 225, 0.8) !important; background: rgba(248, 250, 252, 0.75) !important; border-radius: 16px; padding: 16px;">
+                <div class="priority-header" style="border-bottom: 1px solid rgba(203, 213, 225, 0.6); padding-bottom: 8px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between;">
+                    <span style="display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 0.95rem; color: var(--text-secondary);">
                         <span style="font-size: 1.1rem;">📦</span>
                         <span>NOISE (Low Priority &amp; Boundaries)</span>
                     </span>
                     <div style="display: flex; align-items: center; gap: 8px;">
-                        <span class="priority-count" id="count-neither" style="background: rgba(255, 255, 255, 0.1); color: rgba(255, 255, 255, 0.7); font-weight: 800; padding: 2px 8px; border-radius: 12px;">0</span>
-                        <button class="add-priority-task-btn" data-priority="neither" title="Add Noise Task" style="color: rgba(255, 255, 255, 0.7); font-size: 1.1rem; font-weight: bold; background: none; border: none; cursor: pointer;">+</button>
+                        <span class="priority-count" id="count-neither" style="background: rgba(148, 163, 184, 0.18); color: var(--text-secondary); font-weight: 800; padding: 2px 8px; border-radius: 12px;">0</span>
+                        <button class="add-priority-task-btn" data-priority="neither" title="Add Noise Task" style="color: var(--text-secondary); font-size: 1.2rem; font-weight: bold; background: none; border: none; cursor: pointer; width: 28px; height: 28px; display: flex; align-items: center; justify-content: center;">+</button>
                     </div>
                 </div>
                 <div id="list-neither" class="priority-list" data-priority="neither">
@@ -806,6 +893,8 @@ document.addEventListener('DOMContentLoaded', () => {
     </div>
 
 </div><!-- end .dashboard-grid -->
+
+</div><!-- end .work-mobile-container -->
 
 <!-- ── Mobile Bottom Tab Navigation (Clean 3-Tab: Tasks, Focus, Reflection) ── -->
 <nav class="mobile-tab-bar" id="mobileTabBar" role="tablist" aria-label="Dashboard sections">
@@ -978,6 +1067,25 @@ document.addEventListener('DOMContentLoaded', () => {
         const doneEl = document.getElementById('banner-done-tasks');
         if (totalEl) totalEl.textContent = allItems.length || '0';
         if (doneEl) doneEl.textContent = doneItems.length || '0';
+
+        const totalCnt = allItems.length || 0;
+        const doneCnt = doneItems.length || 0;
+        const pct = totalCnt > 0 ? Math.round((doneCnt / totalCnt) * 100) : 0;
+
+        const workStatDone = document.getElementById('work-stat-done');
+        if (workStatDone) workStatDone.textContent = `${doneCnt} / ${totalCnt}`;
+        const workStatPct = document.getElementById('work-stat-done-pct');
+        if (workStatPct) workStatPct.textContent = `${pct}% completed today`;
+        const workProgressBar = document.getElementById('work-stat-progress-bar');
+        if (workProgressBar) workProgressBar.style.width = `${pct}%`;
+
+        // Signal tasks count
+        const signalItems = document.querySelectorAll('#list-urgent_important .todo-item');
+        const signalDone = document.querySelectorAll('#list-urgent_important .todo-item.completed');
+        const workStatSignal = document.getElementById('work-stat-signal');
+        if (workStatSignal) workStatSignal.textContent = signalItems.length;
+        const workStatSignalSub = document.getElementById('work-stat-signal-sub');
+        if (workStatSignalSub) workStatSignalSub.textContent = `${signalDone.length} of ${signalItems.length} finished today`;
     }
 
     // Update immediately and on any checkbox toggle
