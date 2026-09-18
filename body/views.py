@@ -59,6 +59,11 @@ def body_dashboard(request):
     user = request.user
     today = timezone.localdate()
 
+    # Automatically load user's Hevy workout history if no workouts exist yet
+    if not WorkoutLog.objects.filter(user=user).exists():
+        from .hevy_default_data import DEFAULT_HEVY_CSV
+        parse_and_import_hevy_csv(DEFAULT_HEVY_CSV, user)
+
     # 1. Vitals & Weight progression
     today_metric = BodyMetric.objects.filter(user=user, date=today).first()
     latest_metric = BodyMetric.objects.filter(user=user, weight_kg__isnull=False).first()
@@ -340,4 +345,20 @@ def import_hevy_csv(request):
     else:
         messages.error(request, f"Import error: {res.get('message', 'Unknown error')}")
 
+    return redirect('body:dashboard')
+
+
+@require_POST
+@login_required
+def sync_default_hevy(request):
+    """1-tap action to load or restore all 30 Hevy workouts."""
+    from .hevy_default_data import DEFAULT_HEVY_CSV
+    res = parse_and_import_hevy_csv(DEFAULT_HEVY_CSV, request.user)
+    if res.get('status') == 'success':
+        messages.success(
+            request,
+            f"💪 Synced {res.get('workouts_created')} workout sessions and {res.get('sets_created')} sets from Hevy!"
+        )
+    else:
+        messages.error(request, f"Sync error: {res.get('message')}")
     return redirect('body:dashboard')
