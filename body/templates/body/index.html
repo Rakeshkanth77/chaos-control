@@ -16,12 +16,15 @@
             <div>
                 <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 0;">Body, Lifting &amp; Food</h1>
                 <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 2px 0 0 0;">
-                    Hevy-style lifting splits (Push, Pull, Legs, Core) + NHS 12-week calorie tracking.
+                    Hevy-style weight training &amp; PR tracking + NHS 12-week calorie nutrition.
                 </p>
             </div>
         </div>
-        <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-color); background: rgba(12, 88, 85, 0.08); padding: 5px 12px; border-radius: 10px;">
+        <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+            <button type="button" onclick="openImportModal()" style="font-size: 0.8rem; font-weight: 700; color: var(--accent-color); background: rgba(12, 88, 85, 0.08); border: 1px solid rgba(12, 88, 85, 0.25); padding: 6px 12px; border-radius: 10px; cursor: pointer; display: flex; align-items: center; gap: 6px;">
+                <span>📥</span> Import Hevy CSV
+            </button>
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-color); background: rgba(12, 88, 85, 0.08); padding: 6px 12px; border-radius: 10px;">
                 📅 {{ today|date:"D, M j" }}
             </span>
         </div>
@@ -107,7 +110,48 @@
 
     </div>
 
-    <!-- 3. TWO BIG MOBILE QUICK-ACTION BUTTONS (Thumb-friendly 5-Year-Old Clear) -->
+    <!-- 3. PERSONAL RECORDS & BEST LIFTS (Hevy PR Showcase) -->
+    {% if personal_records %}
+    <div class="glass-panel" style="padding: 18px 20px; border-radius: 18px; background: rgba(255, 255, 255, 0.85); border: 1px solid rgba(12, 88, 85, 0.15);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
+            <div style="display: flex; align-items: center; gap: 8px;">
+                <span style="font-size: 1.25rem;">🏆</span>
+                <div>
+                    <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0;">Personal Records (Best Lifts)</h3>
+                    <span style="font-size: 0.76rem; color: var(--text-secondary);">Highest weight moved across all logged Hevy sessions</span>
+                </div>
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 0.76rem; font-weight: 800; color: #b45309; background: #fef3c7; padding: 3px 10px; border-radius: 10px;">
+                    ⭐ {{ personal_records|length }} PRs
+                </span>
+                <span style="font-size: 0.76rem; font-weight: 800; color: var(--accent-color); background: rgba(12, 88, 85, 0.08); padding: 3px 10px; border-radius: 10px;">
+                    💥 {{ total_all_time_volume|floatformat:0 }} kg Total
+                </span>
+            </div>
+        </div>
+
+        <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
+            {% for pr in personal_records %}
+                <div style="padding: 10px 12px; border-radius: 12px; background: rgba(12, 88, 85, 0.04); border: 1px solid rgba(12, 88, 85, 0.1); display: flex; flex-direction: column; justify-content: space-between;">
+                    <div style="font-size: 0.78rem; font-weight: 700; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ pr.exercise_name }}">
+                        {{ pr.exercise_name }}
+                    </div>
+                    <div style="display: flex; align-items: baseline; justify-content: space-between; margin-top: 4px;">
+                        <span style="font-size: 1.25rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: var(--accent-color);">
+                            {{ pr.max_weight|floatformat:0 }}<span style="font-size: 0.78rem; font-weight: 600; color: var(--text-secondary);"> kg</span>
+                        </span>
+                        <span style="font-size: 0.7rem; font-weight: 700; color: var(--text-secondary); background: #ffffff; padding: 1px 6px; border-radius: 6px;">
+                            {{ pr.total_sets }} sets
+                        </span>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- 4. THREE MOBILE QUICK-ACTION BUTTONS (Thumb-friendly 5-Year-Old Clear) -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
         <button type="button" onclick="openWorkoutModal()" style="padding: 15px 16px; border-radius: 16px; background: #0c5855; color: #ffffff; border: none; font-size: 1.02rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(12, 88, 85, 0.35); transition: transform 0.15s ease;">
             <span style="font-size: 1.3rem;">🏋️</span> Log Workout / Sets
@@ -118,7 +162,7 @@
         </button>
     </div>
 
-    <!-- 4. TODAY'S FOOD LOG (NHS Simple Breakdown) -->
+    <!-- 5. TODAY'S FOOD LOG (NHS Simple Breakdown) -->
     <div class="glass-panel" style="padding: 20px; border-radius: 18px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
             <div>
@@ -176,22 +220,43 @@
         {% endif %}
     </div>
 
-    <!-- 5. RECENT LIFTING LOGS & HEVY SETS FEED -->
+    <!-- 6. RECENT LIFTING LOGS & HEVY SETS FEED -->
     <div class="glass-panel" style="padding: 20px; border-radius: 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
             <div>
-                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0;">Lifting History (Hevy Style)</h3>
-                <span style="font-size: 0.78rem; color: var(--text-secondary);">Push, Pull, Legs &amp; Core workouts</span>
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0;">Lifting History (Hevy Workouts)</h3>
+                <span style="font-size: 0.78rem; color: var(--text-secondary);">{{ total_workouts_count }} sessions logged • Push, Pull, Legs &amp; Core</span>
             </div>
-            <button type="button" onclick="openWorkoutModal()" style="background: rgba(12, 88, 85, 0.1); color: var(--accent-color); border: 1px solid rgba(12, 88, 85, 0.3); padding: 5px 12px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
-                + Start Session
+            <div style="display: flex; gap: 8px;">
+                <button type="button" onclick="openImportModal()" style="background: rgba(12, 88, 85, 0.08); color: var(--accent-color); border: 1px solid rgba(12, 88, 85, 0.25); padding: 5px 12px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+                    📥 Import CSV
+                </button>
+                <button type="button" onclick="openWorkoutModal()" style="background: rgba(12, 88, 85, 0.12); color: var(--accent-color); border: 1px solid rgba(12, 88, 85, 0.3); padding: 5px 12px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+                    + Start Session
+                </button>
+            </div>
+        </div>
+
+        <!-- Split Filter Tabs -->
+        <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 6px; margin-bottom: 14px;">
+            <button type="button" class="workout-filter-btn active" onclick="filterWorkouts('all', this)" style="padding: 6px 14px; border-radius: 10px; border: 1.5px solid #0c5855; background: #0c5855; color: #fff; font-size: 0.82rem; font-weight: 800; cursor: pointer; white-space: nowrap;">
+                All ({{ split_counts.all }})
+            </button>
+            <button type="button" class="workout-filter-btn" onclick="filterWorkouts('push', this)" style="padding: 6px 14px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #f8fafc; color: var(--text-primary); font-size: 0.82rem; font-weight: 800; cursor: pointer; white-space: nowrap;">
+                🔴 Push ({{ split_counts.push }})
+            </button>
+            <button type="button" class="workout-filter-btn" onclick="filterWorkouts('pull', this)" style="padding: 6px 14px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #f8fafc; color: var(--text-primary); font-size: 0.82rem; font-weight: 800; cursor: pointer; white-space: nowrap;">
+                🔵 Pull ({{ split_counts.pull }})
+            </button>
+            <button type="button" class="workout-filter-btn" onclick="filterWorkouts('legs', this)" style="padding: 6px 14px; border-radius: 10px; border: 1.5px solid #e2e8f0; background: #f8fafc; color: var(--text-primary); font-size: 0.82rem; font-weight: 800; cursor: pointer; white-space: nowrap;">
+                🟢 Legs ({{ split_counts.legs }})
             </button>
         </div>
 
         {% if recent_workouts %}
-            <div style="display: flex; flex-direction: column; gap: 14px;">
+            <div id="workoutsFeedContainer" style="display: flex; flex-direction: column; gap: 14px;">
                 {% for w in recent_workouts %}
-                    <div style="padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.75); border: 1px solid rgba(12, 88, 85, 0.12); display: flex; flex-direction: column; gap: 12px;">
+                    <div class="workout-card" data-split="{{ w.split_type }}" style="padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.75); border: 1px solid rgba(12, 88, 85, 0.12); display: flex; flex-direction: column; gap: 12px;">
                         <!-- Workout Header Row -->
                         <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
                             <div style="display: flex; align-items: center; gap: 10px;">
@@ -204,8 +269,8 @@
                                 </div>
                                 <div>
                                     <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-primary);">{{ w.title }}</div>
-                                    <div style="font-size: 0.76rem; color: var(--text-secondary); display: flex; gap: 8px;">
-                                        <span>📅 {{ w.date|date:"M j" }}</span>
+                                    <div style="font-size: 0.76rem; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: 8px;">
+                                        <span>📅 {{ w.date|date:"D, M j, Y" }}</span>
                                         <span>⏱️ {{ w.duration_mins }}m</span>
                                         <span>🔥 {{ w.get_intensity_display }}</span>
                                         {% if w.total_volume_kg > 0 %}<span>💥 {{ w.total_volume_kg|floatformat:0 }} kg volume</span>{% endif %}
@@ -220,15 +285,27 @@
                             </form>
                         </div>
 
-                        <!-- Hevy Set-by-Set Cards (if logged) -->
-                        {% if w.exercise_sets.all %}
-                            <div style="background: rgba(12, 88, 85, 0.04); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;">
-                                <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px;">Sets Performed</span>
-                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px;">
-                                    {% for s in w.exercise_sets.all %}
-                                        <div style="padding: 6px 10px; border-radius: 8px; background: #ffffff; border: 1px solid rgba(12, 88, 85, 0.1); display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem;">
-                                            <span style="font-weight: 700; color: var(--text-primary);">{{ s.exercise_name }}</span>
-                                            <span style="font-weight: 800; color: var(--accent-color); font-family: 'JetBrains Mono', monospace;">{{ s.weight_kg }}kg &times; {{ s.reps }}</span>
+                        <!-- Hevy Set-by-Set Breakdown (Grouped by Exercise) -->
+                        {% if w.grouped_exercises %}
+                            <div style="background: rgba(12, 88, 85, 0.04); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 8px;">
+                                <div style="display: flex; justify-content: space-between; align-items: center;">
+                                    <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px;">Exercise Breakdown</span>
+                                    <span style="font-size: 0.72rem; font-weight: 700; color: var(--text-secondary);">{{ w.exercise_sets.count }} sets</span>
+                                </div>
+                                <div style="display: flex; flex-direction: column; gap: 6px;">
+                                    {% for grp in w.grouped_exercises %}
+                                        <div style="padding: 8px 10px; border-radius: 10px; background: #ffffff; border: 1px solid rgba(12, 88, 85, 0.12); display: flex; flex-direction: column; gap: 4px;">
+                                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                                <span style="font-weight: 800; font-size: 0.86rem; color: var(--text-primary);">{{ grp.exercise_name }}</span>
+                                                <span style="font-size: 0.72rem; font-weight: 600; color: var(--text-secondary);">{{ grp.sets|length }} set{{ grp.sets|length|pluralize }}</span>
+                                            </div>
+                                            <div style="display: flex; flex-wrap: wrap; gap: 6px;">
+                                                {% for s in grp.sets %}
+                                                    <span style="font-size: 0.78rem; font-weight: 700; font-family: 'JetBrains Mono', monospace; background: {% if s.is_warmup %}#fef3c7; color: #92400e; border: 1px solid #fde68a;{% else %}rgba(12, 88, 85, 0.08); color: var(--accent-color); border: 1px solid rgba(12, 88, 85, 0.15);{% endif %} padding: 2px 8px; border-radius: 6px;">
+                                                        {% if s.is_warmup %}<small style="font-size:0.68rem; font-weight:800; text-transform:uppercase;">W</small> {% endif %}{{ s.weight_kg|floatformat:0 }}kg &times; {{ s.reps }}
+                                                    </span>
+                                                {% endfor %}
+                                            </div>
                                         </div>
                                     {% endfor %}
                                 </div>
@@ -236,14 +313,16 @@
                         {% endif %}
 
                         {% if w.notes %}
-                            <div style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic;">"{{ w.notes }}"</div>
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic; background: rgba(0,0,0,0.02); padding: 6px 10px; border-radius: 8px;">
+                                📝 {{ w.notes }}
+                            </div>
                         {% endif %}
                     </div>
                 {% endfor %}
             </div>
         {% else %}
             <div style="text-align: center; padding: 28px; color: var(--text-secondary); font-size: 0.88rem; background: rgba(12, 88, 85, 0.03); border-radius: 14px;">
-                No workout sessions logged yet. Tap <strong>"+ Log Workout / Sets"</strong> to log your first Push, Pull, Legs or Core session!
+                No workout sessions logged yet. Tap <strong>"+ Log Workout / Sets"</strong> or <strong>"📥 Import CSV"</strong> to load your Hevy workouts!
             </div>
         {% endif %}
     </div>
@@ -514,6 +593,49 @@
 </div>
 
 <!-- ========================================================================= -->
+<!-- MODAL 4: Hevy CSV Importer -->
+<!-- ========================================================================= -->
+<div id="import-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 14px;">
+    <div class="glass-panel" style="background: #ffffff; max-width: 480px; width: 100%; padding: 22px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3); max-height: 90vh; overflow-y: auto;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span>📥</span> Import Hevy Workouts
+            </h3>
+            <button type="button" onclick="closeImportModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-secondary); cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+
+        <p style="font-size: 0.84rem; color: var(--text-secondary); margin: 0 0 14px 0; line-height: 1.4;">
+            Upload your CSV export from the Hevy app (<strong>Profile &gt; Settings &gt; Export Data &gt; CSV</strong>) to sync your workouts, sets, and PRs.
+        </p>
+
+        <form action="{% url 'body:import_hevy' %}" method="POST" enctype="multipart/form-data" style="display: flex; flex-direction: column; gap: 14px;">
+            {% csrf_token %}
+
+            <div style="border: 2px dashed rgba(12, 88, 85, 0.25); border-radius: 12px; padding: 16px; text-align: center; background: #f8fafc;">
+                <label for="hevyCsvFile" style="display: block; font-weight: 700; font-size: 0.9rem; color: var(--accent-color); margin-bottom: 6px; cursor: pointer;">
+                    📁 Choose CSV File
+                </label>
+                <input type="file" id="hevyCsvFile" name="csv_file" accept=".csv,text/csv" style="font-size: 0.84rem; color: var(--text-secondary); max-width: 100%;">
+            </div>
+
+            <div style="display: flex; align-items: center; gap: 8px; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase; font-weight: 700;">
+                <span style="flex: 1; height: 1px; background: #e2e8f0;"></span>
+                <span>or paste CSV text</span>
+                <span style="flex: 1; height: 1px; background: #e2e8f0;"></span>
+            </div>
+
+            <div>
+                <textarea name="csv_text" rows="4" placeholder="Paste raw CSV lines here..." style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.8rem; font-family: 'JetBrains Mono', monospace; background: #f8fafc; resize: vertical;"></textarea>
+            </div>
+
+            <button type="submit" style="margin-top: 4px; padding: 14px; border-radius: 14px; background: #0c5855; color: #fff; font-size: 1.02rem; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(12, 88, 85, 0.3);">
+                🚀 Import Workouts Now
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
 <!-- JavaScript Logic -->
 <!-- ========================================================================= -->
 <script>
@@ -545,12 +667,45 @@ function closeVitalsModal() {
     if (m) m.style.display = 'none';
 }
 
+function openImportModal() {
+    const m = document.getElementById('import-modal');
+    if (m) m.style.display = 'flex';
+}
+function closeImportModal() {
+    const m = document.getElementById('import-modal');
+    if (m) m.style.display = 'none';
+}
+
 // Close modals on backdrop tap
 window.addEventListener('click', (e) => {
     if (e.target.id === 'workout-modal') closeWorkoutModal();
     if (e.target.id === 'food-modal') closeFoodModal();
     if (e.target.id === 'vitals-modal') closeVitalsModal();
+    if (e.target.id === 'import-modal') closeImportModal();
 });
+
+// Interactive Split Filter for workouts feed
+function filterWorkouts(splitKey, btn) {
+    document.querySelectorAll('.workout-filter-btn').forEach(b => {
+        b.style.border = '1.5px solid #e2e8f0';
+        b.style.background = '#f8fafc';
+        b.style.color = 'var(--text-primary)';
+    });
+    if (btn) {
+        btn.style.border = '1.5px solid #0c5855';
+        btn.style.background = '#0c5855';
+        btn.style.color = '#fff';
+    }
+
+    const cards = document.querySelectorAll('.workout-card');
+    cards.forEach(card => {
+        if (splitKey === 'all' || card.dataset.split === splitKey) {
+            card.style.display = 'flex';
+        } else {
+            card.style.display = 'none';
+        }
+    });
+}
 
 // Hevy Split Selection Handler
 const SPLIT_TITLES = {

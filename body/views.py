@@ -3,9 +3,11 @@ from django.contrib.auth.decorators import login_required
 from django.views.decorators.http import require_POST
 from django.contrib import messages
 from django.utils import timezone
+from django.db.models import Max, Count
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
 from .models import BodyMetric, WorkoutLog, ExerciseSet, FoodLog
+from .hevy_import import parse_and_import_hevy_csv
 
 
 DEFAULT_DAILY_CALORIE_TARGET = 2000
@@ -66,9 +68,15 @@ def body_dashboard(request):
     chart_labels = [m.date.strftime('%b %d') for m in recent_metrics if m.weight_kg is not None]
     chart_weights = [float(m.weight_kg) for m in recent_metrics if m.weight_kg is not None]
 
-    # 2. Workout activity & Lifting stats
+    # 2. Workout activity & Lifting stats (Hevy History)
     seven_days_ago = today - timedelta(days=7)
-    recent_workouts = WorkoutLog.objects.filter(user=user).prefetch_related('exercise_sets').order_by('-date', '-created_at')[:15]
+    recent_workouts = (
+        WorkoutLog.objects.filter(user=user)
+        .prefetch_related('exercise_sets')
+        .order_by('-date', '-created_at')[:60]
+    )
+    total_workouts_count = WorkoutLog.objects.filter(user=user).count()
+
     week_workouts = WorkoutLog.objects.filter(user=user, date__gte=seven_days_ago)
     week_count = week_workouts.count()
     week_minutes = sum(w.duration_mins for w in week_workouts)
@@ -76,6 +84,25 @@ def body_dashboard(request):
     today_workouts = WorkoutLog.objects.filter(user=user, date=today).prefetch_related('exercise_sets')
     today_sets_count = sum(w.exercise_sets.count() for w in today_workouts)
     today_volume_kg = sum(w.total_volume_kg for w in today_workouts)
+
+    # All-time volume & Personal Records (PRs)
+    user_sets = ExerciseSet.objects.filter(workout__user=user)
+    total_all_time_volume = sum((s.weight_kg or 0) * (s.reps or 0) for s in user_sets)
+
+    personal_records = list(
+        ExerciseSet.objects.filter(workout__user=user, is_warmup=False, weight_kg__gt=0)
+        .values('exercise_name')
+        .annotate(max_weight=Max('weight_kg'), total_sets=Count('id'))
+        .order_by('-max_weight')
+    )
+
+    split_counts = {
+        'all': total_workouts_count,
+        'push': WorkoutLog.objects.filter(user=user, split_type='push').count(),
+        'pull': WorkoutLog.objects.filter(user=user, split_type='pull').count(),
+        'legs': WorkoutLog.objects.filter(user=user, split_type='legs').count(),
+        'core': WorkoutLog.objects.filter(user=user, split_type='core').count(),
+    }
 
     # 3. NHS-Style Food Intake & Calories
     today_foods = FoodLog.objects.filter(user=user, date=today).order_by('created_at')
@@ -91,6 +118,10 @@ def body_dashboard(request):
         'today_metric': today_metric,
         'latest_metric': latest_metric,
         'recent_workouts': recent_workouts,
+        'total_workouts_count': total_workouts_count,
+        'total_all_time_volume': total_all_time_volume,
+        'personal_records': personal_records,
+        'split_counts': split_counts,
         'week_count': week_count,
         'week_minutes': week_minutes,
         'today_workouts': today_workouts,
@@ -278,4 +309,35 @@ def delete_food(request, food_id):
     food = get_object_or_404(FoodLog, id=food_id, user=request.user)
     food.delete()
     messages.success(request, "Meal entry removed.")
+    return redirect('body:dashboard')
+
+
+@require_POST
+@login_required
+def import_hevy_csv(request):
+    """Import workout sessions and sets from a Hevy export CSV file or pasted text."""
+    csv_text = ''
+    if 'csv_file' in request.FILES:
+        uploaded_file = request.FILES['csv_file']
+        try:
+            csv_text = uploaded_file.read().decode('utf-8-sig', errors='replace')
+        except Exception as e:
+            messages.error(request, f"Could not read CSV file: {e}")
+            return redirect('body:dashboard')
+    elif 'csv_text' in request.POST:
+        csv_text = request.POST.get('csv_text', '').strip()
+
+    if not csv_text:
+        messages.error(request, "Please select a Hevy CSV file or paste CSV content.")
+        return redirect('body:dashboard')
+
+    res = parse_and_import_hevy_csv(csv_text, request.user)
+    if res.get('status') == 'success':
+        messages.success(
+            request,
+            f"🎉 Imported {res.get('workouts_created')} workout sessions and {res.get('sets_created')} sets from Hevy!"
+        )
+    else:
+        messages.error(request, f"Import error: {res.get('message', 'Unknown error')}")
+
     return redirect('body:dashboard')

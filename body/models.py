@@ -73,6 +73,19 @@ class WorkoutLog(models.Model):
         """Total weight volume lifted across all logged sets."""
         return sum((s.weight_kg or 0) * (s.reps or 0) for s in self.exercise_sets.all())
 
+    @property
+    def grouped_exercises(self):
+        """Groups exercise sets by exercise name in order of appearance."""
+        groups = []
+        seen = {}
+        for s in self.exercise_sets.all():
+            if s.exercise_name not in seen:
+                entry = {'exercise_name': s.exercise_name, 'sets': []}
+                seen[s.exercise_name] = entry
+                groups.append(entry)
+            seen[s.exercise_name]['sets'].append(s)
+        return groups
+
 
 class ExerciseSet(models.Model):
     """Hevy-style exercise set tracking (Exercise variation, Set #, kg, Reps)."""

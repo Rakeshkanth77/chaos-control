@@ -8,6 +8,7 @@ urlpatterns = [
     path('metric/save/', views.log_metric, name='log_metric'),
     path('workout/add/', views.log_workout, name='log_workout'),
     path('workout/delete/<int:workout_id>/', views.delete_workout, name='delete_workout'),
+    path('workout/import-hevy/', views.import_hevy_csv, name='import_hevy'),
     path('food/add/', views.log_food, name='log_food'),
     path('food/delete/<int:food_id>/', views.delete_food, name='delete_food'),
 ]
