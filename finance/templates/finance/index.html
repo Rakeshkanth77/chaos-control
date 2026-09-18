@@ -1,319 +1,440 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}to-do | Shared Finance for 2{% endblock %}
-{% block subtitle %} | Shared Finance{% endblock %}
+{% block title %}to-do | Our Household Cashflow{% endblock %}
+{% block subtitle %} | Household Finance{% endblock %}
 
 {% block content %}
-<div class="finance-workspace-container" style="max-width: 1200px; margin: 0 auto; display: flex; flex-direction: column; gap: 24px;">
+<div class="finance-mobile-container" style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; padding-bottom: 60px;">
 
-    <!-- Workspace Banner Header -->
-    <div class="workspace-header-card glass-panel" style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px; padding: 22px 28px;">
-        <div style="display: flex; align-items: center; gap: 16px;">
-            <div style="width: 48px; height: 48px; border-radius: 14px; background: rgba(16, 185, 129, 0.12); border: 1px solid rgba(16, 185, 129, 0.3); display: flex; align-items: center; justify-content: center; font-size: 1.6rem;">
-                💰
+    <!-- 1. Partner Connection Status Banner -->
+    <div class="glass-panel" style="padding: 14px 18px; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; background: rgba(255, 255, 255, 0.75);">
+        <div style="display: flex; align-items: center; gap: 12px;">
+            <div style="width: 36px; height: 36px; border-radius: 50%; background: {% if is_partner_linked %}rgba(16, 185, 129, 0.15){% else %}rgba(245, 158, 11, 0.15){% endif %}; display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                {% if is_partner_linked %}👫{% else %}💌{% endif %}
             </div>
             <div>
-                <h1 style="font-size: 1.5rem; font-weight: 700; color: var(--text-primary); margin: 0;">Shared Finance</h1>
-                <p style="font-size: 0.88rem; color: var(--text-secondary); margin: 2px 0 0 0;">
-                    2-Person shared ledger for <strong>{{ ledger.user_name }}</strong> &amp; <strong>{{ ledger.partner_name }}</strong>.
-                </p>
-            </div>
-        </div>
-        <div style="display: flex; gap: 10px; align-items: center;">
-            <button type="button" onclick="document.getElementById('finance-settings-modal').style.display='flex'" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 14px; border-radius: 10px; background: rgba(12, 88, 85, 0.08); border: 1px solid rgba(12, 88, 85, 0.2); color: var(--text-primary); font-size: 0.85rem; font-weight: 600; cursor: pointer;">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
-                Ledger Settings
-            </button>
-            <button type="button" onclick="document.getElementById('add-expense-card').scrollIntoView({behavior: 'smooth'})" style="display: inline-flex; align-items: center; gap: 6px; padding: 8px 16px; border-radius: 10px; background: var(--accent-color); color: #fff; font-size: 0.85rem; font-weight: 600; border: none; cursor: pointer;">
-                + Add Expense
-            </button>
-        </div>
-    </div>
-
-    <!-- Settlement & Metric Cards -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px;">
-        
-        <!-- Net Settlement Banner -->
-        <div class="glass-panel" style="padding: 22px; display: flex; flex-direction: column; justify-content: space-between; border-left: 4px solid {% if net_balance > 0 %}#10b981{% elif net_balance < 0 %}#f59e0b{% else %}#0c5855{% endif %};">
-            <div>
-                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: var(--text-secondary);">Balance Settlement</span>
-                <div style="margin-top: 10px;">
-                    {% if net_balance > 0 %}
-                        <div style="font-size: 1.1rem; font-weight: 700; color: #047857;">
-                            {{ ledger.partner_name }} owes {{ ledger.user_name }}
-                        </div>
-                        <div style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: #10b981; margin-top: 4px;">
-                            {{ ledger.currency_symbol }}{{ abs_net_balance }}
-                        </div>
-                    {% elif net_balance < 0 %}
-                        <div style="font-size: 1.1rem; font-weight: 700; color: #b45309;">
-                            {{ ledger.user_name }} owes {{ ledger.partner_name }}
-                        </div>
-                        <div style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: #f59e0b; margin-top: 4px;">
-                            {{ ledger.currency_symbol }}{{ abs_net_balance }}
-                        </div>
+                <div style="font-size: 0.92rem; font-weight: 700; color: var(--text-primary);">
+                    {% if is_partner_linked %}
+                        Connected with {{ spouse.first_name|default:spouse.username }}
                     {% else %}
-                        <div style="font-size: 1.1rem; font-weight: 700; color: var(--text-primary);">
-                            All Settled Up!
-                        </div>
-                        <div style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: #10b981; margin-top: 4px;">
-                            {{ ledger.currency_symbol }}0.00
-                        </div>
-                        <div style="font-size: 0.82rem; color: var(--text-secondary);">No outstanding balance between you two.</div>
+                        Shared Dashboard for 2 (Invite Your Wife)
+                    {% endif %}
+                </div>
+                <div style="font-size: 0.78rem; color: var(--text-secondary);">
+                    {% if is_partner_linked %}
+                        Both of you see and edit this live household dashboard
+                    {% else %}
+                        Send a quick link so she can view and log on her phone
                     {% endif %}
                 </div>
             </div>
-
-            {% if net_balance != 0 %}
-                <form action="{% url 'finance:settle_expenses' %}" method="POST" onsubmit="return confirm('Mark all unsettled expenses as settled?');" style="margin-top: 14px;">
-                    {% csrf_token %}
-                    <button type="submit" style="width: 100%; padding: 8px 12px; background: rgba(12, 88, 85, 0.1); border: 1px solid rgba(12, 88, 85, 0.25); border-radius: 8px; font-weight: 600; font-size: 0.82rem; color: var(--text-primary); cursor: pointer;">
-                        ✓ Settle Balance Now
-                    </button>
-                </form>
-            {% endif %}
         </div>
-
-        <!-- Monthly Spending & Budget -->
-        <div class="glass-panel" style="padding: 22px;">
-            <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: var(--text-secondary);">This Month's Spending</span>
-            <div style="display: flex; align-items: baseline; gap: 8px; margin-top: 8px;">
-                <span style="font-size: 2.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: var(--text-primary);">
-                    {{ ledger.currency_symbol }}{{ month_total }}
-                </span>
-                <span style="font-size: 0.85rem; color: var(--text-secondary);">/ {{ ledger.currency_symbol }}{{ ledger.monthly_budget }}</span>
-            </div>
-            
-            <!-- Progress Bar -->
-            <div style="margin-top: 14px;">
-                <div style="display: flex; justify-content: space-between; font-size: 0.78rem; color: var(--text-secondary); margin-bottom: 6px;">
-                    <span>Budget Used</span>
-                    <span>{{ budget_pct }}%</span>
-                </div>
-                <div style="width: 100%; height: 8px; background: rgba(12, 88, 85, 0.1); border-radius: 4px; overflow: hidden;">
-                    <div style="width: {{ budget_pct }}%; height: 100%; background: {% if budget_pct > 90 %}#ef4444{% elif budget_pct > 75 %}#f59e0b{% else %}#10b981{% endif %}; border-radius: 4px; transition: width 0.4s ease;"></div>
-                </div>
-            </div>
+        <div>
+            <button type="button" onclick="openInviteModal()" style="display: inline-flex; align-items: center; gap: 6px; padding: 7px 14px; border-radius: 10px; background: {% if is_partner_linked %}rgba(12, 88, 85, 0.08){% else %}#0c5855{% endif %}; color: {% if is_partner_linked %}var(--text-primary){% else %}#ffffff{% endif %}; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.82rem; font-weight: 600; cursor: pointer; white-space: nowrap;">
+                {% if is_partner_linked %}
+                    ⚙️ Manage Link
+                {% else %}
+                    📲 Invite Wife
+                {% endif %}
+            </button>
         </div>
-
-        <!-- Participant Split Summary -->
-        <div class="glass-panel" style="padding: 22px;">
-            <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 700; letter-spacing: 0.5px; color: var(--text-secondary);">Unsettled Balances</span>
-            <div style="display: flex; flex-direction: column; gap: 12px; margin-top: 12px;">
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.6); border-radius: 8px;">
-                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">{{ ledger.partner_name }}'s share (you covered):</span>
-                    <span style="font-weight: 700; color: #10b981;">+{{ ledger.currency_symbol }}{{ partner_debt_to_user }}</span>
-                </div>
-                <div style="display: flex; justify-content: space-between; align-items: center; padding: 8px 12px; background: rgba(255,255,255,0.6); border-radius: 8px;">
-                    <span style="font-size: 0.85rem; font-weight: 600; color: var(--text-primary);">Your share ({{ ledger.partner_name }} covered):</span>
-                    <span style="font-weight: 700; color: #ef4444;">-{{ ledger.currency_symbol }}{{ user_debt_to_partner }}</span>
-                </div>
-            </div>
-        </div>
-
     </div>
 
-    <!-- Quick Add Expense & Category Breakdown -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(360px, 1fr)); gap: 20px;">
+    <!-- 2. THE BIG 3 CARDS: 5-Year-Old Clear Summary -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
         
-        <!-- Add Expense Card -->
-        <div class="glass-panel" id="add-expense-card" style="padding: 24px;">
-            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--text-primary); display: flex; align-items: center; gap: 8px;">
-                <span>💳</span> Add Shared / Personal Expense
-            </h3>
-            <form action="{% url 'finance:add_expense' %}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
-                {% csrf_token %}
-                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 12px;">
-                    <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Description / Merchant</label>
-                        <input type="text" name="title" required placeholder="e.g. Sainsbury's Groceries, Wifi" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: rgba(255,255,255,0.7); font-family: inherit; font-size: 0.92rem;">
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Amount ({{ ledger.currency_symbol }})</label>
-                        <input type="number" step="0.01" name="amount" required placeholder="0.00" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: rgba(255,255,255,0.7); font-family: inherit; font-size: 0.92rem;">
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Category</label>
-                        <select name="category" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: rgba(255,255,255,0.7); font-family: inherit; font-size: 0.92rem;">
-                            {% for key, label in category_choices %}
-                                <option value="{{ key }}">{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Date</label>
-                        <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: rgba(255,255,255,0.7); font-family: inherit; font-size: 0.92rem;">
-                    </div>
-                </div>
-
-                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-                    <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Paid By</label>
-                        <select name="paid_by" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: rgba(255,255,255,0.7); font-family: inherit; font-size: 0.92rem;">
-                            <option value="user">{{ ledger.user_name }} (Me)</option>
-                            <option value="partner">{{ ledger.partner_name }}</option>
-                        </select>
-                    </div>
-                    <div>
-                        <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Split Method</label>
-                        <select name="split_type" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: rgba(255,255,255,0.7); font-family: inherit; font-size: 0.92rem;">
-                            {% for key, label in split_choices %}
-                                <option value="{{ key }}" {% if key == '50_50' %}selected{% endif %}>{{ label }}</option>
-                            {% endfor %}
-                        </select>
-                    </div>
-                </div>
-
-                <div>
-                    <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Note / Receipt details (optional)</label>
-                    <input type="text" name="notes" placeholder="e.g. Split receipt from Sainsbury's" style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: rgba(255,255,255,0.7); font-family: inherit; font-size: 0.92rem;">
-                </div>
-
-                <button type="submit" style="margin-top: 6px; padding: 10px; background: var(--accent-color); color: #fff; border: none; border-radius: 10px; font-weight: 600; cursor: pointer; font-size: 0.92rem;">
-                    Save Expense
-                </button>
-            </form>
+        <!-- Card 1: Money Earned (Inflow) -->
+        <div class="glass-panel" style="padding: 20px; border-radius: 18px; border-left: 5px solid #10b981; background: rgba(255, 255, 255, 0.8);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: #047857;">🟢 Money In (Earned)</span>
+                <span style="font-size: 1.2rem;">💵</span>
+            </div>
+            <div style="margin-top: 10px; font-size: 2.3rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: #047857; letter-spacing: -0.5px;">
+                +{{ household.currency_symbol }}{{ total_income }}
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+                Total household earnings this month
+            </div>
         </div>
 
-        <!-- Category Breakdown Card -->
-        <div class="glass-panel" style="padding: 24px;">
-            <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 16px; color: var(--text-primary);">Monthly Category Breakdown</h3>
-            {% if category_labels %}
-                <div style="height: 220px; position: relative; width: 100%;">
-                    <canvas id="financeCategoryChart"></canvas>
+        <!-- Card 2: Money Spent (Outflow) -->
+        <div class="glass-panel" style="padding: 20px; border-radius: 18px; border-left: 5px solid #ef4444; background: rgba(255, 255, 255, 0.8);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: #b91c1c;">🔴 Money Out (Spent)</span>
+                <span style="font-size: 1.2rem;">💳</span>
+            </div>
+            <div style="margin-top: 10px; font-size: 2.3rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: #b91c1c; letter-spacing: -0.5px;">
+                -{{ household.currency_symbol }}{{ total_expense }}
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+                Total living costs &amp; bills this month
+            </div>
+        </div>
+
+        <!-- Card 3: Money Leftover (Savings) -->
+        <div class="glass-panel" style="padding: 20px; border-radius: 18px; border-left: 5px solid {% if is_positive_leftover %}#0c5855{% else %}#f59e0b{% endif %}; background: rgba(255, 255, 255, 0.85); box-shadow: 0 8px 30px rgba(12, 88, 85, 0.08);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-color);">💰 Leftover Cash (Saved)</span>
+                <span style="font-size: 1.2rem;">{% if is_positive_leftover %}🎯{% else %}⚠️{% endif %}</span>
+            </div>
+            <div style="display: flex; align-items: baseline; gap: 10px; margin-top: 10px;">
+                <div style="font-size: 2.3rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: {% if is_positive_leftover %}#0c5855{% else %}#b45309{% endif %}; letter-spacing: -0.5px;">
+                    {{ household.currency_symbol }}{{ net_leftover }}
                 </div>
-            {% else %}
-                <div style="height: 220px; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 0.9rem;">
-                    No expenses logged this month yet.
-                </div>
-            {% endif %}
+                {% if is_positive_leftover and total_income > 0 %}
+                    <span style="font-size: 0.82rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 3px 8px; border-radius: 12px;">
+                        {{ savings_rate }}% Saved
+                    </span>
+                {% elif not is_positive_leftover %}
+                    <span style="font-size: 0.82rem; font-weight: 700; color: #ef4444; background: rgba(239, 68, 68, 0.15); padding: 3px 8px; border-radius: 12px;">
+                        Deficit
+                    </span>
+                {% endif %}
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
+                {% if is_positive_leftover %}
+                    Awesome! You've kept money in your pocket this month.
+                {% else %}
+                    Spending currently exceeds income this month.
+                {% endif %}
+            </div>
         </div>
 
     </div>
 
-    <!-- Expenses Ledger Table -->
-    <div class="glass-panel" style="padding: 24px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 10px;">
-            <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0;">Expenses Ledger</h3>
-            <span style="font-size: 0.82rem; color: var(--text-secondary);">Showing recent transactions</span>
+    <!-- 3. TWO BIG MOBILE QUICK-ACTION BUTTONS -->
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+        <button type="button" onclick="openTxModal('income')" style="padding: 14px 16px; border-radius: 14px; background: #10b981; color: #ffffff; border: none; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(16, 185, 129, 0.35); transition: transform 0.15s ease;">
+            <span style="font-size: 1.2rem;">+</span> Log Income
+        </button>
+
+        <button type="button" onclick="openTxModal('expense')" style="padding: 14px 16px; border-radius: 14px; background: #ef4444; color: #ffffff; border: none; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(239, 68, 68, 0.35); transition: transform 0.15s ease;">
+            <span style="font-size: 1.2rem;">-</span> Log Expense
+        </button>
+    </div>
+
+    <!-- 4. VISUAL CASHFLOW BREAKDOWN GRAPH -->
+    <div class="glass-panel" style="padding: 20px; border-radius: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px;">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0;">Cashflow Flow &amp; Where Spent</h3>
+            <span style="font-size: 0.78rem; color: var(--text-secondary);">This Month</span>
+        </div>
+        
+        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; align-items: center;">
+            <!-- Chart 1: Money In vs Money Out Bar -->
+            <div style="height: 180px; position: relative;">
+                <canvas id="cashflowBarChart"></canvas>
+            </div>
+
+            <!-- Chart 2: Top Expense Categories Donut -->
+            <div style="height: 180px; position: relative;">
+                {% if top_expense_labels %}
+                    <canvas id="expenseDonutChart"></canvas>
+                {% else %}
+                    <div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 0.88rem; text-align: center;">
+                        Log your first expense to see your spending category breakdown!
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- 5. RECENT ACTIVITY LIST -->
+    <div class="glass-panel" style="padding: 20px; border-radius: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0;">Recent Transactions</h3>
+            <span style="font-size: 0.78rem; color: var(--text-secondary);">Showing latest entries</span>
         </div>
 
-        {% if expenses %}
-            <div style="overflow-x: auto;">
-                <table style="width: 100%; border-collapse: collapse; font-size: 0.9rem;">
-                    <thead>
-                        <tr style="border-bottom: 2px solid rgba(12, 88, 85, 0.15); text-align: left; color: var(--text-secondary); font-size: 0.78rem; text-transform: uppercase;">
-                            <th style="padding: 10px 8px;">Date</th>
-                            <th style="padding: 10px 8px;">Item</th>
-                            <th style="padding: 10px 8px;">Category</th>
-                            <th style="padding: 10px 8px;">Paid By</th>
-                            <th style="padding: 10px 8px;">Split</th>
-                            <th style="padding: 10px 8px; text-align: right;">Total</th>
-                            <th style="padding: 10px 8px; text-align: center;">Status</th>
-                            <th style="padding: 10px 8px; text-align: center;"></th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        {% for exp in expenses %}
-                            <tr style="border-bottom: 1px solid rgba(12, 88, 85, 0.08);">
-                                <td style="padding: 12px 8px; color: var(--text-secondary); white-space: nowrap;">{{ exp.date|date:"M j" }}</td>
-                                <td style="padding: 12px 8px; font-weight: 600; color: var(--text-primary);">
-                                    {{ exp.title }}
-                                    {% if exp.notes %}<div style="font-size: 0.76rem; color: var(--text-secondary); font-weight: 400;">{{ exp.notes }}</div>{% endif %}
-                                </td>
-                                <td style="padding: 12px 8px; color: var(--text-secondary); white-space: nowrap;">{{ exp.get_category_display }}</td>
-                                <td style="padding: 12px 8px; font-weight: 500;">
-                                    {% if exp.paid_by == 'user' %}<span style="color: #0c5855;">{{ ledger.user_name }}</span>{% else %}<span style="color: #3b82f6;">{{ ledger.partner_name }}</span>{% endif %}
-                                </td>
-                                <td style="padding: 12px 8px; font-size: 0.8rem; color: var(--text-secondary);">{{ exp.get_split_type_display }}</td>
-                                <td style="padding: 12px 8px; font-weight: 700; text-align: right; color: var(--text-primary); white-space: nowrap;">
-                                    {{ ledger.currency_symbol }}{{ exp.amount }}
-                                </td>
-                                <td style="padding: 12px 8px; text-align: center;">
-                                    {% if exp.is_settled %}
-                                        <span style="font-size: 0.74rem; font-weight: 600; color: #10b981; background: rgba(16, 185, 129, 0.12); padding: 2px 8px; border-radius: 12px;">Settled</span>
-                                    {% else %}
-                                        <span style="font-size: 0.74rem; font-weight: 600; color: #f59e0b; background: rgba(245, 158, 11, 0.12); padding: 2px 8px; border-radius: 12px;">Pending</span>
+        {% if recent_transactions %}
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                {% for tx in recent_transactions %}
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(12, 88, 85, 0.1); gap: 10px;">
+                        
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                            <div style="width: 38px; height: 38px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0; background: {% if tx.tx_type == 'income' %}rgba(16, 185, 129, 0.12){% else %}rgba(239, 68, 68, 0.12){% endif %};">
+                                {% if tx.tx_type == 'income' %}🟢{% else %}🔴{% endif %}
+                            </div>
+                            <div style="min-width: 0; flex: 1;">
+                                <div style="font-weight: 700; font-size: 0.92rem; color: var(--text-primary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
+                                    {{ tx.title }}
+                                </div>
+                                <div style="display: flex; align-items: center; gap: 8px; font-size: 0.76rem; color: var(--text-secondary); margin-top: 2px;">
+                                    <span>{{ tx.date|date:"M j" }}</span>
+                                    <span>&bull;</span>
+                                    <span>{{ tx.get_category_display }}</span>
+                                    {% if tx.person_tag %}
+                                        <span style="background: rgba(12, 88, 85, 0.08); padding: 1px 6px; border-radius: 4px; font-weight: 600;">{{ tx.person_tag }}</span>
                                     {% endif %}
-                                </td>
-                                <td style="padding: 12px 8px; text-align: center;">
-                                    <form action="{% url 'finance:delete_expense' exp.id %}" method="POST" onsubmit="return confirm('Delete this expense?');" style="margin:0;">
-                                        {% csrf_token %}
-                                        <button type="submit" style="background: none; border: none; color: #ef4444; opacity: 0.7; cursor: pointer; padding: 4px;" title="Delete">
-                                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                                        </button>
-                                    </form>
-                                </td>
-                            </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 10px; flex-shrink: 0;">
+                            <span style="font-family: 'Outfit', sans-serif; font-size: 1.15rem; font-weight: 800; color: {% if tx.tx_type == 'income' %}#047857{% else %}#b91c1c{% endif %}; white-space: nowrap;">
+                                {% if tx.tx_type == 'income' %}+{% else %}-{% endif %}{{ household.currency_symbol }}{{ tx.amount }}
+                            </span>
+                            
+                            <form action="{% url 'finance:delete_transaction' tx.id %}" method="POST" onsubmit="return confirm('Delete this transaction?');" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: none; border: none; color: #94a3b8; cursor: pointer; padding: 4px;" title="Delete">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+
+                    </div>
+                {% endfor %}
             </div>
         {% else %}
-            <div style="text-align: center; padding: 32px; color: var(--text-secondary); font-size: 0.9rem;">
-                No shared expenses logged yet. Add your first expense above!
+            <div style="text-align: center; padding: 36px 20px; color: var(--text-secondary); font-size: 0.9rem;">
+                No transactions recorded yet this month.<br>
+                Tap <strong>+ Log Income</strong> or <strong>- Log Expense</strong> above to get started!
             </div>
         {% endif %}
     </div>
 
 </div>
 
-<!-- Ledger Settings Modal -->
-<div id="finance-settings-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); z-index: 3000; align-items: center; justify-content: center; padding: 20px;">
-    <div class="glass-panel" style="background: #ffffff; max-width: 440px; width: 100%; padding: 26px; border-radius: 18px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 18px;">
-            <h3 style="font-size: 1.2rem; font-weight: 700; color: var(--text-primary); margin: 0;">Ledger Configuration</h3>
-            <button type="button" onclick="document.getElementById('finance-settings-modal').style.display='none'" style="background: none; border: none; font-size: 1.3rem; color: var(--text-secondary); cursor: pointer;">&times;</button>
+<!-- MODAL: Log Transaction (Income or Expense) -->
+<div id="tx-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="glass-panel" style="background: #ffffff; max-width: 440px; width: 100%; padding: 24px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 id="tx-modal-title" style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0;">
+                Log Transaction
+            </h3>
+            <button type="button" onclick="closeTxModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-secondary); cursor: pointer; line-height: 1;">&times;</button>
         </div>
-        <form action="{% url 'finance:update_ledger' %}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+
+        <form action="{% url 'finance:add_transaction' %}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+            {% csrf_token %}
+            <input type="hidden" name="tx_type" id="tx-type-input" value="expense">
+
+            <!-- Type Selector Tabs inside modal -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; background: #f1f5f9; padding: 4px; border-radius: 12px;">
+                <button type="button" id="tab-btn-income" onclick="switchTxType('income')" style="padding: 8px; border-radius: 10px; border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; background: transparent; color: #64748b;">
+                    🟢 Income (+)
+                </button>
+                <button type="button" id="tab-btn-expense" onclick="switchTxType('expense')" style="padding: 8px; border-radius: 10px; border: none; font-weight: 700; font-size: 0.85rem; cursor: pointer; background: #ef4444; color: #ffffff;">
+                    🔴 Expense (-)
+                </button>
+            </div>
+
+            <!-- Amount Input (Large & Clear) -->
+            <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Amount ({{ household.currency_symbol }})</label>
+                <input type="number" step="0.01" name="amount" required placeholder="0.00" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid rgba(12, 88, 85, 0.2); font-size: 1.3rem; font-weight: 800; font-family: 'Outfit', sans-serif; background: #f8fafc;">
+            </div>
+
+            <!-- What was it? -->
+            <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Description / Item</label>
+                <input type="text" name="title" required placeholder="e.g. Salary, Tesco Groceries, Wifi bill" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc;">
+            </div>
+
+            <!-- Category & Who -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Category</label>
+                    <select name="category" id="category-select" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.88rem; background: #f8fafc;">
+                        {% for key, label in category_choices %}
+                            <option value="{{ key }}">{{ label }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Who Earned / Spent?</label>
+                    <select name="person_tag" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.88rem; background: #f8fafc;">
+                        <option value="Husband">Husband</option>
+                        <option value="Wife">Wife</option>
+                        <option value="Joint" selected>Joint / Household</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Date -->
+            <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Date</label>
+                <input type="date" name="date" value="{{ today|date:'Y-m-d' }}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.9rem; background: #f8fafc;">
+            </div>
+
+            <button type="submit" id="tx-submit-btn" style="margin-top: 8px; padding: 13px; border-radius: 12px; background: #ef4444; color: #fff; font-size: 1rem; font-weight: 700; border: none; cursor: pointer;">
+                Save Entry
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- MODAL: Invite Wife & Household Settings -->
+<div id="invite-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 16px;">
+    <div class="glass-panel" style="background: #ffffff; max-width: 460px; width: 100%; padding: 24px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+            <h3 style="font-size: 1.2rem; font-weight: 800; color: var(--text-primary); margin: 0;">
+                Share Dashboard with Your Wife
+            </h3>
+            <button type="button" onclick="closeInviteModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-secondary); cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+
+        <!-- Invite Link Box -->
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; border-radius: 14px; padding: 16px; margin-bottom: 18px;">
+            <span style="font-size: 0.8rem; font-weight: 800; color: #166534; text-transform: uppercase; letter-spacing: 0.5px;">1-Tap WhatsApp / SMS Link</span>
+            <p style="font-size: 0.84rem; color: #14532d; margin: 6px 0 12px 0;">
+                Send this link to your wife. When she opens it on her phone, she will instantly join this shared dashboard!
+            </p>
+            <div style="display: flex; gap: 8px;">
+                <input type="text" id="invite-link-input" value="{{ invite_url }}" readonly style="width: 100%; padding: 8px 10px; font-size: 0.82rem; border-radius: 8px; border: 1px solid #86efac; background: #ffffff; font-family: monospace;">
+                <button type="button" onclick="copyInviteLink()" id="copy-link-btn" style="padding: 8px 14px; border-radius: 8px; background: #16a34a; color: #fff; font-weight: 700; font-size: 0.82rem; border: none; cursor: pointer; white-space: nowrap;">
+                    Copy Link
+                </button>
+            </div>
+            
+            <a href="https://api.whatsapp.com/send?text=Hey!%20Join%20our%20household%20finance%20dashboard%20here:%20{{ invite_url }}" target="_blank" style="display: flex; align-items: center; justify-content: center; gap: 8px; margin-top: 10px; padding: 10px; background: #25d366; color: #fff; border-radius: 10px; text-decoration: none; font-weight: 700; font-size: 0.88rem;">
+                💬 Send via WhatsApp
+            </a>
+        </div>
+
+        <!-- Household Preferences Form -->
+        <form action="{% url 'finance:update_settings' %}" method="POST" style="display: flex; flex-direction: column; gap: 12px;">
             {% csrf_token %}
             <div>
-                <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Your Display Name</label>
-                <input type="text" name="user_name" value="{{ ledger.user_name }}" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: #f8fafc; font-family: inherit; font-size: 0.92rem;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text-secondary);">Household Name</label>
+                <input type="text" name="name" value="{{ household.name }}" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem; background: #f8fafc;">
             </div>
-            <div>
-                <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Partner / Roommate Name</label>
-                <input type="text" name="partner_name" value="{{ ledger.partner_name }}" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: #f8fafc; font-family: inherit; font-size: 0.92rem;">
-            </div>
-            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 12px;">
+
+            <div style="display: grid; grid-template-columns: 1fr 2fr; gap: 10px;">
                 <div>
-                    <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Currency</label>
-                    <input type="text" name="currency_symbol" value="{{ ledger.currency_symbol }}" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: #f8fafc; font-family: inherit; font-size: 0.92rem;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text-secondary);">Currency</label>
+                    <input type="text" name="currency_symbol" value="{{ household.currency_symbol }}" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem; background: #f8fafc;">
                 </div>
                 <div>
-                    <label style="display: block; font-size: 0.82rem; font-weight: 600; margin-bottom: 5px; color: var(--text-secondary);">Monthly Budget</label>
-                    <input type="number" step="1" name="monthly_budget" value="{{ ledger.monthly_budget }}" required style="width: 100%; padding: 9px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.25); background: #f8fafc; font-family: inherit; font-size: 0.92rem;">
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 4px; color: var(--text-secondary);">Monthly Savings Goal</label>
+                    <input type="number" step="1" name="monthly_savings_goal" value="{{ household.monthly_savings_goal }}" style="width: 100%; padding: 8px 12px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.9rem; background: #f8fafc;">
                 </div>
             </div>
-            <div style="display: flex; justify-content: flex-end; gap: 10px; margin-top: 10px;">
-                <button type="button" onclick="document.getElementById('finance-settings-modal').style.display='none'" style="padding: 8px 16px; border-radius: 10px; background: #e2e8f0; border: none; font-weight: 600; cursor: pointer;">Cancel</button>
-                <button type="submit" style="padding: 8px 18px; border-radius: 10px; background: var(--accent-color); color: #fff; border: none; font-weight: 600; cursor: pointer;">Save Settings</button>
+
+            <div style="display: flex; justify-content: flex-end; gap: 8px; margin-top: 6px;">
+                <button type="button" onclick="closeInviteModal()" style="padding: 8px 14px; border-radius: 8px; background: #e2e8f0; border: none; font-weight: 600; cursor: pointer;">Done</button>
+                <button type="submit" style="padding: 8px 16px; border-radius: 8px; background: #0c5855; color: #fff; border: none; font-weight: 700; cursor: pointer;">Save Settings</button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Chart.js Script for Category Breakdown -->
+<!-- Interaction Scripts -->
 <script>
+function openTxModal(type) {
+    document.getElementById('tx-modal').style.display = 'flex';
+    switchTxType(type);
+}
+
+function closeTxModal() {
+    document.getElementById('tx-modal').style.display = 'none';
+}
+
+function switchTxType(type) {
+    const input = document.getElementById('tx-type-input');
+    const title = document.getElementById('tx-modal-title');
+    const submitBtn = document.getElementById('tx-submit-btn');
+    const btnIncome = document.getElementById('tab-btn-income');
+    const btnExpense = document.getElementById('tab-btn-expense');
+    const catSelect = document.getElementById('category-select');
+
+    input.value = type;
+
+    if (type === 'income') {
+        title.textContent = '🟢 Log Money In (Earned)';
+        submitBtn.style.background = '#10b981';
+        btnIncome.style.background = '#10b981';
+        btnIncome.style.color = '#ffffff';
+        btnExpense.style.background = 'transparent';
+        btnExpense.style.color = '#64748b';
+        catSelect.value = 'salary';
+    } else {
+        title.textContent = '🔴 Log Money Out (Spent)';
+        submitBtn.style.background = '#ef4444';
+        btnExpense.style.background = '#ef4444';
+        btnExpense.style.color = '#ffffff';
+        btnIncome.style.background = 'transparent';
+        btnIncome.style.color = '#64748b';
+        catSelect.value = 'groceries';
+    }
+}
+
+function openInviteModal() {
+    document.getElementById('invite-modal').style.display = 'flex';
+}
+
+function closeInviteModal() {
+    document.getElementById('invite-modal').style.display = 'none';
+}
+
+function copyInviteLink() {
+    const copyInput = document.getElementById('invite-link-input');
+    copyInput.select();
+    copyInput.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyInput.value).then(() => {
+        const btn = document.getElementById('copy-link-btn');
+        btn.textContent = '✓ Copied!';
+        btn.style.background = '#0c5855';
+        setTimeout(() => {
+            btn.textContent = 'Copy Link';
+            btn.style.background = '#16a34a';
+        }, 2500);
+    });
+}
+
+// Chart.js Visualizations
 document.addEventListener('DOMContentLoaded', () => {
-    const labels = {{ category_labels|safe }};
-    const amounts = {{ category_amounts|safe }};
-    
-    const ctx = document.getElementById('financeCategoryChart');
-    if (ctx && labels.length > 0) {
-        new Chart(ctx, {
+    // 1. Money In vs Money Out Comparison
+    const barCtx = document.getElementById('cashflowBarChart');
+    if (barCtx) {
+        new Chart(barCtx, {
+            type: 'bar',
+            data: {
+                labels: ['Earned (+)', 'Spent (-)', 'Leftover (=)'],
+                datasets: [{
+                    data: [{{ total_income }}, {{ total_expense }}, {{ net_leftover }}],
+                    backgroundColor: [
+                        '#10b981',
+                        '#ef4444',
+                        '{% if is_positive_leftover %}#0c5855{% else %}#f59e0b{% endif %}'
+                    ],
+                    borderRadius: 8
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        callbacks: {
+                            label: (ctx) => ` {{ household.currency_symbol }}${ctx.parsed.y}`
+                        }
+                    }
+                },
+                scales: {
+                    x: { grid: { display: false } },
+                    y: { grid: { color: 'rgba(12, 88, 85, 0.08)' } }
+                }
+            }
+        });
+    }
+
+    // 2. Spending Categories Donut
+    const donutCtx = document.getElementById('expenseDonutChart');
+    const donutLabels = {{ top_expense_labels|safe }};
+    const donutAmounts = {{ top_expense_amounts|safe }};
+
+    if (donutCtx && donutLabels.length > 0) {
+        new Chart(donutCtx, {
             type: 'doughnut',
             data: {
-                labels: labels,
+                labels: donutLabels,
                 datasets: [{
-                    data: amounts,
-                    backgroundColor: [
-                        '#0c5855', '#10b981', '#3b82f6', '#f59e0b', '#ec4899', '#8b5cf6', '#06b6d4', '#64748b'
-                    ],
+                    data: donutAmounts,
+                    backgroundColor: ['#ef4444', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#64748b'],
                     borderWidth: 2,
                     borderColor: '#ffffff'
                 }]
@@ -324,7 +445,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 plugins: {
                     legend: {
                         position: 'right',
-                        labels: { boxWidth: 12, font: { size: 11 } }
+                        labels: { boxWidth: 10, font: { size: 10 } }
                     }
                 }
             }
