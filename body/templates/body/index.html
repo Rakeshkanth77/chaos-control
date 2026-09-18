@@ -1,179 +1,465 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}to-do | Body &amp; Vitals{% endblock %}
-{% block subtitle %} | Body Tracking{% endblock %}
+{% block title %}to-do | Body, Lifting &amp; Food{% endblock %}
+{% block subtitle %} | Body &amp; Fitness{% endblock %}
 
 {% block content %}
-<div class="body-mobile-container" style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; padding-bottom: 60px;">
+<div class="body-mobile-container" style="max-width: 1000px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; padding-bottom: 70px;">
 
-    <!-- 1. Workspace Header Banner -->
-    <div class="glass-panel" style="padding: 16px 20px; border-radius: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: rgba(255, 255, 255, 0.75);">
+    <!-- 1. Header Banner with Motivation -->
+    <div class="glass-panel" style="padding: 16px 20px; border-radius: 18px; display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px; background: rgba(255, 255, 255, 0.85);">
         <div style="display: flex; align-items: center; gap: 14px;">
-            <div style="width: 44px; height: 44px; border-radius: 14px; background: rgba(12, 88, 85, 0.12); border: 1px solid rgba(45, 212, 191, 0.3); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
-                🏋️
+            <div style="width: 46px; height: 46px; border-radius: 14px; background: rgba(12, 88, 85, 0.12); border: 1px solid rgba(45, 212, 191, 0.35); display: flex; align-items: center; justify-content: center; font-size: 1.5rem; flex-shrink: 0;">
+                💪
             </div>
             <div>
-                <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 0;">Body &amp; Vitals</h1>
-                <p style="font-size: 0.8rem; color: var(--text-secondary); margin: 2px 0 0 0;">Simple weight progression, daily vitals, and workout tracker.</p>
+                <h1 style="font-size: 1.35rem; font-weight: 800; color: var(--text-primary); margin: 0;">Body, Lifting &amp; Food</h1>
+                <p style="font-size: 0.82rem; color: var(--text-secondary); margin: 2px 0 0 0;">
+                    Hevy-style lifting splits (Push, Pull, Legs, Core) + NHS 12-week calorie tracking.
+                </p>
             </div>
         </div>
-        <div style="font-size: 0.82rem; font-weight: 600; color: var(--text-secondary); background: rgba(12, 88, 85, 0.08); padding: 5px 12px; border-radius: 10px;">
-            Today: {{ today|date:"M j, Y" }}
+        <div style="display: flex; align-items: center; gap: 8px;">
+            <span style="font-size: 0.8rem; font-weight: 700; color: var(--accent-color); background: rgba(12, 88, 85, 0.08); padding: 5px 12px; border-radius: 10px;">
+                📅 {{ today|date:"D, M j" }}
+            </span>
         </div>
     </div>
 
-    <!-- 2. THE BIG 3 BODY CARDS (Mobile-First Clarity) -->
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 14px;">
+    <!-- 2. THE BIG 3 CARDS: Lifting Volume, NHS Calories, and Weight -->
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 14px;">
         
-        <!-- Card 1: Current Weight -->
+        <!-- CARD 1: Today's Lifting (Hevy-Style) -->
         <div class="glass-panel" style="padding: 20px; border-radius: 18px; border-left: 5px solid #0c5855; background: rgba(255, 255, 255, 0.85);">
             <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-color);">⚖️ Current Weight</span>
+                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: var(--accent-color);">🏋️ Lifting Today</span>
+                {% if today_sets_count > 0 %}
+                    <span style="font-size: 0.76rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 12px;">Crushed It 🔥</span>
+                {% else %}
+                    <span style="font-size: 0.76rem; font-weight: 700; color: #f59e0b; background: rgba(245, 158, 11, 0.15); padding: 2px 8px; border-radius: 12px;">Ready to Lift</span>
+                {% endif %}
+            </div>
+            <div style="margin-top: 8px; display: flex; align-items: baseline; gap: 8px;">
+                <span style="font-size: 2.3rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: var(--text-primary); letter-spacing: -0.5px;">
+                    {{ today_sets_count }}
+                </span>
+                <span style="font-size: 1rem; font-weight: 600; color: var(--text-secondary);">sets logged</span>
+            </div>
+            <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 4px;">
+                {% if today_volume_kg > 0 %}
+                    💥 <strong>{{ today_volume_kg|floatformat:0 }} kg</strong> total lifted volume today!
+                {% else %}
+                    Push, Pull, Legs or Core — track sets &amp; reps below.
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- CARD 2: NHS 12-Week Food Fuel Bar -->
+        <div class="glass-panel" style="padding: 20px; border-radius: 18px; border-left: 5px solid #10b981; background: rgba(255, 255, 255, 0.85);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: #047857;">🥗 NHS Food &amp; Calories</span>
+                <span style="font-size: 0.76rem; font-weight: 700; color: #047857; background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 12px;">
+                    {{ calories_left }} kcal left
+                </span>
+            </div>
+            <div style="margin-top: 8px; display: flex; align-items: baseline; gap: 6px;">
+                <span style="font-size: 2.3rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: #047857; letter-spacing: -0.5px;">
+                    {{ total_calories }}
+                </span>
+                <span style="font-size: 1rem; font-weight: 600; color: var(--text-secondary);">/ {{ calorie_target }} kcal</span>
+            </div>
+            <!-- Progress Bar -->
+            <div style="width: 100%; height: 8px; background: rgba(12, 88, 85, 0.1); border-radius: 6px; margin-top: 8px; overflow: hidden;">
+                <div style="width: {{ calories_pct }}%; height: 100%; background: {% if total_calories > calorie_target %}#ef4444{% else %}#10b981{% endif %}; border-radius: 6px; transition: width 0.3s ease;"></div>
+            </div>
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">
+                {% if healthy_items_count > 0 %}
+                    🥦 {{ healthy_items_count }} healthy choice meals logged today
+                {% else %}
+                    Breakfast, lunch, dinner or snack — tap below to log.
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- CARD 3: Weight & Recovery Baseline -->
+        <div class="glass-panel" style="padding: 20px; border-radius: 18px; border-left: 5px solid #3b82f6; background: rgba(255, 255, 255, 0.85);">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: #1d4ed8;">⚖️ Current Weight</span>
                 {% if today_metric.weight_kg %}
                     <span style="font-size: 0.76rem; font-weight: 700; color: #10b981; background: rgba(16, 185, 129, 0.15); padding: 2px 8px; border-radius: 12px;">Logged Today</span>
                 {% else %}
-                    <span style="font-size: 0.76rem; font-weight: 700; color: #f59e0b; background: rgba(245, 158, 11, 0.15); padding: 2px 8px; border-radius: 12px;">Pending Today</span>
+                    <button type="button" onclick="openVitalsModal()" style="font-size: 0.76rem; font-weight: 700; color: #f59e0b; background: rgba(245, 158, 11, 0.15); padding: 2px 8px; border-radius: 12px; border: none; cursor: pointer;">+ Log Weight</button>
                 {% endif %}
             </div>
             <div style="margin-top: 8px; display: flex; align-items: baseline; gap: 6px;">
                 <span style="font-size: 2.3rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: var(--text-primary); letter-spacing: -0.5px;">
                     {% if latest_metric.weight_kg %}{{ latest_metric.weight_kg }}{% else %}--{% endif %}
                 </span>
-                <span style="font-size: 1.05rem; font-weight: 600; color: var(--text-secondary);">kg</span>
+                <span style="font-size: 1rem; font-weight: 600; color: var(--text-secondary);">kg</span>
             </div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
-                {% if latest_metric %}Latest entry on {{ latest_metric.date|date:"M j, Y" }}{% else %}No weight recorded yet{% endif %}
-            </div>
-        </div>
-
-        <!-- Card 2: Workouts This Week -->
-        <div class="glass-panel" style="padding: 20px; border-radius: 18px; border-left: 5px solid #2dd4bf; background: rgba(255, 255, 255, 0.85);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: #0f766e;">🏃 Workouts (Past 7 Days)</span>
-                <span style="font-size: 1.2rem;">🔥</span>
-            </div>
-            <div style="margin-top: 8px; display: flex; align-items: baseline; gap: 8px;">
-                <span style="font-size: 2.3rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: #0f766e; letter-spacing: -0.5px;">
-                    {{ week_count }}
-                </span>
-                <span style="font-size: 0.95rem; font-weight: 600; color: var(--text-secondary);">sessions</span>
-            </div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px;">
-                ⏱️ {{ week_minutes }} active training minutes total
-            </div>
-        </div>
-
-        <!-- Card 3: Today's Vitals (Hydration, Sleep, Energy) -->
-        <div class="glass-panel" style="padding: 20px; border-radius: 18px; border-left: 5px solid #3b82f6; background: rgba(255, 255, 255, 0.85);">
-            <div style="display: flex; justify-content: space-between; align-items: center;">
-                <span style="font-size: 0.78rem; text-transform: uppercase; font-weight: 800; letter-spacing: 0.5px; color: #1d4ed8;">💧 Today's Vitals</span>
-                <span style="font-size: 1.2rem;">⚡</span>
-            </div>
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 10px; gap: 8px;">
-                <div>
-                    <div style="font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Water</div>
-                    <div style="font-size: 1.4rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: #0284c7;">
-                        {% if today_metric.water_liters %}{{ today_metric.water_liters }}<span style="font-size: 0.8rem; font-weight: 600;">L</span>{% else %}--{% endif %}
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Sleep</div>
-                    <div style="font-size: 1.4rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: #7c3aed;">
-                        {% if today_metric.sleep_hours %}{{ today_metric.sleep_hours }}<span style="font-size: 0.8rem; font-weight: 600;">h</span>{% else %}--{% endif %}
-                    </div>
-                </div>
-                <div>
-                    <div style="font-size: 0.74rem; font-weight: 700; color: var(--text-secondary); text-transform: uppercase;">Energy</div>
-                    <div style="font-size: 1.4rem; font-weight: 900; font-family: 'Outfit', sans-serif; color: #d97706;">
-                        {% if today_metric.energy_level %}{{ today_metric.energy_level }}<span style="font-size: 0.8rem; font-weight: 600;">/5</span>{% else %}--{% endif %}
-                    </div>
-                </div>
-            </div>
-            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 6px;">
-                {% if today_metric.notes %}"{{ today_metric.notes }}"{% else %}Log your daily water &amp; sleep below{% endif %}
+            <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; display: flex; gap: 12px;">
+                <span>💧 {% if today_metric.water_liters %}{{ today_metric.water_liters }}L{% else %}--{% endif %}</span>
+                <span>🌙 {% if today_metric.sleep_hours %}{{ today_metric.sleep_hours }}h sleep{% else %}--{% endif %}</span>
+                <span>⚡ {% if today_metric.energy_level %}{{ today_metric.energy_level }}/5 energy{% else %}--{% endif %}</span>
             </div>
         </div>
 
     </div>
 
-    <!-- 3. TWO BIG MOBILE QUICK-ACTION BUTTONS (Thumb-friendly) -->
+    <!-- 3. TWO BIG MOBILE QUICK-ACTION BUTTONS (Thumb-friendly 5-Year-Old Clear) -->
     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
-        <button type="button" onclick="openVitalsModal()" style="padding: 14px 16px; border-radius: 14px; background: #0c5855; color: #ffffff; border: none; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(12, 88, 85, 0.35); transition: transform 0.15s ease;">
-            <span style="font-size: 1.2rem;">⚖️</span> Log Vitals
+        <button type="button" onclick="openWorkoutModal()" style="padding: 15px 16px; border-radius: 16px; background: #0c5855; color: #ffffff; border: none; font-size: 1.02rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(12, 88, 85, 0.35); transition: transform 0.15s ease;">
+            <span style="font-size: 1.3rem;">🏋️</span> Log Workout / Sets
         </button>
 
-        <button type="button" onclick="openWorkoutModal()" style="padding: 14px 16px; border-radius: 14px; background: #2563eb; color: #ffffff; border: none; font-size: 1rem; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(37, 99, 235, 0.35); transition: transform 0.15s ease;">
-            <span style="font-size: 1.2rem;">🏃</span> Log Workout
+        <button type="button" onclick="openFoodModal()" style="padding: 15px 16px; border-radius: 16px; background: #16a34a; color: #ffffff; border: none; font-size: 1.02rem; font-weight: 800; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 16px rgba(22, 163, 74, 0.35); transition: transform 0.15s ease;">
+            <span style="font-size: 1.3rem;">🥗</span> Log Food / Meal
         </button>
     </div>
 
-    <!-- 4. WEIGHT PROGRESSION CHART -->
+    <!-- 4. TODAY'S FOOD LOG (NHS Simple Breakdown) -->
+    <div class="glass-panel" style="padding: 20px; border-radius: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0;">Today's Meals (NHS Tracker)</h3>
+                <span style="font-size: 0.78rem; color: var(--text-secondary);">Breakfast, lunch, dinner &amp; snacks</span>
+            </div>
+            <button type="button" onclick="openFoodModal()" style="background: rgba(22, 163, 74, 0.12); color: #15803d; border: 1px solid rgba(22, 163, 74, 0.3); padding: 5px 12px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+                + Add Meal
+            </button>
+        </div>
+
+        {% if today_foods %}
+            <div style="display: flex; flex-direction: column; gap: 10px;">
+                {% for f in today_foods %}
+                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.75); border: 1px solid rgba(12, 88, 85, 0.1); gap: 10px;">
+                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
+                            <div style="width: 38px; height: 38px; border-radius: 12px; background: {% if f.meal_type == 'breakfast' %}#fef3c7{% elif f.meal_type == 'lunch' %}#e0f2fe{% elif f.meal_type == 'dinner' %}#f3e8ff{% else %}#dcfce7{% endif %}; display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
+                                {% if f.meal_type == 'breakfast' %}🌅
+                                {% elif f.meal_type == 'lunch' %}☀️
+                                {% elif f.meal_type == 'dinner' %}🌙
+                                {% else %}🍎{% endif %}
+                            </div>
+                            <div style="min-width: 0; flex: 1;">
+                                <div style="display: flex; align-items: center; gap: 8px;">
+                                    <span style="font-weight: 800; font-size: 0.94rem; color: var(--text-primary);">{{ f.food_name }}</span>
+                                    {% if f.is_healthy_choice %}
+                                        <span style="font-size: 0.7rem; font-weight: 700; color: #15803d; background: #dcfce7; padding: 1px 6px; border-radius: 8px;">Healthy ✓</span>
+                                    {% endif %}
+                                </div>
+                                <div style="font-size: 0.78rem; color: var(--text-secondary); display: flex; gap: 10px; margin-top: 2px;">
+                                    <span>{{ f.get_meal_type_display }}</span>
+                                    {% if f.protein_g %}<span>🥩 {{ f.protein_g }}g protein</span>{% endif %}
+                                    {% if f.notes %}<span>• {{ f.notes }}</span>{% endif %}
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 1rem; font-weight: 800; font-family: 'Outfit', sans-serif; color: #047857;">
+                                {{ f.calories }} kcal
+                            </span>
+                            <form action="{% url 'body:delete_food' f.id %}" method="POST" onsubmit="return confirm('Remove this meal entry?');" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: none; border: none; color: #ef4444; opacity: 0.7; cursor: pointer; padding: 4px;" title="Delete meal">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 24px; color: var(--text-secondary); font-size: 0.88rem; background: rgba(12, 88, 85, 0.03); border-radius: 14px;">
+                No meals logged today yet. Tap <strong>"+ Log Food / Meal"</strong> to record breakfast, lunch or snacks!
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- 5. RECENT LIFTING LOGS & HEVY SETS FEED -->
+    <div class="glass-panel" style="padding: 20px; border-radius: 18px;">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
+            <div>
+                <h3 style="font-size: 1.1rem; font-weight: 800; color: var(--text-primary); margin: 0;">Lifting History (Hevy Style)</h3>
+                <span style="font-size: 0.78rem; color: var(--text-secondary);">Push, Pull, Legs &amp; Core workouts</span>
+            </div>
+            <button type="button" onclick="openWorkoutModal()" style="background: rgba(12, 88, 85, 0.1); color: var(--accent-color); border: 1px solid rgba(12, 88, 85, 0.3); padding: 5px 12px; border-radius: 10px; font-weight: 700; font-size: 0.82rem; cursor: pointer;">
+                + Start Session
+            </button>
+        </div>
+
+        {% if recent_workouts %}
+            <div style="display: flex; flex-direction: column; gap: 14px;">
+                {% for w in recent_workouts %}
+                    <div style="padding: 16px; border-radius: 16px; background: rgba(255, 255, 255, 0.75); border: 1px solid rgba(12, 88, 85, 0.12); display: flex; flex-direction: column; gap: 12px;">
+                        <!-- Workout Header Row -->
+                        <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px;">
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <div style="width: 38px; height: 38px; border-radius: 12px; background: rgba(12, 88, 85, 0.12); display: flex; align-items: center; justify-content: center; font-size: 1.2rem;">
+                                    {% if w.split_type == 'push' %}🔴
+                                    {% elif w.split_type == 'pull' %}🔵
+                                    {% elif w.split_type == 'legs' %}🟢
+                                    {% elif w.split_type == 'core' %}🟡
+                                    {% else %}🏋️{% endif %}
+                                </div>
+                                <div>
+                                    <div style="font-weight: 800; font-size: 0.98rem; color: var(--text-primary);">{{ w.title }}</div>
+                                    <div style="font-size: 0.76rem; color: var(--text-secondary); display: flex; gap: 8px;">
+                                        <span>📅 {{ w.date|date:"M j" }}</span>
+                                        <span>⏱️ {{ w.duration_mins }}m</span>
+                                        <span>🔥 {{ w.get_intensity_display }}</span>
+                                        {% if w.total_volume_kg > 0 %}<span>💥 {{ w.total_volume_kg|floatformat:0 }} kg volume</span>{% endif %}
+                                    </div>
+                                </div>
+                            </div>
+                            <form action="{% url 'body:delete_workout' w.id %}" method="POST" onsubmit="return confirm('Delete this workout session?');" style="margin: 0;">
+                                {% csrf_token %}
+                                <button type="submit" style="background: none; border: none; color: #ef4444; opacity: 0.7; cursor: pointer; padding: 4px;" title="Delete workout">
+                                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
+                            </form>
+                        </div>
+
+                        <!-- Hevy Set-by-Set Cards (if logged) -->
+                        {% if w.exercise_sets.all %}
+                            <div style="background: rgba(12, 88, 85, 0.04); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 6px;">
+                                <span style="font-size: 0.72rem; font-weight: 800; text-transform: uppercase; color: var(--text-secondary); letter-spacing: 0.5px;">Sets Performed</span>
+                                <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 6px;">
+                                    {% for s in w.exercise_sets.all %}
+                                        <div style="padding: 6px 10px; border-radius: 8px; background: #ffffff; border: 1px solid rgba(12, 88, 85, 0.1); display: flex; justify-content: space-between; align-items: center; font-size: 0.82rem;">
+                                            <span style="font-weight: 700; color: var(--text-primary);">{{ s.exercise_name }}</span>
+                                            <span style="font-weight: 800; color: var(--accent-color); font-family: 'JetBrains Mono', monospace;">{{ s.weight_kg }}kg &times; {{ s.reps }}</span>
+                                        </div>
+                                    {% endfor %}
+                                </div>
+                            </div>
+                        {% endif %}
+
+                        {% if w.notes %}
+                            <div style="font-size: 0.8rem; color: var(--text-secondary); font-style: italic;">"{{ w.notes }}"</div>
+                        {% endif %}
+                    </div>
+                {% endfor %}
+            </div>
+        {% else %}
+            <div style="text-align: center; padding: 28px; color: var(--text-secondary); font-size: 0.88rem; background: rgba(12, 88, 85, 0.03); border-radius: 14px;">
+                No workout sessions logged yet. Tap <strong>"+ Log Workout / Sets"</strong> to log your first Push, Pull, Legs or Core session!
+            </div>
+        {% endif %}
+    </div>
+
+    <!-- 6. WEIGHT PROGRESSION GRAPH -->
     <div class="glass-panel" style="padding: 20px; border-radius: 18px;">
         <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 6px;">
             <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0;">Weight Progression (Last 30 Days)</h3>
             <span style="font-size: 0.78rem; color: var(--text-secondary);">Morning baseline trend</span>
         </div>
-        <div style="height: 220px; position: relative; width: 100%;">
+        <div style="height: 200px; position: relative; width: 100%;">
             <canvas id="weightChart"></canvas>
         </div>
     </div>
 
-    <!-- 5. RECENT WORKOUT ACTIVITY TIMELINE -->
-    <div class="glass-panel" style="padding: 20px; border-radius: 18px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px; flex-wrap: wrap; gap: 8px;">
-            <h3 style="font-size: 1.05rem; font-weight: 800; color: var(--text-primary); margin: 0;">Recent Workouts</h3>
-            <span style="font-size: 0.78rem; color: var(--text-secondary);">Latest training logs</span>
-        </div>
-
-        {% if recent_workouts %}
-            <div style="display: flex; flex-direction: column; gap: 10px;">
-                {% for w in recent_workouts %}
-                    <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border-radius: 14px; background: rgba(255, 255, 255, 0.7); border: 1px solid rgba(12, 88, 85, 0.1); gap: 10px; flex-wrap: wrap;">
-                        <div style="display: flex; align-items: center; gap: 12px; min-width: 0; flex: 1;">
-                            <div style="width: 40px; height: 40px; border-radius: 12px; background: rgba(12, 88, 85, 0.1); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; flex-shrink: 0;">
-                                {% if w.workout_type == 'gym' %}🏋️
-                                {% elif w.workout_type == 'cardio' %}🏃
-                                {% elif w.workout_type == 'hiit' %}⚡
-                                {% elif w.workout_type == 'mobility' %}🧘
-                                {% elif w.workout_type == 'walk' %}🚶
-                                {% else %}🎯{% endif %}
-                            </div>
-                            <div style="min-width: 0; flex: 1;">
-                                <div style="font-weight: 700; font-size: 0.94rem; color: var(--text-primary);">{{ w.title }}</div>
-                                <div style="font-size: 0.78rem; color: var(--text-secondary); display: flex; flex-wrap: wrap; gap: 8px; margin-top: 3px;">
-                                    <span>📅 {{ w.date|date:"M j" }}</span>
-                                    <span>⏱️ {{ w.duration_mins }}m</span>
-                                    <span style="font-weight: 600; color: var(--accent-color);">🔥 {{ w.get_intensity_display }}</span>
-                                    {% if w.calories_burned %}<span>💥 {{ w.calories_burned }} kcal</span>{% endif %}
-                                </div>
-                                {% if w.notes %}
-                                    <div style="font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; font-style: italic;">"{{ w.notes }}"</div>
-                                {% endif %}
-                            </div>
-                        </div>
-                        <form action="{% url 'body:delete_workout' w.id %}" method="POST" onsubmit="return confirm('Delete this workout log?');" style="margin: 0; flex-shrink: 0;">
-                            {% csrf_token %}
-                            <button type="submit" style="background: none; border: none; color: #ef4444; opacity: 0.7; cursor: pointer; padding: 6px;" title="Delete log">
-                                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
-                            </button>
-                        </form>
-                    </div>
-                {% endfor %}
-            </div>
-        {% else %}
-            <div style="text-align: center; padding: 32px; color: var(--text-secondary); font-size: 0.9rem;">
-                No workout logs recorded yet. Tap "+ Log Workout" to record your first session!
-            </div>
-        {% endif %}
-    </div>
-
 </div>
 
-<!-- MODAL 1: Log Daily Vitals (Weight, Water, Sleep, Energy) -->
-<div id="vitals-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 16px;">
-    <div class="glass-panel" style="background: #ffffff; max-width: 440px; width: 100%; padding: 24px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
+<!-- ========================================================================= -->
+<!-- MODAL 1: Hevy-Style Workout & Sets Logger -->
+<!-- ========================================================================= -->
+<div id="workout-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 14px; overflow-y: auto;">
+    <div class="glass-panel" style="background: #ffffff; max-width: 480px; width: 100%; max-height: 92vh; overflow-y: auto; padding: 22px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span>🏋️</span> Hevy Lifting Session
+            </h3>
+            <button type="button" onclick="closeWorkoutModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-secondary); cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+
+        <form action="{% url 'body:log_workout' %}" method="POST" id="hevyWorkoutForm" style="display: flex; flex-direction: column; gap: 14px;">
+            {% csrf_token %}
+
+            <!-- Split Selector Buttons -->
+            <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">Choose Split</label>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                    <button type="button" class="split-btn active" data-split="push" onclick="selectSplit('push')" style="padding: 10px 4px; border-radius: 10px; border: 2px solid #0c5855; background: #0c5855; color: #fff; font-weight: 800; font-size: 0.85rem; cursor: pointer; text-align: center;">
+                        Push 🔴
+                    </button>
+                    <button type="button" class="split-btn" data-split="pull" onclick="selectSplit('pull')" style="padding: 10px 4px; border-radius: 10px; border: 2px solid #e2e8f0; background: #f8fafc; color: var(--text-primary); font-weight: 800; font-size: 0.85rem; cursor: pointer; text-align: center;">
+                        Pull 🔵
+                    </button>
+                    <button type="button" class="split-btn" data-split="legs" onclick="selectSplit('legs')" style="padding: 10px 4px; border-radius: 10px; border: 2px solid #e2e8f0; background: #f8fafc; color: var(--text-primary); font-weight: 800; font-size: 0.85rem; cursor: pointer; text-align: center;">
+                        Legs 🟢
+                    </button>
+                    <button type="button" class="split-btn" data-split="core" onclick="selectSplit('core')" style="padding: 10px 4px; border-radius: 10px; border: 2px solid #e2e8f0; background: #f8fafc; color: var(--text-primary); font-weight: 800; font-size: 0.85rem; cursor: pointer; text-align: center;">
+                        Core 🟡
+                    </button>
+                </div>
+                <input type="hidden" name="split_type" id="selected_split_input" value="push">
+            </div>
+
+            <!-- Workout Title -->
+            <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Session Name</label>
+                <input type="text" name="title" id="workoutTitleInput" value="Push Day (Chest, Shoulders, Triceps)" required style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc;">
+            </div>
+
+            <!-- Hevy Sets Builder -->
+            <div style="background: #f8fafc; border: 1px solid rgba(12, 88, 85, 0.15); border-radius: 14px; padding: 14px;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+                    <span style="font-size: 0.82rem; font-weight: 800; color: var(--text-primary); text-transform: uppercase;">Exercise Sets</span>
+                    <button type="button" onclick="addSetRow()" style="background: #0c5855; color: #fff; border: none; padding: 4px 10px; border-radius: 8px; font-size: 0.78rem; font-weight: 700; cursor: pointer;">
+                        + Add Set
+                    </button>
+                </div>
+
+                <!-- Column Labels -->
+                <div style="display: grid; grid-template-columns: 2fr 1fr 1fr 28px; gap: 6px; font-size: 0.72rem; font-weight: 800; color: var(--text-secondary); text-transform: uppercase; margin-bottom: 4px; padding: 0 4px;">
+                    <span>Exercise</span>
+                    <span>Weight (kg)</span>
+                    <span>Reps</span>
+                    <span></span>
+                </div>
+
+                <!-- Sets Container -->
+                <div id="setsContainer" style="display: flex; flex-direction: column; gap: 8px;">
+                    <!-- Set 1 -->
+                    <div class="set-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 28px; gap: 6px; align-items: center;">
+                        <input type="text" name="exercise_name" list="exerciseSuggestions" value="Barbell Bench Press" required placeholder="Exercise" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; background: #fff;">
+                        <input type="number" step="0.5" name="set_weight" value="60" placeholder="kg" style="width: 100%; padding: 8px 6px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; font-weight: 700; background: #fff; text-align: center;">
+                        <input type="number" name="set_reps" value="10" placeholder="Reps" style="width: 100%; padding: 8px 6px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; font-weight: 700; background: #fff; text-align: center;">
+                        <button type="button" onclick="this.closest('.set-row').remove()" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; text-align: center;">&times;</button>
+                    </div>
+
+                    <!-- Set 2 -->
+                    <div class="set-row" style="display: grid; grid-template-columns: 2fr 1fr 1fr 28px; gap: 6px; align-items: center;">
+                        <input type="text" name="exercise_name" list="exerciseSuggestions" value="Incline Dumbbell Press" required placeholder="Exercise" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; background: #fff;">
+                        <input type="number" step="0.5" name="set_weight" value="26" placeholder="kg" style="width: 100%; padding: 8px 6px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; font-weight: 700; background: #fff; text-align: center;">
+                        <input type="number" name="set_reps" value="10" placeholder="Reps" style="width: 100%; padding: 8px 6px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; font-weight: 700; background: #fff; text-align: center;">
+                        <button type="button" onclick="this.closest('.set-row').remove()" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; text-align: center;">&times;</button>
+                    </div>
+                </div>
+
+                <datalist id="exerciseSuggestions">
+                    <option value="Barbell Bench Press">
+                    <option value="Incline Dumbbell Press">
+                    <option value="Overhead Shoulder Press">
+                    <option value="Dips / Chest Dips">
+                    <option value="Lat Pulldown">
+                    <option value="Barbell Deadlift">
+                    <option value="Pull-Ups / Chin-Ups">
+                    <option value="Barbell Bent-Over Row">
+                    <option value="Barbell Back Squat">
+                    <option value="Leg Press">
+                    <option value="Romanian Deadlift (RDL)">
+                    <option value="Hanging Leg Raises">
+                    <option value="Plank Holds">
+                </datalist>
+            </div>
+
+            <!-- Duration & Notes -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Duration (Mins)</label>
+                    <input type="number" name="duration_mins" value="50" min="5" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Intensity</label>
+                    <select name="intensity" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.88rem; background: #f8fafc;">
+                        <option value="high" selected>High Intensity</option>
+                        <option value="moderate">Moderate</option>
+                        <option value="max">Max Effort / PR 🔥</option>
+                    </select>
+                </div>
+            </div>
+
+            <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Session Notes / PRs</label>
+                <input type="text" name="notes" placeholder="e.g. Hit clean PR on set 2, felt great energy" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.92rem; background: #f8fafc;">
+            </div>
+
+            <button type="submit" style="margin-top: 6px; padding: 14px; border-radius: 14px; background: #0c5855; color: #fff; font-size: 1.05rem; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(12, 88, 85, 0.3);">
+                Save Lifting Session 🔥
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 2: NHS-Style Food & Calorie Logger -->
+<!-- ========================================================================= -->
+<div id="food-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 14px;">
+    <div class="glass-panel" style="background: #ffffff; max-width: 440px; width: 100%; padding: 22px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
+            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
+                <span>🥗</span> Log Food &amp; Calories
+            </h3>
+            <button type="button" onclick="closeFoodModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-secondary); cursor: pointer; line-height: 1;">&times;</button>
+        </div>
+
+        <form action="{% url 'body:log_food' %}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
+            {% csrf_token %}
+
+            <!-- Meal Type Selector -->
+            <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 6px; color: var(--text-secondary);">Meal</label>
+                <div style="display: grid; grid-template-columns: repeat(4, 1fr); gap: 6px;">
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="meal_type" value="breakfast" style="display: none;" onchange="updateMealStyle(this)">
+                        <div class="meal-radio-label" style="padding: 10px 4px; text-align: center; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 0.82rem; font-weight: 700;">🌅 Morn</div>
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="meal_type" value="lunch" checked style="display: none;" onchange="updateMealStyle(this)">
+                        <div class="meal-radio-label active-meal" style="padding: 10px 4px; text-align: center; border-radius: 10px; border: 2px solid #16a34a; background: #16a34a; color: #fff; font-size: 0.82rem; font-weight: 700;">☀️ Lunch</div>
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="meal_type" value="dinner" style="display: none;" onchange="updateMealStyle(this)">
+                        <div class="meal-radio-label" style="padding: 10px 4px; text-align: center; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 0.82rem; font-weight: 700;">🌙 Dinner</div>
+                    </label>
+                    <label style="cursor: pointer;">
+                        <input type="radio" name="meal_type" value="snack" style="display: none;" onchange="updateMealStyle(this)">
+                        <div class="meal-radio-label" style="padding: 10px 4px; text-align: center; border-radius: 10px; border: 2px solid #e2e8f0; font-size: 0.82rem; font-weight: 700;">🍎 Snack</div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Food Name -->
+            <div>
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">What did you eat?</label>
+                <input type="text" name="food_name" required placeholder="e.g. Scrambled eggs &amp; toast, Chicken salad" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc;">
+            </div>
+
+            <!-- Calories and Protein -->
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+                <div>
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Calories (kcal)</label>
+                    <input type="number" name="calories" required placeholder="450" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid rgba(22, 163, 74, 0.3); font-size: 1.25rem; font-weight: 800; font-family: 'Outfit', sans-serif; background: #f8fafc; text-align: center;">
+                </div>
+                <div>
+                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Protein (g) <span style="font-weight: 400; opacity: 0.7;">opt</span></label>
+                    <input type="number" step="0.5" name="protein_g" placeholder="30" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 1.25rem; font-weight: 800; font-family: 'Outfit', sans-serif; background: #f8fafc; text-align: center;">
+                </div>
+            </div>
+
+            <!-- NHS Healthy Choice Tag -->
+            <div style="display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: #f0fdf4; border-radius: 10px; border: 1px solid #bbf7d0;">
+                <input type="checkbox" name="is_healthy_choice" id="is_healthy_choice" checked style="width: 18px; height: 18px; accent-color: #16a34a; cursor: pointer;">
+                <label for="is_healthy_choice" style="font-size: 0.84rem; font-weight: 700; color: #166534; cursor: pointer;">
+                    🥦 Healthy Choice (Includes veggies, fruits, or whole food)
+                </label>
+            </div>
+
+            <button type="submit" style="margin-top: 6px; padding: 14px; border-radius: 14px; background: #16a34a; color: #fff; font-size: 1.05rem; font-weight: 800; border: none; cursor: pointer; box-shadow: 0 4px 16px rgba(22, 163, 74, 0.35);">
+                Save Meal (+ Calories)
+            </button>
+        </form>
+    </div>
+</div>
+
+<!-- ========================================================================= -->
+<!-- MODAL 3: Log Daily Vitals (Weight, Water, Sleep) -->
+<!-- ========================================================================= -->
+<div id="vitals-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 14px;">
+    <div class="glass-panel" style="background: #ffffff; max-width: 440px; width: 100%; padding: 22px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 14px;">
             <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
                 <span>⚖️</span> Log Daily Vitals
             </h3>
@@ -183,29 +469,29 @@
         <form action="{% url 'body:log_metric' %}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
             {% csrf_token %}
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
                 <div>
                     <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Weight (kg)</label>
-                    <input type="number" step="0.05" name="weight_kg" placeholder="e.g. 74.5" value="{{ today_metric.weight_kg|default:'' }}" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid rgba(12, 88, 85, 0.2); font-size: 1.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; background: #f8fafc;">
+                    <input type="number" step="0.05" name="weight_kg" placeholder="e.g. 74.5" value="{{ today_metric.weight_kg|default:'' }}" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid rgba(12, 88, 85, 0.2); font-size: 1.25rem; font-weight: 800; font-family: 'Outfit', sans-serif; background: #f8fafc; text-align: center;">
                 </div>
                 <div>
                     <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Waist (cm)</label>
-                    <input type="number" step="0.1" name="waist_cm" placeholder="e.g. 82.0" value="{{ today_metric.waist_cm|default:'' }}" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid rgba(12, 88, 85, 0.2); font-size: 1.2rem; font-weight: 800; font-family: 'Outfit', sans-serif; background: #f8fafc;">
+                    <input type="number" step="0.1" name="waist_cm" placeholder="e.g. 82.0" value="{{ today_metric.waist_cm|default:'' }}" style="width: 100%; padding: 12px 14px; border-radius: 12px; border: 2px solid rgba(12, 88, 85, 0.2); font-size: 1.25rem; font-weight: 800; font-family: 'Outfit', sans-serif; background: #f8fafc; text-align: center;">
                 </div>
             </div>
 
-            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px;">
+            <div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px;">
                 <div>
                     <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Water (L)</label>
-                    <input type="number" step="0.1" name="water_liters" placeholder="2.5" value="{{ today_metric.water_liters|default:'' }}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc;">
+                    <input type="number" step="0.1" name="water_liters" placeholder="2.5" value="{{ today_metric.water_liters|default:'' }}" style="width: 100%; padding: 10px 8px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc; text-align: center;">
                 </div>
                 <div>
                     <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Sleep (Hrs)</label>
-                    <input type="number" step="0.5" name="sleep_hours" placeholder="7.5" value="{{ today_metric.sleep_hours|default:'' }}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc;">
+                    <input type="number" step="0.5" name="sleep_hours" placeholder="7.5" value="{{ today_metric.sleep_hours|default:'' }}" style="width: 100%; padding: 10px 8px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc; text-align: center;">
                 </div>
                 <div>
                     <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Energy</label>
-                    <select name="energy_level" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.88rem; background: #f8fafc;">
+                    <select name="energy_level" style="width: 100%; padding: 10px 8px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.88rem; background: #f8fafc;">
                         <option value="5" {% if today_metric.energy_level == 5 %}selected{% endif %}>5 - Peak</option>
                         <option value="4" {% if today_metric.energy_level == 4 %}selected{% endif %}>4 - High</option>
                         <option value="3" {% if not today_metric or today_metric.energy_level == 3 %}selected{% endif %}>3 - Normal</option>
@@ -216,87 +502,22 @@
             </div>
 
             <div>
-                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Daily Physical Note</label>
-                <input type="text" name="notes" placeholder="e.g. Solid recovery, legs feel light" value="{{ today_metric.notes|default:'' }}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.92rem; background: #f8fafc;">
+                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Physical Note</label>
+                <input type="text" name="notes" placeholder="e.g. Good recovery, feeling strong" value="{{ today_metric.notes|default:'' }}" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.92rem; background: #f8fafc;">
             </div>
 
-            <button type="submit" style="margin-top: 6px; padding: 13px; border-radius: 12px; background: #0c5855; color: #fff; font-size: 1rem; font-weight: 700; border: none; cursor: pointer;">
+            <button type="submit" style="margin-top: 6px; padding: 14px; border-radius: 14px; background: #0c5855; color: #fff; font-size: 1.05rem; font-weight: 800; border: none; cursor: pointer;">
                 Save Vitals
             </button>
         </form>
     </div>
 </div>
 
-<!-- MODAL 2: Log Workout / Training -->
-<div id="workout-modal" style="display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); backdrop-filter: blur(5px); z-index: 3000; align-items: center; justify-content: center; padding: 16px;">
-    <div class="glass-panel" style="background: #ffffff; max-width: 440px; width: 100%; padding: 24px; border-radius: 20px; box-shadow: 0 20px 50px rgba(0,0,0,0.3);">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-            <h3 style="font-size: 1.25rem; font-weight: 800; color: var(--text-primary); margin: 0; display: flex; align-items: center; gap: 8px;">
-                <span>🏃‍♂️</span> Record Workout
-            </h3>
-            <button type="button" onclick="closeWorkoutModal()" style="background: none; border: none; font-size: 1.4rem; color: var(--text-secondary); cursor: pointer; line-height: 1;">&times;</button>
-        </div>
-
-        <form action="{% url 'body:log_workout' %}" method="POST" style="display: flex; flex-direction: column; gap: 14px;">
-            {% csrf_token %}
-            <div>
-                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Workout Name / Focus</label>
-                <input type="text" name="title" required placeholder="e.g. Chest &amp; Triceps, 5k Run, HIIT" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc;">
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Type</label>
-                    <select name="workout_type" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.88rem; background: #f8fafc;">
-                        {% for key, val in workout_types %}
-                            <option value="{{ key }}">{{ val }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Intensity</label>
-                    <select name="intensity" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.88rem; background: #f8fafc;">
-                        {% for key, val in intensity_choices %}
-                            <option value="{{ key }}" {% if key == 'moderate' %}selected{% endif %}>{{ val }}</option>
-                        {% endfor %}
-                    </select>
-                </div>
-            </div>
-
-            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
-                <div>
-                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Duration (Mins)</label>
-                    <input type="number" name="duration_mins" value="45" min="5" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc;">
-                </div>
-                <div>
-                    <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Calories (est.)</label>
-                    <input type="number" name="calories_burned" placeholder="Optional" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.95rem; background: #f8fafc;">
-                </div>
-            </div>
-
-            <div>
-                <label style="display: block; font-size: 0.8rem; font-weight: 700; margin-bottom: 5px; color: var(--text-secondary);">Session Notes / Lifts</label>
-                <input type="text" name="notes" placeholder="e.g. Bench 80kg 3x8, felt strong" style="width: 100%; padding: 10px 12px; border-radius: 10px; border: 1px solid rgba(12, 88, 85, 0.2); font-size: 0.92rem; background: #f8fafc;">
-            </div>
-
-            <button type="submit" style="margin-top: 6px; padding: 13px; border-radius: 12px; background: #2563eb; color: #fff; font-size: 1rem; font-weight: 700; border: none; cursor: pointer;">
-                Save Workout
-            </button>
-        </form>
-    </div>
-</div>
-
-<!-- Modal & Chart JS -->
+<!-- ========================================================================= -->
+<!-- JavaScript Logic -->
+<!-- ========================================================================= -->
 <script>
-function openVitalsModal() {
-    const m = document.getElementById('vitals-modal');
-    if (m) m.style.display = 'flex';
-}
-function closeVitalsModal() {
-    const m = document.getElementById('vitals-modal');
-    if (m) m.style.display = 'none';
-}
-
+// Modal Open/Close handlers
 function openWorkoutModal() {
     const m = document.getElementById('workout-modal');
     if (m) m.style.display = 'flex';
@@ -306,14 +527,112 @@ function closeWorkoutModal() {
     if (m) m.style.display = 'none';
 }
 
-// Close modals when clicking backdrop
+function openFoodModal() {
+    const m = document.getElementById('food-modal');
+    if (m) m.style.display = 'flex';
+}
+function closeFoodModal() {
+    const m = document.getElementById('food-modal');
+    if (m) m.style.display = 'none';
+}
+
+function openVitalsModal() {
+    const m = document.getElementById('vitals-modal');
+    if (m) m.style.display = 'flex';
+}
+function closeVitalsModal() {
+    const m = document.getElementById('vitals-modal');
+    if (m) m.style.display = 'none';
+}
+
+// Close modals on backdrop tap
 window.addEventListener('click', (e) => {
-    const vModal = document.getElementById('vitals-modal');
-    const wModal = document.getElementById('workout-modal');
-    if (e.target === vModal) closeVitalsModal();
-    if (e.target === wModal) closeWorkoutModal();
+    if (e.target.id === 'workout-modal') closeWorkoutModal();
+    if (e.target.id === 'food-modal') closeFoodModal();
+    if (e.target.id === 'vitals-modal') closeVitalsModal();
 });
 
+// Hevy Split Selection Handler
+const SPLIT_TITLES = {
+    'push': 'Push Day (Chest, Shoulders, Triceps)',
+    'pull': 'Pull Day (Back, Biceps, Rear Delts)',
+    'legs': 'Legs Day (Quads, Hamstrings, Calves)',
+    'core': 'Core & Abs Session'
+};
+
+const SPLIT_EXERCISES = {
+    'push': ['Barbell Bench Press', 'Incline Dumbbell Press', 'Overhead Shoulder Press', 'Dips / Chest Dips', 'Tricep Rope Pushdown'],
+    'pull': ['Lat Pulldown', 'Barbell Deadlift', 'Pull-Ups / Chin-Ups', 'Barbell Bent-Over Row', 'Bicep Barbell Curl'],
+    'legs': ['Barbell Back Squat', 'Leg Press', 'Romanian Deadlift (RDL)', 'Bulgarian Split Squat', 'Standing Calf Raises'],
+    'core': ['Hanging Leg Raises', 'Plank Holds', 'Ab Wheel Rollout', 'Cable Woodchoppers', 'Russian Twists']
+};
+
+function selectSplit(splitKey) {
+    document.querySelectorAll('.split-btn').forEach(btn => {
+        if (btn.dataset.split === splitKey) {
+            btn.style.border = '2px solid #0c5855';
+            btn.style.background = '#0c5855';
+            btn.style.color = '#fff';
+        } else {
+            btn.style.border = '2px solid #e2e8f0';
+            btn.style.background = '#f8fafc';
+            btn.style.color = 'var(--text-primary)';
+        }
+    });
+
+    document.getElementById('selected_split_input').value = splitKey;
+    document.getElementById('workoutTitleInput').value = SPLIT_TITLES[splitKey] || 'Workout Session';
+
+    // Refresh default sets based on split
+    const container = document.getElementById('setsContainer');
+    if (container) {
+        container.innerHTML = '';
+        const defaultExs = SPLIT_EXERCISES[splitKey] || ['Exercise 1', 'Exercise 2'];
+        defaultExs.slice(0, 3).forEach((ex, idx) => {
+            const defaultWeight = splitKey === 'legs' ? 80 : (splitKey === 'pull' ? 50 : (splitKey === 'push' ? 60 : 0));
+            addSetRowWithData(ex, defaultWeight, 10);
+        });
+    }
+}
+
+function addSetRowWithData(exerciseName = '', weight = 60, reps = 10) {
+    const container = document.getElementById('setsContainer');
+    if (!container) return;
+
+    const row = document.createElement('div');
+    row.className = 'set-row';
+    row.style.cssText = 'display: grid; grid-template-columns: 2fr 1fr 1fr 28px; gap: 6px; align-items: center;';
+    row.innerHTML = `
+        <input type="text" name="exercise_name" list="exerciseSuggestions" value="${exerciseName}" required placeholder="Exercise" style="width: 100%; padding: 8px 10px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; background: #fff;">
+        <input type="number" step="0.5" name="set_weight" value="${weight}" placeholder="kg" style="width: 100%; padding: 8px 6px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; font-weight: 700; background: #fff; text-align: center;">
+        <input type="number" name="set_reps" value="${reps}" placeholder="Reps" style="width: 100%; padding: 8px 6px; border-radius: 8px; border: 1px solid #cbd5e1; font-size: 0.88rem; font-weight: 700; background: #fff; text-align: center;">
+        <button type="button" onclick="this.closest('.set-row').remove()" style="background: none; border: none; color: #ef4444; font-size: 1.1rem; cursor: pointer; text-align: center;">&times;</button>
+    `;
+    container.appendChild(row);
+}
+
+function addSetRow() {
+    const splitKey = document.getElementById('selected_split_input')?.value || 'push';
+    const suggestions = SPLIT_EXERCISES[splitKey] || ['Bench Press'];
+    const exName = suggestions[Math.floor(Math.random() * suggestions.length)];
+    addSetRowWithData(exName, 50, 10);
+}
+
+function updateMealStyle(radio) {
+    document.querySelectorAll('.meal-radio-label').forEach(label => {
+        label.style.border = '2px solid #e2e8f0';
+        label.style.background = 'transparent';
+        label.style.color = 'var(--text-primary)';
+    });
+    const selectedLabel = radio.closest('label').querySelector('.meal-radio-label');
+    if (selectedLabel) {
+        selectedLabel.style.border = '2px solid #16a34a';
+        selectedLabel.style.background = '#16a34a';
+        selectedLabel.style.color = '#fff';
+    }
+}
+
+// Chart.js initialization
 document.addEventListener('DOMContentLoaded', () => {
     const labels = {{ chart_labels|safe }};
     const weights = {{ chart_weights|safe }};
@@ -349,17 +668,13 @@ document.addEventListener('DOMContentLoaded', () => {
                     }
                 },
                 scales: {
-                    x: {
-                        grid: { display: false }
-                    },
-                    y: {
-                        grid: { color: 'rgba(12, 88, 85, 0.08)' }
-                    }
+                    x: { grid: { display: false } },
+                    y: { grid: { color: 'rgba(12, 88, 85, 0.08)' } }
                 }
             }
         });
     } else if (ctx) {
-        ctx.parentElement.innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 0.9rem;">Log your weight on a few days to view your progression line chart!</div>';
+        ctx.parentElement.innerHTML = '<div style="height: 100%; display: flex; align-items: center; justify-content: center; color: var(--text-secondary); font-size: 0.88rem;">Log your morning weight on a few days to view your progression trend!</div>';
     }
 });
 </script>

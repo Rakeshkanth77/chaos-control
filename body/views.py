@@ -5,7 +5,51 @@ from django.contrib import messages
 from django.utils import timezone
 from datetime import timedelta
 from decimal import Decimal, InvalidOperation
-from .models import BodyMetric, WorkoutLog
+from .models import BodyMetric, WorkoutLog, ExerciseSet, FoodLog
+
+
+DEFAULT_DAILY_CALORIE_TARGET = 2000
+
+COMMON_EXERCISES = {
+    'push': [
+        'Barbell Bench Press',
+        'Incline Dumbbell Press',
+        'Overhead Shoulder Press',
+        'Dips / Chest Dips',
+        'Cable Chest Fly',
+        'Lateral Raises',
+        'Tricep Rope Pushdown',
+        'Skull Crushers',
+    ],
+    'pull': [
+        'Barbell Deadlift',
+        'Lat Pulldown',
+        'Pull-Ups / Chin-Ups',
+        'Barbell Bent-Over Row',
+        'Seated Cable Row',
+        'Face Pulls',
+        'Bicep Barbell Curl',
+        'Hammer Curls',
+    ],
+    'legs': [
+        'Barbell Back Squat',
+        'Leg Press',
+        'Romanian Deadlift (RDL)',
+        'Bulgarian Split Squat',
+        'Leg Extension',
+        'Lying Leg Curl',
+        'Standing Calf Raises',
+        'Walking Lunges',
+    ],
+    'core': [
+        'Hanging Leg Raises',
+        'Cable Woodchoppers',
+        'Plank Holds',
+        'Ab Wheel Rollout',
+        'Russian Twists',
+        'Decline Sit-Ups',
+    ],
+}
 
 
 @login_required
@@ -13,24 +57,33 @@ def body_dashboard(request):
     user = request.user
     today = timezone.localdate()
 
-    # Get or None today's metric
+    # 1. Vitals & Weight progression
     today_metric = BodyMetric.objects.filter(user=user, date=today).first()
     latest_metric = BodyMetric.objects.filter(user=user, weight_kg__isnull=False).first()
 
-    # Metrics history (last 30 days for trend)
     thirty_days_ago = today - timedelta(days=30)
     recent_metrics = BodyMetric.objects.filter(user=user, date__gte=thirty_days_ago).order_by('date')
-
-    # Chart data (labels and weights)
     chart_labels = [m.date.strftime('%b %d') for m in recent_metrics if m.weight_kg is not None]
     chart_weights = [float(m.weight_kg) for m in recent_metrics if m.weight_kg is not None]
 
-    # Workouts
+    # 2. Workout activity & Lifting stats
     seven_days_ago = today - timedelta(days=7)
-    recent_workouts = WorkoutLog.objects.filter(user=user).order_by('-date', '-created_at')[:15]
+    recent_workouts = WorkoutLog.objects.filter(user=user).prefetch_related('exercise_sets').order_by('-date', '-created_at')[:15]
     week_workouts = WorkoutLog.objects.filter(user=user, date__gte=seven_days_ago)
     week_count = week_workouts.count()
     week_minutes = sum(w.duration_mins for w in week_workouts)
+
+    today_workouts = WorkoutLog.objects.filter(user=user, date=today).prefetch_related('exercise_sets')
+    today_sets_count = sum(w.exercise_sets.count() for w in today_workouts)
+    today_volume_kg = sum(w.total_volume_kg for w in today_workouts)
+
+    # 3. NHS-Style Food Intake & Calories
+    today_foods = FoodLog.objects.filter(user=user, date=today).order_by('created_at')
+    total_calories = sum(f.calories for f in today_foods)
+    calorie_target = DEFAULT_DAILY_CALORIE_TARGET
+    calories_left = max(0, calorie_target - total_calories)
+    calories_pct = min(100, int((total_calories / calorie_target) * 100)) if calorie_target else 0
+    healthy_items_count = today_foods.filter(is_healthy_choice=True).count()
 
     context = {
         'active_workspace': 'body',
@@ -40,10 +93,22 @@ def body_dashboard(request):
         'recent_workouts': recent_workouts,
         'week_count': week_count,
         'week_minutes': week_minutes,
+        'today_workouts': today_workouts,
+        'today_sets_count': today_sets_count,
+        'today_volume_kg': today_volume_kg,
         'chart_labels': chart_labels,
         'chart_weights': chart_weights,
         'workout_types': WorkoutLog.WORKOUT_TYPES,
+        'split_choices': WorkoutLog.SPLIT_CHOICES,
         'intensity_choices': WorkoutLog.INTENSITY_CHOICES,
+        'common_exercises': COMMON_EXERCISES,
+        # Food & Nutrition
+        'today_foods': today_foods,
+        'total_calories': total_calories,
+        'calorie_target': calorie_target,
+        'calories_left': calories_left,
+        'calories_pct': calories_pct,
+        'healthy_items_count': healthy_items_count,
     }
     return render(request, 'body/index.html', context)
 
@@ -76,9 +141,9 @@ def log_metric(request):
         if notes:
             metric.notes = notes
         metric.save()
-        messages.success(request, "Daily body metrics recorded successfully!")
+        messages.success(request, "Daily vitals logged!")
     except (InvalidOperation, ValueError):
-        messages.error(request, "Invalid number provided in body metrics.")
+        messages.error(request, "Invalid number entered for vitals.")
 
     return redirect('body:dashboard')
 
@@ -86,11 +151,12 @@ def log_metric(request):
 @require_POST
 @login_required
 def log_workout(request):
+    """Hevy-inspired weight training log: support multi-set logging for Push, Pull, Legs, Core."""
     user = request.user
     today = timezone.localdate()
 
     title = request.POST.get('title', '').strip() or 'Workout Session'
-    workout_type = request.POST.get('workout_type', 'gym')
+    split_type = request.POST.get('split_type', 'push')
     duration = request.POST.get('duration_mins', '45')
     intensity = request.POST.get('intensity', 'moderate')
     calories = request.POST.get('calories_burned', '').strip()
@@ -100,17 +166,58 @@ def log_workout(request):
         duration_mins = max(1, int(duration)) if duration.isdigit() else 45
         calories_num = int(calories) if (calories and calories.isdigit()) else None
 
-        WorkoutLog.objects.create(
+        workout = WorkoutLog.objects.create(
             user=user,
             date=today,
-            workout_type=workout_type,
+            workout_type='gym',
+            split_type=split_type,
             title=title,
             duration_mins=duration_mins,
             calories_burned=calories_num,
             intensity=intensity,
             notes=notes
         )
-        messages.success(request, f"Logged workout: {title} ({duration_mins}m)")
+
+        # Parse set inputs: exercise_name[], set_weight[], set_reps[]
+        exercises = request.POST.getlist('exercise_name')
+        weights = request.POST.getlist('set_weight')
+        reps_list = request.POST.getlist('set_reps')
+
+        created_sets = 0
+        total_volume = Decimal(0)
+        for i in range(len(exercises)):
+            ex_name = exercises[i].strip() if i < len(exercises) else ''
+            if not ex_name:
+                continue
+
+            try:
+                wt_val = Decimal(weights[i].strip()) if (i < len(weights) and weights[i].strip()) else Decimal(0)
+            except (InvalidOperation, ValueError):
+                wt_val = Decimal(0)
+
+            try:
+                rep_val = int(reps_list[i].strip()) if (i < len(reps_list) and reps_list[i].strip().isdigit()) else 10
+            except ValueError:
+                rep_val = 10
+
+            ExerciseSet.objects.create(
+                workout=workout,
+                exercise_name=ex_name,
+                set_number=created_sets + 1,
+                weight_kg=wt_val,
+                reps=rep_val,
+            )
+            created_sets += 1
+            total_volume += wt_val * rep_val
+
+        if created_sets > 0:
+            messages.success(
+                request,
+                f"🔥 Beast mode! Logged {workout.title} ({created_sets} sets, {int(total_volume)} kg lifted!)"
+            )
+        else:
+            messages.success(request, f"Logged workout: {title} ({duration_mins}m)")
+
     except Exception as e:
         messages.error(request, f"Error logging workout: {e}")
 
@@ -123,4 +230,52 @@ def delete_workout(request, workout_id):
     workout = get_object_or_404(WorkoutLog, id=workout_id, user=request.user)
     workout.delete()
     messages.success(request, "Workout deleted.")
+    return redirect('body:dashboard')
+
+
+@require_POST
+@login_required
+def log_food(request):
+    """NHS-Style Food & Calorie intake log."""
+    user = request.user
+    today = timezone.localdate()
+
+    meal_type = request.POST.get('meal_type', 'lunch')
+    food_name = request.POST.get('food_name', '').strip()
+    calories = request.POST.get('calories', '').strip()
+    protein = request.POST.get('protein_g', '').strip()
+    is_healthy = request.POST.get('is_healthy_choice') == 'on'
+    notes = request.POST.get('notes', '').strip()
+
+    if not food_name:
+        messages.error(request, "Please enter what you ate.")
+        return redirect('body:dashboard')
+
+    try:
+        cal_val = max(1, int(calories)) if (calories and calories.isdigit()) else 250
+        prot_val = Decimal(protein) if protein else None
+
+        FoodLog.objects.create(
+            user=user,
+            date=today,
+            meal_type=meal_type,
+            food_name=food_name,
+            calories=cal_val,
+            protein_g=prot_val,
+            is_healthy_choice=is_healthy,
+            notes=notes
+        )
+        messages.success(request, f"🥗 Logged {food_name} (+{cal_val} kcal). Great job fueling your body!")
+    except Exception as e:
+        messages.error(request, f"Error logging food: {e}")
+
+    return redirect('body:dashboard')
+
+
+@require_POST
+@login_required
+def delete_food(request, food_id):
+    food = get_object_or_404(FoodLog, id=food_id, user=request.user)
+    food.delete()
+    messages.success(request, "Meal entry removed.")
     return redirect('body:dashboard')

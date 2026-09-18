@@ -35,6 +35,15 @@ class WorkoutLog(models.Model):
         ('rest', 'Rest & Recovery'),
     ]
 
+    SPLIT_CHOICES = [
+        ('push', 'Push (Chest, Shoulders, Triceps)'),
+        ('pull', 'Pull (Back, Biceps, Rear Delts)'),
+        ('legs', 'Legs (Quads, Hamstrings, Calves)'),
+        ('core', 'Core & Abs'),
+        ('full', 'Full Body Strength'),
+        ('other', 'Cardio / Other'),
+    ]
+
     INTENSITY_CHOICES = [
         ('low', 'Low / Recovery'),
         ('moderate', 'Moderate'),
@@ -45,7 +54,8 @@ class WorkoutLog(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='workouts')
     date = models.DateField(default=timezone.localdate)
     workout_type = models.CharField(max_length=30, choices=WORKOUT_TYPES, default='gym')
-    title = models.CharField(max_length=120, help_text="e.g. Chest & Triceps, 5k Pace Run")
+    split_type = models.CharField(max_length=20, choices=SPLIT_CHOICES, default='push', help_text="Push, Pull, Legs, Core")
+    title = models.CharField(max_length=120, help_text="e.g. Chest & Triceps, Heavy Squat Day")
     duration_mins = models.PositiveIntegerField(default=45, help_text="Duration in minutes")
     calories_burned = models.PositiveIntegerField(null=True, blank=True)
     intensity = models.CharField(max_length=20, choices=INTENSITY_CHOICES, default='moderate')
@@ -57,3 +67,52 @@ class WorkoutLog(models.Model):
 
     def __str__(self):
         return f"{self.date} - {self.title} ({self.duration_mins}m)"
+
+    @property
+    def total_volume_kg(self):
+        """Total weight volume lifted across all logged sets."""
+        return sum((s.weight_kg or 0) * (s.reps or 0) for s in self.exercise_sets.all())
+
+
+class ExerciseSet(models.Model):
+    """Hevy-style exercise set tracking (Exercise variation, Set #, kg, Reps)."""
+    workout = models.ForeignKey(WorkoutLog, on_delete=models.CASCADE, related_name='exercise_sets')
+    exercise_name = models.CharField(max_length=100, help_text="e.g. Barbell Bench Press, Incline DB Press")
+    set_number = models.PositiveIntegerField(default=1)
+    weight_kg = models.DecimalField(max_digits=6, decimal_places=2, default=0.0, help_text="Weight in kg (0 for bodyweight)")
+    reps = models.PositiveIntegerField(default=10, help_text="Number of completed repetitions")
+    is_warmup = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['exercise_name', 'set_number', 'id']
+
+    def __str__(self):
+        return f"{self.exercise_name} - Set {self.set_number}: {self.weight_kg}kg x {self.reps} reps"
+
+
+class FoodLog(models.Model):
+    """NHS 12-Week inspired clean food and calorie tracker."""
+    MEAL_CHOICES = [
+        ('breakfast', 'Breakfast 🌅'),
+        ('lunch', 'Lunch ☀️'),
+        ('dinner', 'Dinner 🌙'),
+        ('snack', 'Snack / Drink 🍎'),
+    ]
+
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='food_logs')
+    date = models.DateField(default=timezone.localdate)
+    meal_type = models.CharField(max_length=20, choices=MEAL_CHOICES, default='lunch')
+    food_name = models.CharField(max_length=150, help_text="e.g. Oats with banana, Chicken breast & rice")
+    calories = models.PositiveIntegerField(help_text="Estimated calories in kcal")
+    protein_g = models.DecimalField(max_digits=5, decimal_places=1, null=True, blank=True, help_text="Optional protein in grams")
+    is_healthy_choice = models.BooleanField(default=True, help_text="Includes veg/fruit/whole foods")
+    notes = models.CharField(max_length=200, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['date', 'created_at']
+
+    def __str__(self):
+        return f"{self.date} - {self.get_meal_type_display()}: {self.food_name} ({self.calories} kcal)"
+
