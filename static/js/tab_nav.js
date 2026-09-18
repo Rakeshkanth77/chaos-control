@@ -12,12 +12,12 @@ document.addEventListener('DOMContentLoaded', () => {
     function switchTab(tabId) {
         if (!tabId) return;
 
-        // Normalise tabId for Column 4 content card
-        const activeCardTab = (tabId === 'logs' || tabId === 'reflection') ? '3' : tabId;
+        // Normalise tabId for tab mapping (reflection maps to 3, old logs maps to 1)
+        const activeCardTab = (tabId === 'reflection') ? '3' : (tabId === 'logs' ? '1' : tabId);
 
         // Update active class on tab buttons
         tabButtons.forEach(btn => {
-            if (btn.dataset.mobileTab === tabId) {
+            if (btn.dataset.mobileTab === activeCardTab || btn.dataset.mobileTab === tabId) {
                 btn.classList.add('active');
                 btn.setAttribute('aria-selected', 'true');
             } else {
@@ -34,13 +34,6 @@ document.addEventListener('DOMContentLoaded', () => {
                 content.classList.remove('active-tab-content');
             }
         });
-
-        // Activate specific view inside Column 4 if switching to logs or reflection
-        if (tabId === 'logs' && window.setCol4Tab) {
-            window.setCol4Tab('logs');
-        } else if (tabId === 'reflection' && window.setCol4Tab) {
-            window.setCol4Tab('reflection');
-        }
 
         // Hide parent grid-columns on mobile if they have no active children
         document.querySelectorAll('.grid-column').forEach(col => {

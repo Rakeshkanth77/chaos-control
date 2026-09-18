@@ -723,14 +723,18 @@ class TodoReorderAndCompletionTestCase(TestCase):
         self.assertTrue(urgent_todos[2].is_completed)
         self.assertEqual(urgent_todos[2].id, self.todo1.id)
 
-    def test_merged_column4_and_action_icons_markup(self):
+    def test_column4_reflection_and_sidebar_logs_markup(self):
         response = self.client.get('/')
         html = response.content.decode('utf-8')
-        # Check Column 4 toggle and 8-to-8 timeline
-        self.assertIn('col4TabReflection', html)
-        self.assertIn('col4TabLogs', html)
-        self.assertIn('col4TimelineFeed', html)
-        self.assertIn('daily_logs_panel', html)
+        # Column 4 has dedicated reflection panel without switch
+        self.assertIn('How was your day?', html)
+        self.assertIn('reflection-input', html)
+        self.assertIn('reflection-save-status', html)
+        self.assertNotIn('col4TabLogs', html)
+        self.assertNotIn('col4TimelineFeed', html)
+        # Daily Logs is available as an option in the sidebar
+        self.assertIn('quick-log-nav-btn', html)
+        self.assertIn('Daily Logs', html)
         # Check action button SVG icons
         self.assertIn('title="Edit task"', html)
         self.assertIn('title="Task breakdown details"', html)
