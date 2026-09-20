@@ -964,9 +964,9 @@ body {
     #mobile-toggle-projects-btn {
         order: 1 !important;
     }
-    /* Hamburger: row 1, end */
+    /* Hamburger: far left */
     .hamburger-btn {
-        order: 1 !important;
+        order: -1 !important;
         flex-shrink: 0;
     }
     /* Date navigator: row 2, full width, centered */
@@ -5024,6 +5024,11 @@ body {
     }
     .hamburger-btn {
         display: flex !important;
+        order: -1 !important;
+        flex-shrink: 0 !important;
+    }
+    .workspace-breadcrumb {
+        order: 1 !important;
     }
 }
 
